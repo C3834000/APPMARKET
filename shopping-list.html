@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f8fafc" />
+  <meta name="theme-color" content="#ecfdf5" />
   <title>רשימת קניות</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="supabase-config.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
   <style>
+    :root {
+      --app-shadow: 0 4px 24px -6px rgba(15, 23, 42, 0.08), 0 2px 8px -4px rgba(15, 23, 42, 0.04);
+      --app-shadow-lg: 0 20px 40px -12px rgba(15, 23, 42, 0.12);
+      --surface-glass: rgba(255, 255, 255, 0.78);
+      --ring-focus: 0 0 0 3px rgba(45, 212, 191, 0.35);
+    }
+
     .app-shell {
       padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
       padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
@@ -22,10 +29,11 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background-color: rgba(249, 250, 251, 0.92);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+      box-shadow: 0 4px 20px -8px rgba(15, 23, 42, 0.07);
     }
 
     /* מתחת ל־sticky-header; הערך המדויק מגיע מ־--sticky-search-top (גובה הכותרת) */
@@ -33,15 +41,25 @@
       position: sticky;
       top: var(--sticky-search-top, 220px);
       z-index: 45;
-      background-color: #f9fafb;
-      padding: 10px 8px;
-      margin-bottom: 12px;
-      border-radius: 0 0 10px 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 12px 12px;
+      margin-bottom: 14px;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: var(--app-shadow);
+    }
+
+    .item-row {
+      border-color: rgba(226, 232, 240, 0.95) !important;
+      background: rgba(255, 255, 255, 0.65);
+      transition: background 0.15s ease, box-shadow 0.15s ease;
     }
 
     .item-row:hover {
-      background-color: #f9fafb;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 12px -4px rgba(15, 23, 42, 0.08);
     }
 
     .quantity-controls {
@@ -63,11 +81,19 @@
     }
 
     .price-input {
-      width: 70px;
-      padding: 4px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      width: 72px;
+      padding: 6px 6px;
+      border: 1px solid rgba(203, 213, 225, 0.95);
+      border-radius: 0.5rem;
       text-align: center;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .price-input:focus {
+      outline: none;
+      border-color: rgba(45, 212, 191, 0.7);
+      box-shadow: var(--ring-focus);
     }
 
     .category-content {
@@ -86,12 +112,11 @@
       top: 100%;
       left: 0;
       right: 0;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      margin-top: 4px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 0.75rem;
+      box-shadow: var(--app-shadow-lg);
       z-index: 40;
       max-height: 200px;
       overflow-y: auto;
@@ -103,11 +128,13 @@
     }
 
     .missing {
-      background-color: #ffe4e6;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+      border-color: rgba(251, 113, 133, 0.35) !important;
     }
 
     .purchased {
-      background-color: #d1fae5;
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border-color: rgba(52, 211, 153, 0.45) !important;
     }
 
     .shop-row-compact {
@@ -124,19 +151,19 @@
 
     .mode-btn {
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 12px;
       font-weight: 600;
-      transition: all 0.2s;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       flex: 1;
-      min-height: 44px;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+      min-height: 46px;
+      box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.07);
     }
 
     .mode-btn:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
     .mode-btn svg {
@@ -177,8 +204,13 @@
       background-color: #34d399;
     }
 
+    .category-header {
+      border-radius: 0.75rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
     .category-header:hover {
-      filter: brightness(0.97);
+      filter: brightness(0.98);
     }
 
     .category-header .delete-category {
@@ -207,7 +239,9 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
 
     .modal.open {
@@ -222,26 +256,51 @@
     }
 
     .modal-content {
-      background-color: white;
+      position: relative;
+      background: linear-gradient(165deg, #ffffff 0%, #fafafa 100%);
       margin: 0 auto;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 1.35rem 1.25rem 1.25rem;
+      padding-top: 2.85rem;
+      border-radius: 1.25rem;
       width: min(400px, calc(100vw - 24px));
       max-width: 400px;
-      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: var(--app-shadow-lg);
+    }
+
+    .modal-content::before {
+      content: "";
+      position: absolute;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
+      top: 0;
+      height: 4px;
+      border-radius: 1.25rem 1.25rem 0 0;
+      background: linear-gradient(90deg, #0d9488, #14b8a6, #f59e0b);
+      opacity: 0.85;
     }
 
     .close-modal {
-      color: #aaa;
-      float: left;
-      font-size: 28px;
-      font-weight: bold;
+      position: absolute;
+      inset-inline-start: 0.65rem;
+      top: 0.65rem;
+      color: #94a3b8;
+      font-size: 1.65rem;
+      font-weight: 300;
       cursor: pointer;
       line-height: 1;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      transition: background 0.15s ease, color 0.15s ease;
     }
 
     .close-modal:hover {
-      color: black;
+      color: #0f172a;
+      background: rgba(241, 245, 249, 0.95);
     }
 
     .dynamic-cat .category-header {
@@ -252,30 +311,36 @@
       position: fixed;
       bottom: max(16px, env(safe-area-inset-bottom));
       left: max(16px, env(safe-area-inset-left));
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       border-radius: 9999px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      background: linear-gradient(145deg, #0d9488 0%, #2563eb 55%, #7c3aed 100%);
       color: white;
       font-size: 26px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+      box-shadow: 0 12px 28px -6px rgba(13, 148, 136, 0.55), 0 4px 12px rgba(37, 99, 235, 0.25);
       z-index: 75;
       cursor: pointer;
-      border: none;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .fab-chat:active {
+      transform: scale(0.96);
     }
 
     .chat-popup {
       position: fixed;
-      bottom: calc(84px + env(safe-area-inset-bottom));
+      bottom: calc(86px + env(safe-area-inset-bottom));
       left: max(12px, env(safe-area-inset-left));
-      width: min(100vw - 24px, 380px);
+      width: min(100vw - 24px, 384px);
       max-height: min(70vh, 520px);
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 1.15rem;
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: var(--app-shadow-lg);
       z-index: 74;
       display: none;
       flex-direction: column;
@@ -289,34 +354,38 @@
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
-      background: #f3f4f6;
+      padding: 14px;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(45, 212, 191, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 80% 70%, rgba(129, 140, 248, 0.07) 0%, transparent 40%),
+        #f1f5f9;
       min-height: 160px;
       max-height: 360px;
     }
 
     .bubble {
       max-width: 92%;
-      padding: 8px 12px;
-      border-radius: 12px;
-      margin-bottom: 8px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      margin-bottom: 10px;
       font-size: 14px;
-      line-height: 1.35;
+      line-height: 1.4;
       word-break: break-word;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .bubble.me {
       margin-right: 0;
       margin-left: auto;
-      background: #dbeafe;
-      border: 1px solid #bfdbfe;
+      background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+      border: 1px solid rgba(147, 197, 253, 0.65);
     }
 
     .bubble.other {
       margin-right: auto;
       margin-left: 0;
-      background: white;
-      border: 1px solid #e5e7eb;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(226, 232, 240, 0.95);
     }
 
     .bubble-meta {
@@ -324,18 +393,32 @@
       color: #6b7280;
       margin-bottom: 4px;
     }
+
+    /* צ'אט: קלט 16px נועד למנוע זום אוטומטי ב־iOS; בורר קטגוריה ברוחב מלא */
+    .chat-footer-input {
+      font-size: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .chat-footer-input {
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
-<body class="app-root min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 via-gray-50 to-amber-50/35">
+<body class="app-root min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-teal-50/30 to-amber-50/40">
   <div class="max-w-3xl mx-auto app-shell">
     <div class="sticky-header">
-      <header class="px-4 pt-4 pb-2 flex flex-col gap-2">
-        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-1">
-          <h1 class="text-xl sm:text-2xl font-bold text-gray-800 text-center">רשימת קניות לשבת</h1>
-          <span id="syncStatusDot" class="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[140px] truncate text-center" title="">מקומי</span>
+      <header class="px-4 pt-5 pb-3 flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 px-1">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 text-center tracking-tight">רשימת קניות לשבת</h1>
+          <button type="button" id="syncSettingsBtn" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-full border border-slate-200/90 bg-white/95 text-slate-700 font-medium shadow-sm hover:bg-teal-50/90 hover:border-teal-200/80 hover:text-teal-900 transition-colors shrink-0">
+            שיתוף
+          </button>
+          <span id="syncStatusDot" class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 ring-1 ring-white/80 shrink-0 max-w-[140px] truncate text-center shadow-sm" title="">מקומי</span>
         </div>
         <div class="flex items-center justify-center gap-2 flex-wrap px-1">
-          <button type="button" id="googleSignInHeader" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 inline-flex items-center gap-2">
+          <button type="button" id="googleSignInHeader" class="text-sm px-4 py-2 rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-300 inline-flex items-center gap-2 transition-colors">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
             התחבר עם Google
           </button>
@@ -347,36 +430,30 @@
         </div>
       </header>
 
-      <div class="summary-bar bg-white p-3 sm:p-4 shadow flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-        <div class="flex items-center text-base sm:text-lg font-medium">
-          <span id="totalItems" class="text-blue-600">0 פריטים</span>
-          <span id="itemsStatus" class="text-gray-500 text-sm mr-2">(0 סומנו)</span>
+      <div class="summary-bar mx-3 mb-2 mt-0 rounded-2xl border border-white/90 bg-white/85 backdrop-blur-md px-4 py-3.5 sm:px-5 flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center shadow-lg shadow-slate-200/40">
+        <div class="flex items-center text-base sm:text-lg font-semibold">
+          <span id="totalItems" class="text-teal-700">0 פריטים</span>
+          <span id="itemsStatus" class="text-slate-500 text-sm font-normal mr-2">(0 סומנו)</span>
         </div>
         <div class="flex items-center text-base sm:text-lg font-bold sm:ms-auto">
-          <span id="totalPrice" class="text-green-600">₪0.00</span>
+          <span id="totalPrice" class="text-emerald-600 tabular-nums">₪0.00</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-b-lg shadow">
-        <button type="button" id="prepMode" class="mode-btn bg-blue-700 text-white">
+      <div class="grid grid-cols-3 gap-2 sm:gap-3 px-3 pb-3 pt-0.5 bg-gradient-to-b from-slate-50/80 to-transparent">
+        <button type="button" id="prepMode" class="mode-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-md shadow-teal-900/15 ring-1 ring-white/25">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
           <span>עריכה</span>
         </button>
-        <button type="button" id="shopMode" class="mode-btn bg-white text-green-600 border border-green-600">
+        <button type="button" id="shopMode" class="mode-btn bg-white text-emerald-700 border-2 border-emerald-500/90 hover:bg-emerald-50/80">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <span>קנייה</span>
         </button>
-        <button type="button" id="listsMode" class="mode-btn bg-white text-violet-700 border border-violet-500">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          <span>רשימות</span>
-        </button>
-        <button type="button" id="resetBtn" class="mode-btn bg-white text-red-600 border border-red-600">
+        <button type="button" id="resetBtn" class="mode-btn bg-white text-rose-700 border-2 border-rose-400/90 hover:bg-rose-50/90">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -389,14 +466,14 @@
       <!-- Prep Mode -->
       <div id="prepModeContainer" class="prep-mode-container">
         <div class="sticky-search">
-          <div class="flex flex-col sm:flex-row gap-2">
+          <div class="flex flex-col sm:flex-row gap-2.5">
             <div class="relative w-full sm:w-1/3">
-              <input type="text" id="searchInput" placeholder="חפש מוצר..." class="w-full border p-2 rounded" autocomplete="off" />
+              <input type="text" id="searchInput" placeholder="חפש מוצר..." class="w-full rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2.5 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" autocomplete="off" />
               <div id="searchResults" class="search-results hidden"></div>
             </div>
-            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2">
-              <input type="text" id="addItemInput" placeholder="הוסף פריט חדש..." class="flex-1 border p-2 rounded" />
-              <select id="categorySelect" class="border p-2 rounded min-w-0">
+            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2.5">
+              <input type="text" id="addItemInput" placeholder="הוסף פריט חדש..." class="flex-1 rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2.5 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" />
+              <select id="categorySelect" class="min-w-0 rounded-xl border border-slate-200/90 bg-white/95 px-2 py-2.5 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25">
                 <option value="vegetables">🥬 ירקות ופירות</option>
                 <option value="bakery">🥐 מוצרי מאפה</option>
                 <option value="baking">🧁 מוצרי אפייה</option>
@@ -410,19 +487,19 @@
                 <option value="disposable">🍽 חד־פעמי</option>
                 <option value="new">➕ קטגוריה חדשה...</option>
               </select>
-              <button type="button" id="addItemBtn" class="bg-blue-600 text-white px-3 py-2 rounded shrink-0">הוסף</button>
+              <button type="button" id="addItemBtn" class="shrink-0 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 transition hover:from-teal-500 hover:to-teal-600">הוסף</button>
             </div>
           </div>
         </div>
 
-        <div id="weeklyTemplateBar" class="mb-3 p-3 rounded-xl border border-amber-200 bg-gradient-to-l from-amber-50 to-orange-50 shadow-sm">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-            <div class="text-sm font-semibold text-amber-950">רשימה קבועה לשבת</div>
+        <div id="weeklyTemplateBar" class="mb-4 overflow-hidden rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/95 via-orange-50/90 to-amber-100/40 p-4 shadow-md shadow-amber-900/5 ring-1 ring-amber-100/90">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+            <div class="text-sm font-bold text-amber-950">רשימה קבועה לשבת</div>
             <div class="flex flex-wrap gap-2">
-              <button type="button" id="saveTemplateBtn" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700">
+              <button type="button" id="saveTemplateBtn" class="rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-amber-900/15 hover:from-amber-400 hover:to-orange-500 sm:text-sm">
                 שמור תבנית מהרשימה
               </button>
-              <button type="button" id="loadTemplateBtn" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg border-2 border-amber-600 text-amber-900 bg-white font-medium hover:bg-amber-50">
+              <button type="button" id="loadTemplateBtn" class="rounded-xl border-2 border-amber-600/90 bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow-sm hover:bg-amber-50 sm:text-sm">
                 טען תבנית לרשימה
               </button>
             </div>
@@ -436,131 +513,119 @@
       <!-- Shop Mode -->
       <div id="shopModeContainer" class="shop-mode-container hidden">
         <div class="sticky-search">
-          <div class="flex flex-col sm:flex-row gap-2">
+          <div class="flex flex-col sm:flex-row gap-2.5">
             <div class="relative w-full sm:w-1/3">
-              <input type="text" id="shopSearchInput" placeholder="חפש מוצר..." class="w-full border p-2 rounded" autocomplete="off" />
+              <input type="text" id="shopSearchInput" placeholder="חפש מוצר..." class="w-full rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2.5 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25" autocomplete="off" />
               <div id="shopSearchResults" class="search-results hidden"></div>
             </div>
-            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2">
-              <input type="text" id="shopAddItemInput" placeholder="הוסף פריט חדש..." class="flex-1 border p-2 rounded" />
-              <select id="shopCategorySelect" class="border p-2 rounded min-w-0"></select>
-              <button type="button" id="shopAddItemBtn" class="bg-green-600 text-white px-3 py-2 rounded shrink-0">הוסף</button>
+            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2.5">
+              <input type="text" id="shopAddItemInput" placeholder="הוסף פריט חדש..." class="flex-1 rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2.5 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25" />
+              <select id="shopCategorySelect" class="min-w-0 rounded-xl border border-slate-200/90 bg-white/95 px-2 py-2.5 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25"></select>
+              <button type="button" id="shopAddItemBtn" class="shrink-0 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-900/20 ring-1 ring-white/20 transition hover:from-emerald-400 hover:to-emerald-500">הוסף</button>
             </div>
           </div>
         </div>
 
         <div class="mb-4">
-          <h3 class="text-lg font-bold mb-2">רשימת קניות</h3>
-          <div id="shoppingList" class="shopping-list space-y-2"></div>
-          <p id="shoppingListEmpty" class="text-gray-500 text-sm hidden">אין פריטים ברשימה — חזרו לעריכה והוסיפו.</p>
+          <h3 class="mb-3 text-lg font-extrabold text-slate-800">רשימת קניות</h3>
+          <div id="shoppingList" class="shopping-list space-y-2.5"></div>
+          <p id="shoppingListEmpty" class="text-slate-500 text-sm hidden">אין פריטים ברשימה — חזרו לעריכה והוסיפו.</p>
         </div>
 
         <div class="mb-3">
-          <h3 class="text-sm font-semibold mb-1.5 text-green-700">נקנו</h3>
-          <div id="purchasedItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5"></div>
+          <h3 class="mb-2 text-sm font-bold text-emerald-800">נקנו</h3>
+          <div id="purchasedItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
         </div>
 
         <div class="mb-4">
-          <h3 class="text-sm font-semibold mb-1.5 text-red-600">חסרים</h3>
-          <div id="missingItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5"></div>
+          <h3 class="mb-2 text-sm font-bold text-rose-700">חסרים</h3>
+          <div id="missingItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
         </div>
 
         <div class="mt-6">
-          <button type="button" id="finishShoppingBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg">
+          <button type="button" id="finishShoppingBtn" class="w-full rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-emerald-900/20 ring-1 ring-white/25 transition hover:from-emerald-400 hover:to-emerald-500">
             סיימתי את הקנייה
           </button>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- מצב רשימות ושיתוף (במקום מודל סנכרון) -->
-      <div id="listsModeContainer" class="lists-mode-container hidden space-y-4 pb-6">
-        <div class="rounded-xl border border-violet-200 bg-gradient-to-l from-violet-50/90 to-white p-4 shadow-sm">
-          <h2 class="text-lg font-bold text-violet-950 mb-1">רשימות ושיתוף</h2>
-          <p class="text-sm text-gray-600 mb-4">
-            צרו רשימה חדשה, חברו מזהה לענן (Google), והעתיקו קישור למשפחה. סטטוס הסנכרון מופיע ליד כותרת האפליקציה.
-          </p>
+  <div id="syncModal" class="modal">
+    <div class="modal-content max-h-[85vh] overflow-y-auto">
+      <span class="close-modal" data-close="syncModal">&times;</span>
+      <h2 class="mb-4 text-xl font-extrabold text-slate-800">שיתוף וענן</h2>
 
-          <div id="recentListsSection" class="mb-4 hidden">
-            <p class="text-sm font-semibold text-gray-800 mb-2">רשימות אחרונות במכשיר</p>
-            <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
-          </div>
-
-          <div class="border rounded-lg p-3 mb-4 bg-green-50 border-green-100">
-            <p class="text-sm font-semibold text-gray-900 mb-1">יצירת רשימה חדשה</p>
-            <p class="text-xs text-gray-600 mb-3">נוצרת רשימה ריקה עם מזהה ייחודי. אחר כך אפשר להעתיק קישור ולשלוח למי שרוצים.</p>
-            <button type="button" id="createNewListBtn" class="w-full py-2 rounded-lg border border-green-600 bg-white text-green-800 text-sm font-medium hover:bg-green-50">
-              צור רשימה חדשה
-            </button>
-          </div>
-          <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
-            <p class="text-sm font-semibold text-gray-900 mb-1">התחברות לענן</p>
-            <p class="text-xs text-gray-600 mb-3">נדרש להתחברות עם Google כדי לשתף רשימה וצ׳אט עם המשפחה.</p>
-            <button type="button" id="googleSignInModal" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-              התחבר עם Google
-            </button>
-            <p id="authStatusLine" class="text-xs mt-2 text-gray-600 min-h-[1.25rem]"></p>
-          </div>
-          <label class="block text-sm font-medium mb-1">מזהה הרשימה (מופיע בקישור השיתוף)</label>
-          <div class="flex flex-wrap gap-2 mb-2">
-            <input type="text" id="shareKeyInput" class="flex-1 min-w-[200px] border p-2 rounded font-mono text-sm" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
-            <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">מזהה אקראי</button>
-            <button type="button" id="copyShareLinkBtn" class="text-sm px-2 py-1 border rounded bg-emerald-50 text-emerald-900 whitespace-nowrap">העתק קישור שיתוף</button>
-          </div>
-          <p class="text-xs text-gray-500 mb-3">מעתיקים את הקישור לווטסאפ / SMS — או שולחים רק את המזהה למי שכבר פותח את האפליקציה.</p>
-          <label class="block text-sm font-medium mb-1">שם מוצג בצ׳אט</label>
-          <input type="text" id="displayNameInput" class="w-full border p-2 rounded mb-4" placeholder="למשל: אשתי / דני" maxlength="24" />
-          <div class="flex flex-wrap gap-2 justify-end">
-            <button type="button" id="syncDisconnectBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">נתק ענן</button>
-            <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור והתחבר לרשימה</button>
-          </div>
-          <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
-          <details class="mt-4 text-xs text-gray-600">
-            <summary class="cursor-pointer font-medium text-gray-700">הגדרת Supabase (מפתחים)</summary>
-            <p class="mt-2">
-              הפעילו <strong>Authentication → Providers → Google</strong>, הריצו <code class="bg-gray-100 px-1 rounded">supabase-schema.sql</code> ב־SQL Editor, והדביקו ל־
-              <code class="bg-gray-100 px-1 rounded">supabase-config.js</code>
-              את ה־URL וה־anon key מ־
-              <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="text-blue-600 underline">Project Settings → API</a>.
-            </p>
-          </details>
-        </div>
+      <div id="recentListsSection" class="mb-4 hidden">
+        <p class="mb-2 text-sm font-bold text-slate-800">מזהים אחרונים במכשיר</p>
+        <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
       </div>
+
+      <div class="mb-4 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-teal-50/80 p-4 shadow-sm">
+        <p class="mb-3 text-sm font-bold text-emerald-950">רשימה חדשה (מזהה חדש)</p>
+        <button type="button" id="createNewListBtn" class="w-full rounded-xl border-2 border-emerald-600/80 bg-white py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50">
+          צור רשימה חדשה
+        </button>
+      </div>
+      <div class="mb-4 rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50 to-blue-50/70 p-4 shadow-sm">
+        <p class="mb-3 text-sm font-bold text-slate-900">התחברות לענן</p>
+        <button type="button" id="googleSignInModal" class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          התחבר עם Google
+        </button>
+        <p id="authStatusLine" class="mt-2 min-h-[1.25rem] text-xs text-slate-600"></p>
+      </div>
+      <label class="mb-1 block text-sm font-semibold text-slate-800">מזהה הרשימה (בקישור השיתוף)</label>
+      <div class="mb-2 flex flex-wrap gap-2">
+        <input type="text" id="shareKeyInput" class="min-w-[200px] flex-1 rounded-xl border border-slate-200 bg-white p-2.5 font-mono text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
+        <button type="button" id="generateShareKeyBtn" class="whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-100">מזהה אקראי</button>
+        <button type="button" id="copyShareLinkBtn" class="whitespace-nowrap rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100">העתק קישור שיתוף</button>
+      </div>
+      <label class="mb-1 block text-sm font-semibold text-slate-800">שם מוצג בצ׳אט</label>
+      <input type="text" id="displayNameInput" class="mb-4 w-full rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל: אשתי / דני" maxlength="24" />
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" id="syncDisconnectBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">נתק ענן</button>
+        <button type="button" id="syncSaveBtn" class="rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 hover:from-teal-500 hover:to-teal-600">שמור והתחבר לרשימה</button>
+      </div>
+      <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
     </div>
   </div>
 
   <!-- צ'אט צף -->
   <button type="button" id="chatFab" class="fab-chat" aria-label="פתח צ'אט משפחתי">💬</button>
   <div id="chatPopup" class="chat-popup" aria-live="polite">
-    <div class="flex items-center justify-between px-3 py-2 border-b bg-white">
-      <span class="font-bold text-gray-800">צ'אט משפחתי</span>
-      <button type="button" id="chatCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+    <div class="flex items-center justify-between border-b border-slate-200/90 bg-gradient-to-l from-teal-600/95 to-slate-800 px-3 py-2.5">
+      <span class="font-bold text-white">צ'אט משפחתי</span>
+      <button type="button" id="chatCloseBtn" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl leading-none text-white/90 transition hover:bg-white/15">&times;</button>
     </div>
     <div id="chatMessages" class="chat-messages"></div>
-    <div class="p-3 border-t bg-white space-y-2">
-      <div class="flex flex-wrap gap-2 items-center text-xs text-gray-600">
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" id="chatAddToList" checked class="rounded" />
+    <div class="space-y-3 border-t border-slate-100 bg-white p-3">
+      <div class="flex items-end gap-2">
+        <input type="text" id="chatInput" class="chat-footer-input min-h-[44px] flex-1 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 shadow-inner focus:border-teal-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל: חלב 3% ועוד חלה..." autocomplete="off" />
+        <button type="button" id="chatSendBtn" class="min-h-[44px] shrink-0 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20">שלח</button>
+      </div>
+      <div class="space-y-2 rounded-xl border border-slate-200/90 bg-slate-50/90 p-3">
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-800">
+          <input type="checkbox" id="chatAddToList" checked class="rounded border-gray-400 w-4 h-4 shrink-0" />
           הוסף את ההודעה לרשימה
         </label>
-        <select id="chatCategorySelect" class="border rounded px-1 py-0.5 text-xs max-w-[160px]"></select>
+        <div id="chatCategoryRow" class="flex flex-col gap-1">
+          <span class="text-xs text-gray-500">קטגוריה לפריט מההודעה:</span>
+          <select id="chatCategorySelect" class="chat-footer-input min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25"></select>
+        </div>
       </div>
-      <div class="flex gap-2">
-        <input type="text" id="chatInput" class="flex-1 border rounded px-2 py-2 text-sm" placeholder="למשל: חלב 3% ועוד חלה..." autocomplete="off" />
-        <button type="button" id="chatSendBtn" class="bg-blue-600 text-white px-3 py-2 rounded text-sm shrink-0">שלח</button>
-      </div>
-      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולבחור רשימה במסך «רשימות» כדי לשלוח הודעות לשותפים.</p>
+      <p id="chatHint" class="hidden rounded-xl border border-amber-200/90 bg-amber-50 px-2.5 py-2 text-xs text-amber-900" role="status"></p>
     </div>
   </div>
 
   <div id="confirmModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" data-close="confirmModal">&times;</span>
-      <h2 class="text-xl font-bold mb-4" id="modalTitle">אישור פעולה</h2>
-      <p id="modalMessage">האם אתה בטוח שברצונך לבצע פעולה זו?</p>
-      <div class="flex justify-end mt-4 gap-2">
-        <button type="button" id="modalCancelBtn" class="bg-gray-300 px-4 py-2 rounded">ביטול</button>
-        <button type="button" id="modalConfirmBtn" class="bg-red-600 text-white px-4 py-2 rounded">אישור</button>
+      <h2 class="mb-3 text-xl font-extrabold text-slate-900" id="modalTitle">אישור פעולה</h2>
+      <p id="modalMessage" class="text-slate-600 leading-relaxed">האם אתה בטוח שברצונך לבצע פעולה זו?</p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" id="modalCancelBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">ביטול</button>
+        <button type="button" id="modalConfirmBtn" class="rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-900/20">אישור</button>
       </div>
     </div>
   </div>
@@ -568,17 +633,17 @@
   <div id="newCategoryModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" data-close="newCategoryModal">&times;</span>
-      <h2 class="text-xl font-bold mb-4">הוספת קטגוריה חדשה</h2>
+      <h2 class="mb-4 text-xl font-extrabold text-slate-900">הוספת קטגוריה חדשה</h2>
       <div class="mb-4">
-        <label for="newCategoryName" class="block mb-2">שם הקטגוריה:</label>
-        <input type="text" id="newCategoryName" class="w-full border p-2 rounded" placeholder="הזן שם קטגוריה..." />
+        <label for="newCategoryName" class="mb-2 block text-sm font-semibold text-slate-800">שם הקטגוריה:</label>
+        <input type="text" id="newCategoryName" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="הזן שם קטגוריה..." />
       </div>
       <div class="mb-4">
-        <label for="newCategoryEmoji" class="block mb-2">אייקון:</label>
-        <input type="text" id="newCategoryEmoji" class="w-full border p-2 rounded" placeholder="הזן אימוג'י..." maxlength="8" />
+        <label for="newCategoryEmoji" class="mb-2 block text-sm font-semibold text-slate-800">אייקון:</label>
+        <input type="text" id="newCategoryEmoji" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="הזן אימוג'י..." maxlength="8" />
       </div>
-      <div class="flex justify-end mt-4">
-        <button type="button" id="addNewCategoryBtn" class="bg-blue-600 text-white px-4 py-2 rounded">הוסף קטגוריה</button>
+      <div class="mt-4 flex justify-end">
+        <button type="button" id="addNewCategoryBtn" class="rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-5 py-2.5 font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 hover:from-teal-500 hover:to-teal-600">הוסף קטגוריה</button>
       </div>
     </div>
   </div>
@@ -586,17 +651,17 @@
   <div id="catalogEditModal" class="modal">
     <div class="modal-content max-w-md">
       <span class="close-modal" data-close="catalogEditModal">&times;</span>
-      <h2 class="text-xl font-bold mb-3">עריכת מוצר במאגר</h2>
-      <p class="text-xs text-gray-500 mb-3">השינויים נשמרים במכשיר בלבד (מחיר משוער ממוצע בשוק — להתאמה אישית).</p>
-      <label class="block text-sm font-medium mb-1">שם המוצר</label>
-      <input type="text" id="catalogEditName" class="w-full border p-2 rounded mb-3" dir="rtl" />
-      <label class="block text-sm font-medium mb-1">מחיר משוער (₪)</label>
-      <input type="number" id="catalogEditPrice" min="0" step="0.01" class="w-full border p-2 rounded mb-3" dir="ltr" />
-      <label class="block text-sm font-medium mb-1">הערה (מותג, יחידה, גודל…)</label>
-      <input type="text" id="catalogEditNote" class="w-full border p-2 rounded mb-4" dir="rtl" placeholder="למשל: טרה 1 ליטר" />
+      <h2 class="mb-3 text-xl font-extrabold text-slate-900">עריכת מוצר במאגר</h2>
+      <p class="mb-3 text-xs text-slate-500">השינויים נשמרים במכשיר בלבד (מחיר משוער ממוצע בשוק — להתאמה אישית).</p>
+      <label class="mb-1 block text-sm font-semibold text-slate-800">שם המוצר</label>
+      <input type="text" id="catalogEditName" class="mb-3 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="rtl" />
+      <label class="mb-1 block text-sm font-semibold text-slate-800">מחיר משוער (₪)</label>
+      <input type="number" id="catalogEditPrice" min="0" step="0.01" class="mb-3 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="ltr" />
+      <label class="mb-1 block text-sm font-semibold text-slate-800">הערה (מותג, יחידה, גודל…)</label>
+      <input type="text" id="catalogEditNote" class="mb-4 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="rtl" placeholder="למשל: טרה 1 ליטר" />
       <div class="flex justify-end gap-2">
-        <button type="button" id="catalogEditCancelBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">ביטול</button>
-        <button type="button" id="catalogEditSaveBtn" class="bg-emerald-600 text-white px-4 py-2 rounded text-sm">שמור</button>
+        <button type="button" id="catalogEditCancelBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">ביטול</button>
+        <button type="button" id="catalogEditSaveBtn" class="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-900/20">שמור</button>
       </div>
     </div>
   </div>
@@ -990,17 +1055,17 @@
           el.className = errMsg
             ? "text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 shrink-0 max-w-[100px] truncate text-center"
             : "text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0 max-w-[100px] truncate text-center";
-          el.title = errMsg || "מסונכרן לענן";
+          el.title = errMsg || "";
         } else if (user && !shareKey) {
           el.textContent = "ללא רשימה";
           el.className =
             "text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-900 shrink-0 max-w-[100px] truncate text-center";
-          el.title = "מחובר — בחר או צור רשימה בסנכרון";
+          el.title = "";
         } else {
           el.textContent = "מקומי";
           el.className =
             "text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[100px] truncate text-center";
-          el.title = "רק במכשיר זה — התחבר עם Google לשיתוף";
+          el.title = "";
         }
       }
 
@@ -1064,7 +1129,7 @@
             wrap.classList.remove("flex");
           }
           if (statusLine) {
-            statusLine.textContent = "לא מחובר — לחץ להתחברות לפני שיתוף רשימה.";
+            statusLine.textContent = "לא מחובר";
           }
         }
         updateStickySearchTop();
@@ -1129,12 +1194,8 @@
         state = normalized;
         lastSerialized = incStr;
         saveStateLocalOnly();
-        var listsOpen =
-          els.listsModeContainer && !els.listsModeContainer.classList.contains("hidden");
         var shop = !document.getElementById("shopModeContainer").classList.contains("hidden");
-        if (listsOpen) {
-          refreshListsPanelData();
-        } else if (shop) {
+        if (shop) {
           populateShopCategorySelect();
           renderShopView();
         } else {
@@ -1294,8 +1355,23 @@
       function updateChatHint() {
         const h = document.getElementById("chatHint");
         if (!h) return;
-        if (!shareKey || !supabaseClient || !hasSignedInUser()) h.classList.remove("hidden");
-        else h.classList.add("hidden");
+        if (!hasSignedInUser()) {
+          h.textContent = "לא מחובר.";
+          h.classList.remove("hidden");
+          return;
+        }
+        if (!shareKey) {
+          h.textContent = "אין מזהה רשימה.";
+          h.classList.remove("hidden");
+          return;
+        }
+        if (!supabaseClient) {
+          h.textContent = "אין חיבור לענן.";
+          h.classList.remove("hidden");
+          return;
+        }
+        h.textContent = "";
+        h.classList.add("hidden");
       }
 
       function stopListeners() {
@@ -1362,7 +1438,7 @@
           var btn = document.createElement("button");
           btn.type = "button";
           btn.className =
-            "text-xs px-2 py-1 rounded-lg border border-violet-200 bg-white text-violet-900 hover:bg-violet-50 font-mono max-w-[220px] truncate";
+            "max-w-[220px] truncate rounded-xl border border-teal-200/90 bg-teal-50/80 px-2.5 py-1.5 font-mono text-xs font-medium text-teal-900 shadow-sm transition hover:bg-teal-100";
           btn.title = id;
           btn.textContent = id.length > 32 ? id.slice(0, 30) + "…" : id;
           btn.addEventListener("click", function () {
@@ -1521,8 +1597,7 @@
         resetBtn: document.getElementById("resetBtn"),
         prepModeContainer: document.getElementById("prepModeContainer"),
         shopModeContainer: document.getElementById("shopModeContainer"),
-        listsModeContainer: document.getElementById("listsModeContainer"),
-        listsMode: document.getElementById("listsMode"),
+        syncSettingsBtn: document.getElementById("syncSettingsBtn"),
         categoriesList: document.getElementById("categoriesList"),
         searchInput: document.getElementById("searchInput"),
         searchResults: document.getElementById("searchResults"),
@@ -1650,6 +1725,12 @@
         if (typeof fn === "function") fn();
       });
 
+      if (els.syncSettingsBtn) {
+        els.syncSettingsBtn.addEventListener("click", () => {
+          refreshListsPanelData();
+          openModal("syncModal");
+        });
+      }
       if (els.generateShareKeyBtn && els.shareKeyInput) {
         els.generateShareKeyBtn.addEventListener("click", () => {
           els.shareKeyInput.value = "list_" + Math.random().toString(36).slice(2, 11);
@@ -1700,6 +1781,7 @@
           rememberRecentListId(key);
           syncCloudIfPossible();
           pushStateToCloud();
+          closeModal("syncModal");
           updateSyncDot(true);
           updateChatHint();
         });
@@ -1708,6 +1790,7 @@
         els.syncDisconnectBtn.addEventListener("click", () => {
           disconnectCloud();
           refreshListsPanelData();
+          closeModal("syncModal");
         });
       }
 
@@ -1722,10 +1805,9 @@
         const text = els.chatInput && els.chatInput.value.trim();
         if (!text) return;
         if (!shareKey || !supabaseClient || !hasSignedInUser()) {
-          if (els.chatHint) els.chatHint.classList.remove("hidden");
+          updateChatHint();
           return;
         }
-        if (els.chatHint) els.chatHint.classList.add("hidden");
         supabaseClient
           .from("list_messages")
           .insert({
@@ -1766,55 +1848,39 @@
         });
       }
 
-      function setMainMode(mode) {
-        const isPrep = mode === "prep";
-        const isShop = mode === "shop";
-        const isLists = mode === "lists";
-        if (isShop) syncShopFlagsFromItems();
-
-        if (els.listsModeContainer) els.listsModeContainer.classList.toggle("hidden", !isLists);
-        els.prepModeContainer.classList.toggle("hidden", !isPrep);
-        els.shopModeContainer.classList.toggle("hidden", !isShop);
-        if (els.resetBtn) els.resetBtn.classList.toggle("hidden", isLists);
-
-        els.prepMode.classList.toggle("bg-blue-700", isPrep);
-        els.prepMode.classList.toggle("text-white", isPrep);
-        els.prepMode.classList.toggle("bg-white", !isPrep);
-        els.prepMode.classList.toggle("text-blue-700", !isPrep);
-        els.prepMode.classList.toggle("border", !isPrep);
-        els.prepMode.classList.toggle("border-blue-600", !isPrep);
-
-        els.shopMode.classList.toggle("bg-green-600", isShop);
-        els.shopMode.classList.toggle("text-white", isShop);
-        els.shopMode.classList.toggle("bg-white", !isShop);
-        els.shopMode.classList.toggle("text-green-600", !isShop);
-        els.shopMode.classList.toggle("border", !isShop);
-        els.shopMode.classList.toggle("border-green-600", !isShop);
-
-        if (els.listsMode) {
-          els.listsMode.classList.toggle("bg-violet-600", isLists);
-          els.listsMode.classList.toggle("text-white", isLists);
-          els.listsMode.classList.toggle("bg-white", !isLists);
-          els.listsMode.classList.toggle("text-violet-700", !isLists);
-          els.listsMode.classList.toggle("border", !isLists);
-          els.listsMode.classList.toggle("border-violet-500", !isLists);
+      function setMode(isShop) {
+        const prepActive =
+          "mode-btn bg-gradient-to-br from-teal-600 to-teal-700 text-white shadow-md shadow-teal-900/15 ring-1 ring-white/25";
+        const prepInactive =
+          "mode-btn bg-white text-teal-700 border-2 border-teal-500/80 hover:bg-teal-50/90";
+        const shopActive =
+          "mode-btn bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-900/20 ring-1 ring-white/30";
+        const shopInactive =
+          "mode-btn bg-white text-emerald-700 border-2 border-emerald-500/90 hover:bg-emerald-50/80";
+        if (isShop) {
+          syncShopFlagsFromItems();
+          els.prepModeContainer.classList.add("hidden");
+          els.shopModeContainer.classList.remove("hidden");
+          els.prepMode.className = prepInactive;
+          els.shopMode.className = shopActive;
+        } else {
+          els.shopModeContainer.classList.add("hidden");
+          els.prepModeContainer.classList.remove("hidden");
+          els.shopMode.className = shopInactive;
+          els.prepMode.className = prepActive;
         }
-
         updateSummary();
         if (isShop) {
           populateShopCategorySelect();
           renderShopView();
-        } else if (isPrep) {
-          renderPrepCategories();
         } else {
-          refreshListsPanelData();
+          renderPrepCategories();
         }
         updateStickySearchTop();
       }
 
-      els.prepMode.addEventListener("click", () => setMainMode("prep"));
-      els.shopMode.addEventListener("click", () => setMainMode("shop"));
-      if (els.listsMode) els.listsMode.addEventListener("click", () => setMainMode("lists"));
+      els.prepMode.addEventListener("click", () => setMode(false));
+      els.shopMode.addEventListener("click", () => setMode(true));
 
       els.resetBtn.addEventListener("click", () => {
         showConfirm("איפוס רשימה", "למחוק את כל הרשימה ולהתחיל מחדש?", () => {
@@ -1863,8 +1929,6 @@
         let unitSum = 0;
         let sum = 0;
         const shopVisible = !els.shopModeContainer.classList.contains("hidden");
-        const listsVisible =
-          els.listsModeContainer && !els.listsModeContainer.classList.contains("hidden");
 
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
@@ -1883,11 +1947,9 @@
         });
 
         els.totalItems.textContent = count + " פריטים";
-        els.itemsStatus.textContent = listsVisible
-          ? "(ניהול רשימות)"
-          : shopVisible
-            ? "(" + marked + " סומנו)"
-            : "(סה״כ יחידות: " + unitSum + ")";
+        els.itemsStatus.textContent = shopVisible
+          ? "(" + marked + " סומנו)"
+          : "(סה״כ יחידות: " + unitSum + ")";
         els.totalPrice.textContent = "₪" + sum.toFixed(2);
       }
 
@@ -1899,13 +1961,13 @@
         const canDown = index < total - 1;
         const arrow = expanded ? "▼" : "◀";
         return `
-          <div class="category-header flex justify-between items-center gap-2 p-2 rounded">
+          <div class="category-header flex justify-between items-center gap-2 rounded-xl px-3 py-2.5">
             <span class="cat-drag-handle shrink-0 px-1 py-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing select-none touch-manipulation text-lg leading-none"
               draggable="true" title="גרירה לסידור לפי מחלקות">⠿</span>
             <h2 class="text-lg font-bold flex-1 text-right min-w-0 cat-title-area cursor-pointer">${cat.emoji} ${escapeHtml(cat.name)}</h2>
             <div class="flex items-center shrink-0 gap-0.5 flex-wrap justify-end">
-              <button type="button" class="cat-move-up px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canUp ? "" : "disabled"} title="הזז למעלה">↑</button>
-              <button type="button" class="cat-move-down px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canDown ? "" : "disabled"} title="הזז למטה">↓</button>
+              <button type="button" class="cat-move-up rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-sm leading-none shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-25" data-cat="${cat.id}" ${canUp ? "" : "disabled"} title="הזז למעלה">↑</button>
+              <button type="button" class="cat-move-down rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-sm leading-none shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-25" data-cat="${cat.id}" ${canDown ? "" : "disabled"} title="הזז למטה">↓</button>
               ${del}
               <span class="toggle-icon select-none cursor-pointer" aria-hidden="true">${arrow}</span>
             </div>
@@ -2026,7 +2088,9 @@
           const expandedFirst = cat.id === activeExpandedId;
           const wrap = document.createElement("div");
           wrap.id = cat.id;
-          wrap.className = "category bg-white rounded shadow p-3" + (cat.dynamic ? " dynamic-cat" : "");
+          wrap.className =
+            "category rounded-2xl border border-slate-100/95 bg-white p-4 shadow-md shadow-slate-200/50" +
+            (cat.dynamic ? " dynamic-cat" : "");
           wrap.dataset.catId = cat.id;
           wrap.innerHTML =
             categoryHeaderHtml(cat, !isDefault, index, totalCats, expandedFirst) +
@@ -2088,9 +2152,9 @@
           if (catalogResolved.length) {
             const strip = document.createElement("div");
             strip.className =
-              "catalog-strip mb-3 p-2 sm:p-3 rounded-lg border border-emerald-100 bg-emerald-50/60";
+              "catalog-strip mb-4 rounded-2xl border border-emerald-100/90 bg-gradient-to-br from-emerald-50/95 to-teal-50/40 p-3 shadow-sm sm:p-3.5";
             const titleEl = document.createElement("div");
-            titleEl.className = "text-xs font-semibold text-emerald-900 mb-2";
+            titleEl.className = "mb-2 text-xs font-bold text-emerald-950";
             titleEl.textContent = "מאגר מוצרים — לחיצה על השם מוסיפה לרשימה (✏️ עורך מאגר)";
             strip.appendChild(titleEl);
             const chips = document.createElement("div");
@@ -2101,7 +2165,7 @@
               const mainBtn = document.createElement("button");
               mainBtn.type = "button";
               mainBtn.className =
-                "catalog-chip text-xs px-2 py-1 rounded-lg border border-emerald-200 bg-white text-gray-800 hover:bg-emerald-100 active:scale-[0.98] transition text-right";
+                "catalog-chip rounded-xl border border-emerald-200/90 bg-white px-2.5 py-1.5 text-right text-xs text-slate-800 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98]";
               mainBtn.innerHTML =
                 '<span class="font-medium">' +
                 escapeHtml(entry.name) +
@@ -2119,7 +2183,7 @@
               const editBtn = document.createElement("button");
               editBtn.type = "button";
               editBtn.className =
-                "catalog-edit-btn shrink-0 text-amber-600 text-sm p-1 rounded hover:bg-amber-100 leading-none";
+                "catalog-edit-btn shrink-0 rounded-lg p-1 text-sm leading-none text-amber-600 transition hover:bg-amber-100";
               editBtn.setAttribute("aria-label", "עריכת מוצר במאגר");
               editBtn.textContent = "✏️";
               editBtn.addEventListener("click", (ev) => {
@@ -2145,7 +2209,8 @@
 
       function renderPrepItemRow(catId, item) {
         const row = document.createElement("div");
-        row.className = "item-row flex flex-wrap items-center gap-2 p-2 border rounded";
+        row.className =
+          "item-row flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 p-3 shadow-sm";
         row.dataset.itemId = item.id;
         if (item.note === undefined) item.note = "";
         row.innerHTML = `
@@ -2154,9 +2219,9 @@
               <span class="font-medium flex-1 break-words">${escapeHtml(item.name)}</span>
               <button type="button" class="item-focus-note shrink-0 text-amber-600 text-base leading-none p-0.5 rounded hover:bg-amber-50" title="קפיצה להערה">✏️</button>
             </div>
-            <input type="text" class="item-note-input w-full text-xs border border-gray-200 rounded px-2 py-1" dir="rtl" placeholder="הערה — מותג, גודל…" />
+            <input type="text" class="item-note-input w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs shadow-inner focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400/30" dir="rtl" placeholder="הערה — מותג, גודל…" />
           </div>
-          <div class="quantity-controls border rounded px-1">
+          <div class="quantity-controls rounded-xl border border-slate-200 bg-white px-1 shadow-sm">
             <span class="quantity-btn" data-act="dec">−</span>
             <span class="quantity-value">${item.quantity}</span>
             <span class="quantity-btn" data-act="inc">+</span>
@@ -2437,7 +2502,7 @@
       els.shopAddItemBtn.addEventListener("click", () => {
         addItemByName(els.shopAddItemInput.value, els.shopCategorySelect.value);
         els.shopAddItemInput.value = "";
-        setMainMode("shop");
+        setMode(true);
       });
 
       function removeItemFromListEverywhere(categoryId, itemId) {
@@ -2489,9 +2554,9 @@
       function shopRow(it, modeFlag) {
         const div = document.createElement("div");
         const baseMain =
-          "flex flex-wrap items-center gap-2 p-3 rounded border text-sm bg-white";
+          "flex flex-wrap items-center gap-2 rounded-xl border border-emerald-100/90 bg-white p-3 text-sm shadow-sm";
         const baseCompact =
-          "shop-row-compact flex items-center gap-1 p-1.5 rounded border text-[11px] leading-tight";
+          "shop-row-compact flex items-center gap-1 rounded-lg border text-[11px] leading-tight shadow-sm";
 
         const meta = it.cat || getCategoryMeta(it.categoryId);
         const catLabel = meta ? `${meta.emoji} ${meta.name}` : "";
@@ -2509,9 +2574,9 @@
               ${noteLine}
             </div>
             <div class="flex flex-wrap items-center gap-1 shrink-0">
-              <button type="button" class="bg-green-600 text-white px-2.5 py-1 rounded text-sm shop-buy">נקנה</button>
-              <button type="button" class="bg-rose-500 text-white px-2.5 py-1 rounded text-sm shop-miss">חסר</button>
-              <button type="button" class="text-gray-600 border border-gray-300 bg-white px-2 py-1 rounded text-xs shop-remove" title="הסר מהרשימה">מחק</button>
+              <button type="button" class="shop-buy rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm">נקנה</button>
+              <button type="button" class="shop-miss rounded-lg bg-gradient-to-br from-rose-400 to-rose-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm">חסר</button>
+              <button type="button" class="shop-remove rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 shadow-sm hover:bg-slate-50" title="הסר מהרשימה">מחק</button>
             </div>
           `;
           div.querySelector(".shop-buy").addEventListener("click", () => {
@@ -2588,7 +2653,7 @@
             });
           });
           saveState();
-          setMainMode("prep");
+          setMode(false);
           renderPrepCategories();
           updateSummary();
         });
