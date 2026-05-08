@@ -1,6 +1,9 @@
 # מפתחות Supabase — לא לדחוף לריפו ציבורי
 supabase-config.js
 
+# סודות OAuth של Google (קבצים שהורדת מהקונסול)
+client_secret*.json
+
 # Netlify מקומי
 .netlify/
 
