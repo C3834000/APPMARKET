@@ -517,12 +517,31 @@
     </div>
   </div>
 
+  <div id="catalogEditModal" class="modal">
+    <div class="modal-content max-w-md">
+      <span class="close-modal" data-close="catalogEditModal">&times;</span>
+      <h2 class="text-xl font-bold mb-3">עריכת מוצר במאגר</h2>
+      <p class="text-xs text-gray-500 mb-3">השינויים נשמרים במכשיר בלבד (מחיר משוער ממוצע בשוק — להתאמה אישית).</p>
+      <label class="block text-sm font-medium mb-1">שם המוצר</label>
+      <input type="text" id="catalogEditName" class="w-full border p-2 rounded mb-3" dir="rtl" />
+      <label class="block text-sm font-medium mb-1">מחיר משוער (₪)</label>
+      <input type="number" id="catalogEditPrice" min="0" step="0.01" class="w-full border p-2 rounded mb-3" dir="ltr" />
+      <label class="block text-sm font-medium mb-1">הערה (מותג, יחידה, גודל…)</label>
+      <input type="text" id="catalogEditNote" class="w-full border p-2 rounded mb-4" dir="rtl" placeholder="למשל: טרה 1 ליטר" />
+      <div class="flex justify-end gap-2">
+        <button type="button" id="catalogEditCancelBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">ביטול</button>
+        <button type="button" id="catalogEditSaveBtn" class="bg-emerald-600 text-white px-4 py-2 rounded text-sm">שמור</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       const STORAGE_KEY = "shoppingListApp_v1";
       const LS_SHARE = "shoppingList_share_v1";
       const LS_DISPLAY = "shoppingList_display_v1";
       const LS_CLIENT = "shoppingList_client_v1";
+      const LS_CATALOG = "shoppingList_catalogOverrides_v1";
 
       const DEFAULT_META = [
         { id: "vegetables", name: "ירקות ופירות", emoji: "🥬" },
@@ -538,120 +557,203 @@
         { id: "disposable", name: "חד־פעמי", emoji: "🍽" },
       ];
 
-      /** מאגר מוצרים בסיסי לפי קטגוריה (שמות נפוצים בסופר בישראל) */
+      /** מאגר: שם, מחיר משוער בישראל (ממוצע), הערת יחידה */
+      function catalogRows(catId, rows) {
+        return rows.map((r, i) => ({
+          id: catId + "_" + i,
+          name: r[0],
+          price: Number(r[1]) || 0,
+          note: r[2] != null ? String(r[2]) : "",
+        }));
+      }
+
       const PRODUCT_CATALOG = {
-        vegetables: [
-          "עגבניות",
-          "מלפפון",
-          "בצל",
-          "תפוח אדמה",
-          "גזר",
-          "חסה / עלים",
-          "פלפלים",
-          "דלורית",
-          "שום",
-          "לימון",
-          "סלק",
-          "ברוקולי",
-          "כרוב לבן",
-          "סלרי",
-          "פטרוזיליה",
-        ],
-        bakery: [
-          "חלה",
-          "לחם פרוס",
-          "לחם מלא דגנים",
-          "בגט",
-          "פיתות",
-          "לחמניות",
-          "חלה מתוקה",
-          "קרואסון",
-        ],
-        baking: [
-          "קמח לבן",
-          "קמח מלא",
-          "סוכר",
-          "סוכר חום",
-          "שמרים יבשים",
-          "אבקת אפייה",
-          "וניל",
-          "שוקולד צ׳יפס",
-          "שקדים טחון",
-          "שמן קנולה לאפייה",
-          "קקאו",
-        ],
-        dairy: [
-          "חלב 3%",
-          "יוגורט",
-          "גבינה לבנה",
-          "גבינה צהובה",
-          "גבינת קוטג׳",
-          "חמאה",
-          "שמנת מתוקה",
-          "גבינת פסטרמה",
-          "חלב ללא לקטוז",
-          "קוטג׳",
-        ],
-        canned: [
-          "טונה בשמן",
-          "עגבניות קוביות",
-          "קטשופ",
-          "קוסקוס",
-          "פסטה",
-          "קורנפלקס",
-          "דייסה",
-          "קטניות משומרות",
-        ],
-        coffee: [
-          "קפה נס / קפואין",
-          "תה בוקס",
-          "סוכר לבן",
-          "סוכר דמררה",
-          "דבש",
-          "קפה גרגירים",
-          "קפסולות קפה",
-        ],
-        cleaning: [
-          "נייר טואלט",
-          "מגבונים לילדים",
-          "נוזל כלים",
-          "אקונומיקה",
-          "שקיות אשפה",
-          "נייר סופג",
-          "סבון ידיים",
-        ],
-        snacks: [
-          "ביסלי",
-          "במבה",
-          "צ׳יטוס",
-          "פריכיות אורז",
-          "חטיף חלבה",
-          "בוטנים",
-        ],
-        chocolate: [
-          "פרה",
-          "מיקי",
-          "קיט קט",
-          "טוויקס",
-          "סניקרס",
-          "שוקולד מעולה",
-        ],
-        drinks: [
-          "מים מינרליים",
-          "מיץ תפוזים",
-          "סודה",
-          "נביעות",
-          "קולה",
-          "תפוחים סחוט",
-        ],
-        disposable: [
-          "כוסות חד״פ",
-          "צלחות חד״פ",
-          "מזלגות / סכינים חד״פ",
-          "שקיות גופיה",
-          "ניילון ניקוי",
-        ],
+        vegetables: catalogRows("vegetables", [
+          ["עגבניות", 8.9, "משוער לק״ג"],
+          ["מלפפון", 6.9, "משוער לק״ג"],
+          ["בצל", 4.5, "משוער לק״ג"],
+          ["תפוח אדמה", 5.9, "משוער לק״ג"],
+          ["גזר", 5.5, "משוער לק״ג"],
+          ["חסה / עלים", 8.5, "יחידה"],
+          ["פלפלים", 12.9, "משוער לק״ג"],
+          ["דלורית", 7.5, "משוער לק״ג"],
+          ["שום", 18.0, "≈100 גרם"],
+          ["לימון", 9.9, "משוער לק״ג"],
+          ["סלק", 6.5, "משוער לק״ג"],
+          ["ברוקולי", 14.9, "משוער לק״ג"],
+          ["כרוב לבן", 5.9, "משוער לק״ג"],
+          ["סלרי", 7.5, "יחידה"],
+          ["פטרוזיליה", 4.0, "צרור"],
+        ]),
+        bakery: catalogRows("bakery", [
+          ["חלה", 18.0, "יחידה"],
+          ["לחם פרוס", 14.9, "מארז"],
+          ["לחם מלא דגנים", 16.9, "מארז"],
+          ["בגט", 9.9, "יחידה"],
+          ["פיתות", 12.0, "שקית"],
+          ["לחמניות", 14.0, "שקית"],
+          ["חלה מתוקה", 22.0, "יחידה"],
+          ["קרואסון", 8.5, "יחידה"],
+        ]),
+        baking: catalogRows("baking", [
+          ["קמח לבן", 7.5, "ק״ג"],
+          ["קמח מלא", 9.9, "ק״ג"],
+          ["סוכר", 5.5, "ק״ג"],
+          ["סוכר חום", 8.0, "500 גרם"],
+          ["שמרים יבשים", 12.0, "קופסה"],
+          ["אבקת אפייה", 6.5, "קופסה"],
+          ["וניל", 10.0, "בקבוק קטן"],
+          ["שוקולד צ׳יפס", 18.0, "שקית"],
+          ["שקדים טחון", 28.0, "שקית"],
+          ["שמן קנולה לאפייה", 24.0, "בקבוק"],
+          ["קקאו", 22.0, "קופסה"],
+        ]),
+        dairy: catalogRows("dairy", [
+          ["חלב 3%", 7.8, "1 ליטר"],
+          ["יוגורט", 6.5, "4 × 150 גרם"],
+          ["גבינה לבנה", 12.9, "מיכל"],
+          ["גבינה צהובה", 28.0, "ק״ג"],
+          ["גבינת קוטג׳", 11.5, "מיכל"],
+          ["חמאה", 12.0, "200 גרם"],
+          ["שמנת מתוקה", 14.9, "250 מ״ל"],
+          ["גבינת פסטרמה", 22.0, "חבילה"],
+          ["חלב ללא לקטוז", 9.5, "1 ליטר"],
+          ["קוטג׳", 10.9, "מיכל"],
+        ]),
+        canned: catalogRows("canned", [
+          ["טונה בשמן", 14.9, "קופסה"],
+          ["עגבניות קוביות", 6.5, "קופסה"],
+          ["קטשופ", 12.0, "בקבוק"],
+          ["קוסקוס", 11.0, "חבילה"],
+          ["פסטה", 9.9, "500 גרם"],
+          ["קורנפלקס", 24.0, "קופסה"],
+          ["דייסה", 18.0, "קופסה"],
+          ["קטניות משומרות", 8.5, "קופסה"],
+        ]),
+        coffee: catalogRows("coffee", [
+          ["קפה נס / קפואין", 28.0, "צנצנת"],
+          ["תה בוקס", 16.0, "קופסה"],
+          ["סוכר לבן", 5.5, "ק״ג"],
+          ["סוכר דמררה", 12.0, "500 גרם"],
+          ["דבש", 22.0, "דבשון"],
+          ["קפה גרגירים", 39.0, "חבילה"],
+          ["קפסולות קפה", 32.0, "חבילה"],
+        ]),
+        cleaning: catalogRows("cleaning", [
+          ["נייר טואלט", 28.0, "32 גלילים"],
+          ["מגבונים לילדים", 18.0, "חבילה"],
+          ["נוזל כלים", 12.9, "בקבוק"],
+          ["אקונומיקה", 9.9, "בקבוק"],
+          ["שקיות אשפה", 24.0, "גליל"],
+          ["נייר סופג", 18.0, "גליל"],
+          ["סבון ידיים", 14.0, "בקבוק"],
+        ]),
+        snacks: catalogRows("snacks", [
+          ["ביסלי", 6.5, "שקית"],
+          ["במבה", 5.5, "שקית"],
+          ["צ׳יטוס", 6.9, "שקית"],
+          ["פריכיות אורז", 12.0, "חבילה"],
+          ["חטיף חלבה", 8.5, "שקית"],
+          ["בוטנים", 9.9, "שקית"],
+        ]),
+        chocolate: catalogRows("chocolate", [
+          ["פרה", 6.5, "חבילה"],
+          ["מיקי", 5.5, "חבילה"],
+          ["קיט קט", 5.0, "יחידה"],
+          ["טוויקס", 6.0, "יחידה"],
+          ["סניקרס", 5.5, "יחידה"],
+          ["שוקולד מעולה", 12.0, "חבילה"],
+        ]),
+        drinks: catalogRows("drinks", [
+          ["מים מינרליים", 8.0, "שישיה"],
+          ["מיץ תפוזים", 14.9, "1 ליטר"],
+          ["סודה", 8.5, "שישיה"],
+          ["נביעות", 10.5, "בקבוק"],
+          ["קולה", 9.5, "1.5 ליטר"],
+          ["תפוחים סחוט", 16.0, "בקבוק"],
+        ]),
+        disposable: catalogRows("disposable", [
+          ["כוסות חד״פ", 18.0, "חבילה"],
+          ["צלחות חד״פ", 22.0, "חבילה"],
+          ["מזלגות / סכינים חד״פ", 12.0, "חבילה"],
+          ["שקיות גופיה", 8.0, "גליל"],
+          ["ניילון ניקוי", 14.0, "גליל"],
+        ]),
       };
+
+      function loadCatalogOverrides() {
+        try {
+          const raw = localStorage.getItem(LS_CATALOG);
+          if (!raw) return {};
+          const o = JSON.parse(raw);
+          return o && typeof o === "object" ? o : {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      function saveCatalogOverrides(data) {
+        localStorage.setItem(LS_CATALOG, JSON.stringify(data));
+      }
+
+      function mergeCatalogEntry(catId, entry) {
+        const all = loadCatalogOverrides();
+        const patch = (all[catId] && all[catId][entry.id]) || {};
+        return {
+          id: entry.id,
+          name: patch.name !== undefined ? patch.name : entry.name,
+          price: patch.price !== undefined ? Number(patch.price) || 0 : entry.price,
+          note: patch.note !== undefined ? patch.note : entry.note,
+        };
+      }
+
+      function getResolvedCatalog(catId) {
+        const arr = PRODUCT_CATALOG[catId];
+        if (!arr) return [];
+        return arr.map((e) => mergeCatalogEntry(catId, e));
+      }
+
+      let catalogEditContext = null;
+
+      function addItemFromCatalogEntry(catId, entry) {
+        const n = (entry.name || "").trim();
+        if (!n) return;
+        const price = Number(entry.price) || 0;
+        const note = (entry.note || "").trim();
+        ensureCategoryItems(catId);
+        const existing = state.items[catId].find((x) => x.name.trim() === n);
+        if (existing) {
+          existing.quantity = (Number(existing.quantity) || 0) + 1;
+        } else {
+          state.items[catId].push({
+            id: uid(),
+            name: n,
+            quantity: 1,
+            price: price,
+            note: note,
+            sessionPurchased: false,
+            sessionMissing: false,
+          });
+        }
+        saveState();
+        renderPrepCategories();
+        updateSummary();
+        renderShopView();
+      }
+
+      function openCatalogItemEditor(catId, entry) {
+        if (!entry || !entry.id) return;
+        const base = (PRODUCT_CATALOG[catId] || []).find((x) => x.id === entry.id) || entry;
+        const merged = mergeCatalogEntry(catId, base);
+        catalogEditContext = { catId: catId, entryId: merged.id };
+        const ne = document.getElementById("catalogEditName");
+        const pe = document.getElementById("catalogEditPrice");
+        const no = document.getElementById("catalogEditNote");
+        if (ne) ne.value = merged.name;
+        if (pe) pe.value = merged.price != null && merged.price !== "" ? String(merged.price) : "";
+        if (no) no.value = merged.note || "";
+        openModal("catalogEditModal");
+      }
 
       function freshDefaultState() {
         const s = {
@@ -670,6 +772,11 @@
         const items = raw.items && typeof raw.items === "object" ? { ...raw.items } : {};
         cats.forEach((c) => {
           if (c && c.id && !items[c.id]) items[c.id] = [];
+        });
+        Object.keys(items).forEach((cid) => {
+          (items[cid] || []).forEach((it) => {
+            if (it && typeof it === "object" && it.note === undefined) it.note = "";
+          });
         });
         return { categories: cats, items };
       }
@@ -1589,28 +1696,51 @@
           }
 
           const listEl = wrap.querySelector(".category-content");
-          const catalogNames = PRODUCT_CATALOG[cat.id];
-          if (catalogNames && catalogNames.length) {
+          const catalogResolved = getResolvedCatalog(cat.id);
+          if (catalogResolved.length) {
             const strip = document.createElement("div");
             strip.className =
               "catalog-strip mb-3 p-2 sm:p-3 rounded-lg border border-emerald-100 bg-emerald-50/60";
             const titleEl = document.createElement("div");
             titleEl.className = "text-xs font-semibold text-emerald-900 mb-2";
-            titleEl.textContent = "מאגר מוצרים — לחיצה מוסיפה לרשימה";
+            titleEl.textContent = "מאגר מוצרים — לחיצה על השם מוסיפה לרשימה (✏️ עורך מאגר)";
             strip.appendChild(titleEl);
             const chips = document.createElement("div");
-            chips.className = "flex flex-wrap gap-1.5";
-            catalogNames.forEach((productName) => {
-              const chip = document.createElement("button");
-              chip.type = "button";
-              chip.className =
-                "catalog-chip text-xs px-2.5 py-1 rounded-full border border-emerald-200 bg-white text-gray-800 hover:bg-emerald-100 active:scale-[0.98] transition";
-              chip.textContent = productName;
-              chip.addEventListener("click", (ev) => {
+            chips.className = "flex flex-wrap gap-x-2 gap-y-2 items-center";
+            catalogResolved.forEach((entry) => {
+              const row = document.createElement("div");
+              row.className = "flex flex-wrap items-center gap-1 max-w-full";
+              const mainBtn = document.createElement("button");
+              mainBtn.type = "button";
+              mainBtn.className =
+                "catalog-chip text-xs px-2 py-1 rounded-lg border border-emerald-200 bg-white text-gray-800 hover:bg-emerald-100 active:scale-[0.98] transition text-right";
+              mainBtn.innerHTML =
+                '<span class="font-medium">' +
+                escapeHtml(entry.name) +
+                '</span> <span class="text-emerald-800 whitespace-nowrap">~₪' +
+                (Number(entry.price) || 0).toFixed(2) +
+                "</span>";
+              if (entry.note) {
+                mainBtn.innerHTML +=
+                  '<span class="block text-[10px] text-gray-500 mt-0.5">' + escapeHtml(entry.note) + "</span>";
+              }
+              mainBtn.addEventListener("click", (ev) => {
                 ev.stopPropagation();
-                addItemByName(productName, cat.id);
+                addItemFromCatalogEntry(cat.id, entry);
               });
-              chips.appendChild(chip);
+              const editBtn = document.createElement("button");
+              editBtn.type = "button";
+              editBtn.className =
+                "catalog-edit-btn shrink-0 text-amber-600 text-sm p-1 rounded hover:bg-amber-100 leading-none";
+              editBtn.setAttribute("aria-label", "עריכת מוצר במאגר");
+              editBtn.textContent = "✏️";
+              editBtn.addEventListener("click", (ev) => {
+                ev.stopPropagation();
+                openCatalogItemEditor(cat.id, entry);
+              });
+              row.appendChild(mainBtn);
+              row.appendChild(editBtn);
+              chips.appendChild(row);
             });
             strip.appendChild(chips);
             listEl.appendChild(strip);
@@ -1629,8 +1759,15 @@
         const row = document.createElement("div");
         row.className = "item-row flex flex-wrap items-center gap-2 p-2 border rounded";
         row.dataset.itemId = item.id;
+        if (item.note === undefined) item.note = "";
         row.innerHTML = `
-          <span class="flex-1 min-w-[120px] font-medium">${escapeHtml(item.name)}</span>
+          <div class="flex flex-col flex-1 min-w-[140px] gap-1">
+            <div class="flex items-start gap-1">
+              <span class="font-medium flex-1 break-words">${escapeHtml(item.name)}</span>
+              <button type="button" class="item-focus-note shrink-0 text-amber-600 text-base leading-none p-0.5 rounded hover:bg-amber-50" title="קפיצה להערה">✏️</button>
+            </div>
+            <input type="text" class="item-note-input w-full text-xs border border-gray-200 rounded px-2 py-1" dir="rtl" placeholder="הערה — מותג, גודל…" />
+          </div>
           <div class="quantity-controls border rounded px-1">
             <span class="quantity-btn" data-act="dec">−</span>
             <span class="quantity-value">${item.quantity}</span>
@@ -1642,6 +1779,21 @@
           </label>
           <button type="button" class="text-red-600 text-sm mr-auto delete-item">מחק</button>
         `;
+        const noteInput = row.querySelector(".item-note-input");
+        if (noteInput) {
+          noteInput.value = item.note || "";
+          noteInput.addEventListener("input", () => {
+            item.note = noteInput.value;
+            saveState();
+          });
+        }
+        const focusNote = row.querySelector(".item-focus-note");
+        if (focusNote && noteInput) {
+          focusNote.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            noteInput.focus();
+          });
+        }
 
         row.querySelector('[data-act="dec"]').addEventListener("click", () => {
           item.quantity = Math.max(0, (Number(item.quantity) || 0) - 1);
@@ -1708,6 +1860,13 @@
       function addItemByName(name, catId) {
         const n = (name || "").trim();
         if (!n) return;
+        let defaultPrice = 0;
+        let defaultNote = "";
+        const catHit = getResolvedCatalog(catId).find((x) => x.name.trim() === n);
+        if (catHit) {
+          defaultPrice = Number(catHit.price) || 0;
+          defaultNote = (catHit.note || "").trim();
+        }
         ensureCategoryItems(catId);
         const existing = state.items[catId].find((x) => x.name.trim() === n);
         if (existing) {
@@ -1717,7 +1876,8 @@
             id: uid(),
             name: n,
             quantity: 1,
-            price: 0,
+            price: defaultPrice,
+            note: defaultNote,
             sessionPurchased: false,
             sessionMissing: false,
           });
@@ -1766,6 +1926,43 @@
         renderPrepCategories();
       });
 
+      (function initCatalogEditModal() {
+        const saveBtn = document.getElementById("catalogEditSaveBtn");
+        const cancelBtn = document.getElementById("catalogEditCancelBtn");
+        if (saveBtn) {
+          saveBtn.addEventListener("click", function () {
+            if (!catalogEditContext) return;
+            const catId = catalogEditContext.catId;
+            const entryId = catalogEditContext.entryId;
+            const ne = document.getElementById("catalogEditName");
+            const pe = document.getElementById("catalogEditPrice");
+            const no = document.getElementById("catalogEditNote");
+            const name = (ne && ne.value.trim()) || "";
+            if (!name) {
+              alert("נא להזין שם מוצר");
+              return;
+            }
+            const raw = loadCatalogOverrides();
+            if (!raw[catId]) raw[catId] = {};
+            raw[catId][entryId] = {
+              name: name,
+              price: parseFloat(pe && pe.value) || 0,
+              note: no && no.value != null ? no.value.trim() : "",
+            };
+            saveCatalogOverrides(raw);
+            catalogEditContext = null;
+            closeModal("catalogEditModal");
+            renderPrepCategories();
+          });
+        }
+        if (cancelBtn) {
+          cancelBtn.addEventListener("click", function () {
+            catalogEditContext = null;
+            closeModal("catalogEditModal");
+          });
+        }
+      })();
+
       function confirmDeleteCategory(catId) {
         const meta = getCategoryMeta(catId);
         if (!meta) return;
@@ -1790,14 +1987,19 @@
           if (!names.has(key)) names.set(key, { name: it.name, categoryId: it.categoryId });
         });
         Object.keys(PRODUCT_CATALOG).forEach((cid) => {
-          (PRODUCT_CATALOG[cid] || []).forEach((productName) => {
-            const key = productName + "\t" + cid;
-            if (!names.has(key)) names.set(key, { name: productName, categoryId: cid });
+          getResolvedCatalog(cid).forEach((entry) => {
+            const key = entry.name + "\t" + cid;
+            if (!names.has(key)) names.set(key, { name: entry.name, categoryId: cid });
           });
         });
         const hits = [];
         names.forEach((v) => {
-          if (v.name.toLowerCase().includes(q)) hits.push(v);
+          if (v.name.toLowerCase().includes(q)) {
+            hits.push(v);
+            return;
+          }
+          const ce = getResolvedCatalog(v.categoryId).find((e) => e.name === v.name);
+          if (ce && ce.note && String(ce.note).toLowerCase().includes(q)) hits.push(v);
         });
         return hits.slice(0, 20);
       }
@@ -1896,10 +2098,15 @@
         const catLabel = meta ? `${meta.emoji} ${meta.name}` : "";
 
         if (!modeFlag) {
+          const noteLine =
+            it.note && String(it.note).trim()
+              ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
+              : "";
           div.innerHTML = `
             <div class="flex-1 min-w-[140px]">
               <div class="font-semibold">${escapeHtml(it.name)}</div>
               <div class="text-xs text-gray-500">${escapeHtml(catLabel)} · כמות: ${it.quantity}</div>
+              ${noteLine}
             </div>
             <button type="button" class="bg-green-600 text-white px-3 py-1 rounded shrink-0 shop-buy">נקנה</button>
             <button type="button" class="bg-rose-500 text-white px-3 py-1 rounded shrink-0 shop-miss">חסר</button>
@@ -1919,10 +2126,15 @@
             renderShopView();
           });
         } else if (modeFlag === "purchased") {
+          const noteLine =
+            it.note && String(it.note).trim()
+              ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
+              : "";
           div.innerHTML = `
             <div class="flex-1">
               <div class="font-medium">${escapeHtml(it.name)}</div>
               <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
+              ${noteLine}
             </div>
             <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
           `;
@@ -1937,10 +2149,15 @@
             renderShopView();
           });
         } else {
+          const noteLineM =
+            it.note && String(it.note).trim()
+              ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
+              : "";
           div.innerHTML = `
             <div class="flex-1">
               <div class="font-medium">${escapeHtml(it.name)}</div>
               <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
+              ${noteLineM}
             </div>
             <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
           `;
