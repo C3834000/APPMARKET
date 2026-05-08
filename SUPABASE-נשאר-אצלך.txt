@@ -21,9 +21,15 @@
    • Site URL: כתובת האתר שלך (למשל Netlify) או לפחות https://xxxx.netlify.app  
    • Redirect URLs: להוסיף את כתובת האתר המלאה וגם http://localhost:* לבדיקות מקומיות.
 
-6) העלאה ל-Netlify אחרי עדכון supabase-config.js  
-   מתוך תיקיית הפרויקט:
-   npx netlify-cli deploy --dir . --prod  
-   או גרירת התיקייה ל-Netlify.
+6) העלאה ל-Netlify (מומלץ — בלי להעלות מפתחות לגיט)
+   א. ב-Netlify → האתר שלך → Site configuration → Environment variables:
+      • SUPABASE_URL      — מהדשבורד Supabase → Project Settings → API → Project URL
+      • SUPABASE_ANON_KEY — אותו מסך → anon public key
+   ב. חיבור לריפו מ-GitHub או deploy ידני — הקובץ netlify.toml מריץ:
+      npm run build
+      הסקריפט scripts/generate-supabase-config.js יוצר את supabase-config.js רק בזמן בנייה.
+   ג. פריסה מקומית ידנית:
+      npx netlify-cli deploy --dir . --prod
+      (גם שם Netlify יספק את משתני הסביבה אם מוגדרים באתר.)
 
-זכור: supabase-config.js לא נשמר בגיט — להעתיק מ-supabase-config.example.js במחשב חדש.
+זכור: supabase-config.js לא נשמר בגיט — במחשב חדש: העתק מ-supabase-config.example.js או הגדר משתני סביבה והרץ npm run build.
