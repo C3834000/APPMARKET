@@ -97,6 +97,10 @@
       background-color: #d1fae5;
     }
 
+    .shop-row-compact {
+      min-height: auto;
+    }
+
     .shopping-list {
       max-height: calc(100vh - 250px);
       overflow-y: auto;
@@ -407,14 +411,14 @@
           <p id="shoppingListEmpty" class="text-gray-500 text-sm hidden">אין פריטים ברשימה — חזרו לעריכה והוסיפו.</p>
         </div>
 
-        <div class="mb-4">
-          <h3 class="text-lg font-bold mb-2 text-green-600">מוצרים שנקנו</h3>
-          <div id="purchasedItems" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+        <div class="mb-3">
+          <h3 class="text-sm font-semibold mb-1.5 text-green-700">נקנו</h3>
+          <div id="purchasedItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5"></div>
         </div>
 
         <div class="mb-4">
-          <h3 class="text-lg font-bold mb-2 text-red-600">מוצרים חסרים</h3>
-          <div id="missingItems" class="space-y-2"></div>
+          <h3 class="text-sm font-semibold mb-1.5 text-red-600">חסרים</h3>
+          <div id="missingItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5"></div>
         </div>
 
         <div class="mt-6">
@@ -2149,6 +2153,15 @@
         setMode(true);
       });
 
+      function removeItemFromListEverywhere(categoryId, itemId) {
+        ensureCategoryItems(categoryId);
+        state.items[categoryId] = (state.items[categoryId] || []).filter((x) => x.id !== itemId);
+        saveState();
+        renderShopView();
+        renderPrepCategories();
+        updateSummary();
+      }
+
       function renderShopView() {
         if (els.shopModeContainer.classList.contains("hidden")) return;
 
@@ -2188,28 +2201,31 @@
 
       function shopRow(it, modeFlag) {
         const div = document.createElement("div");
-        const base =
-          "flex flex-wrap items-center gap-2 p-3 rounded border text-sm";
-        if (modeFlag === "purchased") div.className = base + " purchased";
-        else if (modeFlag === "missing") div.className = base + " missing";
-        else div.className = base + " bg-white";
+        const baseMain =
+          "flex flex-wrap items-center gap-2 p-3 rounded border text-sm bg-white";
+        const baseCompact =
+          "shop-row-compact flex items-center gap-1 p-1.5 rounded border text-[11px] leading-tight";
 
         const meta = it.cat || getCategoryMeta(it.categoryId);
         const catLabel = meta ? `${meta.emoji} ${meta.name}` : "";
 
         if (!modeFlag) {
+          div.className = baseMain;
           const noteLine =
             it.note && String(it.note).trim()
               ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
               : "";
           div.innerHTML = `
-            <div class="flex-1 min-w-[140px]">
+            <div class="flex-1 min-w-[120px]">
               <div class="font-semibold">${escapeHtml(it.name)}</div>
               <div class="text-xs text-gray-500">${escapeHtml(catLabel)} · כמות: ${it.quantity}</div>
               ${noteLine}
             </div>
-            <button type="button" class="bg-green-600 text-white px-3 py-1 rounded shrink-0 shop-buy">נקנה</button>
-            <button type="button" class="bg-rose-500 text-white px-3 py-1 rounded shrink-0 shop-miss">חסר</button>
+            <div class="flex flex-wrap items-center gap-1 shrink-0">
+              <button type="button" class="bg-green-600 text-white px-2.5 py-1 rounded text-sm shop-buy">נקנה</button>
+              <button type="button" class="bg-rose-500 text-white px-2.5 py-1 rounded text-sm shop-miss">חסר</button>
+              <button type="button" class="text-gray-600 border border-gray-300 bg-white px-2 py-1 rounded text-xs shop-remove" title="הסר מהרשימה">מחק</button>
+            </div>
           `;
           div.querySelector(".shop-buy").addEventListener("click", () => {
             const raw = state.items[it.categoryId];
@@ -2225,18 +2241,17 @@
             saveState();
             renderShopView();
           });
+          div.querySelector(".shop-remove").addEventListener("click", () => {
+            removeItemFromListEverywhere(it.categoryId, it.id);
+          });
         } else if (modeFlag === "purchased") {
-          const noteLine =
-            it.note && String(it.note).trim()
-              ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
-              : "";
+          div.className = baseCompact + " purchased";
           div.innerHTML = `
-            <div class="flex-1">
-              <div class="font-medium">${escapeHtml(it.name)}</div>
-              <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
-              ${noteLine}
+            <div class="flex-1 min-w-0 overflow-hidden">
+              <div class="font-medium truncate">${escapeHtml(it.name)}</div>
+              <div class="text-[10px] text-gray-600 truncate">${escapeHtml(catLabel)}</div>
             </div>
-            <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
+            <button type="button" class="shrink-0 text-blue-600 underline text-[10px] shop-undo px-0.5">בטל</button>
           `;
           div.querySelector(".shop-undo").addEventListener("click", () => {
             const raw = state.items[it.categoryId];
@@ -2249,17 +2264,13 @@
             renderShopView();
           });
         } else {
-          const noteLineM =
-            it.note && String(it.note).trim()
-              ? `<div class="text-xs text-amber-900 mt-0.5">${escapeHtml(String(it.note).trim())}</div>`
-              : "";
+          div.className = baseCompact + " missing";
           div.innerHTML = `
-            <div class="flex-1">
-              <div class="font-medium">${escapeHtml(it.name)}</div>
-              <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
-              ${noteLineM}
+            <div class="flex-1 min-w-0 overflow-hidden">
+              <div class="font-medium truncate">${escapeHtml(it.name)}</div>
+              <div class="text-[10px] text-gray-600 truncate">${escapeHtml(catLabel)}</div>
             </div>
-            <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
+            <button type="button" class="shrink-0 text-blue-600 underline text-[10px] shop-undo px-0.5">בטל</button>
           `;
           div.querySelector(".shop-undo").addEventListener("click", () => {
             const raw = state.items[it.categoryId];
