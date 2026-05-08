@@ -22,7 +22,8 @@
    • Redirect URLs: להוסיף את כתובת האתר המלאה וגם http://localhost:* לבדיקות מקומיות.
 
 6) העלאה ל-Netlify (מומלץ — בלי להעלות מפתחות לגיט)
-   א. ב-Netlify → האתר שלך → Site configuration → Environment variables:
+   חשוב: משתני סביבה ב-Team (משותפים לכל הפרויקטים) הם בתשלום — לא שם.
+   בחר את האתר → Site configuration → Environment variables (רמת אתר = בחינם):
       • SUPABASE_URL      — מהדשבורד Supabase → Project Settings → API → Project URL
       • SUPABASE_ANON_KEY — אותו מסך → anon public key
    ב. חיבור לריפו מ-GitHub או deploy ידני — הקובץ netlify.toml מריץ:

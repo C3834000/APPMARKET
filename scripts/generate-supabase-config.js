@@ -14,6 +14,7 @@ const url = process.env.SUPABASE_URL && String(process.env.SUPABASE_URL).trim();
 const key = process.env.SUPABASE_ANON_KEY && String(process.env.SUPABASE_ANON_KEY).trim();
 const isCI =
   process.env.NETLIFY === "true" ||
+  String(process.env.NETLIFY || "") === "1" ||
   process.env.CI === "true" ||
   process.env.CONTINUOUS_INTEGRATION === "true";
 

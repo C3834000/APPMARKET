@@ -742,7 +742,9 @@
 
       function signInWithGoogle() {
         if (!tryInitSupabase()) {
-          alert("יש להגדיר supabase-config.js עם URL ו-anon key מ-Supabase.");
+          alert(
+            "חסר חיבור ל-Supabase.\n\nמקומית: מלא את supabase-config.js (מ-Project Settings → API).\nבאתר ב-Netlify: באתר עצמו → Environment variables — SUPABASE_URL ו-SUPABASE_ANON_KEY, ואז פריסה מחדש."
+          );
           return;
         }
         var baseUrl = window.location.href.split("#")[0];

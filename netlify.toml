@@ -1,7 +1,10 @@
-# לפני פריסה: ב-Netlify → Site configuration → Environment variables
+# לפני פריסה: ב-Netlify → האתר (לא Team) → Site configuration → Environment variables
 #   SUPABASE_URL          (Project Settings → API → Project URL)
 #   SUPABASE_ANON_KEY     (anon public)
 # הבנייה יוצרת supabase-config.js שלא נכנס לגיט.
 [build]
   command = "npm run build"
   publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"

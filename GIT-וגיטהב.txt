@@ -17,6 +17,12 @@
 -----------------------
   כבר מחובר — הריפו: https://github.com/C3834000/APPMARKET
 
+פריסה ל-Netlify (משתני סביבה — ברמת האתר, לא Shared של צוות בתשלום)
+-------------------------------------------------------------------------------
+  באתר הספציפי → Site configuration → Environment variables:
+  SUPABASE_URL , SUPABASE_ANON_KEY
+  ואז Deploy מחדש (עדיף Clear cache).
+
 עדכונים אחרי שינוי קבצים
 -------------------------------
   git add .
