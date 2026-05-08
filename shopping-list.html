@@ -2,18 +2,30 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f8fafc" />
   <title>רשימת קניות</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="supabase-config.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
   <style>
+    .app-shell {
+      padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+      padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    }
+
+    body.app-root {
+      padding-bottom: max(6rem, env(safe-area-inset-bottom, 0px));
+    }
+
     .sticky-header {
       position: sticky;
       top: 0;
       z-index: 50;
-      background-color: #f9fafb;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: rgba(249, 250, 251, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
     }
 
     /* מתחת ל־sticky-header; הערך המדויק מגיע מ־--sticky-search-top (גובה הכותרת) */
@@ -64,7 +76,8 @@
       overflow-y: auto;
     }
 
-    .category-content.open {
+    /* שם ייעודי — בלי "open" שעלול להתנגש במודל / צ'אט */
+    .category-content.is-expanded {
       display: block;
     }
 
@@ -103,12 +116,14 @@
 
     .shopping-list {
       max-height: calc(100vh - 250px);
+      max-height: calc(100dvh - 250px);
       overflow-y: auto;
       padding-bottom: 20px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .mode-btn {
-      padding: 10px 16px;
+      padding: 10px 12px;
       border-radius: 8px;
       font-weight: 600;
       transition: all 0.2s;
@@ -116,6 +131,12 @@
       align-items: center;
       justify-content: center;
       flex: 1;
+      min-height: 44px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .mode-btn:active {
+      transform: scale(0.98);
     }
 
     .mode-btn svg {
@@ -193,16 +214,21 @@
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding-top: 10vh;
+      padding-top: max(8vh, env(safe-area-inset-top, 0px));
+      padding-left: max(12px, env(safe-area-inset-left, 0px));
+      padding-right: max(12px, env(safe-area-inset-right, 0px));
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      box-sizing: border-box;
     }
 
     .modal-content {
       background-color: white;
       margin: 0 auto;
       padding: 20px;
-      border-radius: 8px;
-      width: 80%;
+      border-radius: 12px;
+      width: min(400px, calc(100vw - 24px));
       max-width: 400px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
     }
 
     .close-modal {
@@ -300,16 +326,13 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-24">
-  <div class="max-w-3xl mx-auto">
+<body class="app-root min-h-screen min-h-[100dvh] bg-gradient-to-b from-slate-50 via-gray-50 to-amber-50/35">
+  <div class="max-w-3xl mx-auto app-shell">
     <div class="sticky-header">
       <header class="px-4 pt-4 pb-2 flex flex-col gap-2">
-        <div class="flex items-center justify-between gap-2">
-          <button type="button" id="syncSettingsBtn" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shrink-0">
-            ☁️ סנכרון
-          </button>
-          <h1 class="text-xl sm:text-2xl font-bold text-gray-800 text-center flex-1">רשימת קניות לשבת</h1>
-          <span id="syncStatusDot" class="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[100px] truncate text-center" title="">מקומי</span>
+        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-1">
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-800 text-center">רשימת קניות לשבת</h1>
+          <span id="syncStatusDot" class="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[140px] truncate text-center" title="">מקומי</span>
         </div>
         <div class="flex items-center justify-center gap-2 flex-wrap px-1">
           <button type="button" id="googleSignInHeader" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 inline-flex items-center gap-2">
@@ -324,17 +347,17 @@
         </div>
       </header>
 
-      <div class="summary-bar bg-white p-4 shadow flex justify-between items-center">
-        <div class="flex items-center text-lg font-medium">
+      <div class="summary-bar bg-white p-3 sm:p-4 shadow flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+        <div class="flex items-center text-base sm:text-lg font-medium">
           <span id="totalItems" class="text-blue-600">0 פריטים</span>
           <span id="itemsStatus" class="text-gray-500 text-sm mr-2">(0 סומנו)</span>
         </div>
-        <div class="flex items-center text-lg font-bold">
+        <div class="flex items-center text-base sm:text-lg font-bold sm:ms-auto">
           <span id="totalPrice" class="text-green-600">₪0.00</span>
         </div>
       </div>
 
-      <div class="flex justify-between mb-4 gap-3 p-3 bg-gray-50 rounded-b-lg shadow">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-b-lg shadow">
         <button type="button" id="prepMode" class="mode-btn bg-blue-700 text-white">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -346,6 +369,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <span>קנייה</span>
+        </button>
+        <button type="button" id="listsMode" class="mode-btn bg-white text-violet-700 border border-violet-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          <span>רשימות</span>
         </button>
         <button type="button" id="resetBtn" class="mode-btn bg-white text-red-600 border border-red-600">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
@@ -384,6 +413,21 @@
               <button type="button" id="addItemBtn" class="bg-blue-600 text-white px-3 py-2 rounded shrink-0">הוסף</button>
             </div>
           </div>
+        </div>
+
+        <div id="weeklyTemplateBar" class="mb-3 p-3 rounded-xl border border-amber-200 bg-gradient-to-l from-amber-50 to-orange-50 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+            <div class="text-sm font-semibold text-amber-950">רשימה קבועה לשבת</div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" id="saveTemplateBtn" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg bg-amber-600 text-white font-medium hover:bg-amber-700">
+                שמור תבנית מהרשימה
+              </button>
+              <button type="button" id="loadTemplateBtn" class="text-xs sm:text-sm px-3 py-1.5 rounded-lg border-2 border-amber-600 text-amber-900 bg-white font-medium hover:bg-amber-50">
+                טען תבנית לרשימה
+              </button>
+            </div>
+          </div>
+          <p id="templateStatus" class="text-xs text-amber-900/85 leading-relaxed"></p>
         </div>
 
         <div id="categoriesList" class="space-y-4"></div>
@@ -427,6 +471,61 @@
           </button>
         </div>
       </div>
+
+      <!-- מצב רשימות ושיתוף (במקום מודל סנכרון) -->
+      <div id="listsModeContainer" class="lists-mode-container hidden space-y-4 pb-6">
+        <div class="rounded-xl border border-violet-200 bg-gradient-to-l from-violet-50/90 to-white p-4 shadow-sm">
+          <h2 class="text-lg font-bold text-violet-950 mb-1">רשימות ושיתוף</h2>
+          <p class="text-sm text-gray-600 mb-4">
+            צרו רשימה חדשה, חברו מזהה לענן (Google), והעתיקו קישור למשפחה. סטטוס הסנכרון מופיע ליד כותרת האפליקציה.
+          </p>
+
+          <div id="recentListsSection" class="mb-4 hidden">
+            <p class="text-sm font-semibold text-gray-800 mb-2">רשימות אחרונות במכשיר</p>
+            <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="border rounded-lg p-3 mb-4 bg-green-50 border-green-100">
+            <p class="text-sm font-semibold text-gray-900 mb-1">יצירת רשימה חדשה</p>
+            <p class="text-xs text-gray-600 mb-3">נוצרת רשימה ריקה עם מזהה ייחודי. אחר כך אפשר להעתיק קישור ולשלוח למי שרוצים.</p>
+            <button type="button" id="createNewListBtn" class="w-full py-2 rounded-lg border border-green-600 bg-white text-green-800 text-sm font-medium hover:bg-green-50">
+              צור רשימה חדשה
+            </button>
+          </div>
+          <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
+            <p class="text-sm font-semibold text-gray-900 mb-1">התחברות לענן</p>
+            <p class="text-xs text-gray-600 mb-3">נדרש להתחברות עם Google כדי לשתף רשימה וצ׳אט עם המשפחה.</p>
+            <button type="button" id="googleSignInModal" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50">
+              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              התחבר עם Google
+            </button>
+            <p id="authStatusLine" class="text-xs mt-2 text-gray-600 min-h-[1.25rem]"></p>
+          </div>
+          <label class="block text-sm font-medium mb-1">מזהה הרשימה (מופיע בקישור השיתוף)</label>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <input type="text" id="shareKeyInput" class="flex-1 min-w-[200px] border p-2 rounded font-mono text-sm" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
+            <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">מזהה אקראי</button>
+            <button type="button" id="copyShareLinkBtn" class="text-sm px-2 py-1 border rounded bg-emerald-50 text-emerald-900 whitespace-nowrap">העתק קישור שיתוף</button>
+          </div>
+          <p class="text-xs text-gray-500 mb-3">מעתיקים את הקישור לווטסאפ / SMS — או שולחים רק את המזהה למי שכבר פותח את האפליקציה.</p>
+          <label class="block text-sm font-medium mb-1">שם מוצג בצ׳אט</label>
+          <input type="text" id="displayNameInput" class="w-full border p-2 rounded mb-4" placeholder="למשל: אשתי / דני" maxlength="24" />
+          <div class="flex flex-wrap gap-2 justify-end">
+            <button type="button" id="syncDisconnectBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">נתק ענן</button>
+            <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור והתחבר לרשימה</button>
+          </div>
+          <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
+          <details class="mt-4 text-xs text-gray-600">
+            <summary class="cursor-pointer font-medium text-gray-700">הגדרת Supabase (מפתחים)</summary>
+            <p class="mt-2">
+              הפעילו <strong>Authentication → Providers → Google</strong>, הריצו <code class="bg-gray-100 px-1 rounded">supabase-schema.sql</code> ב־SQL Editor, והדביקו ל־
+              <code class="bg-gray-100 px-1 rounded">supabase-config.js</code>
+              את ה־URL וה־anon key מ־
+              <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="text-blue-600 underline">Project Settings → API</a>.
+            </p>
+          </details>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -450,54 +549,7 @@
         <input type="text" id="chatInput" class="flex-1 border rounded px-2 py-2 text-sm" placeholder="למשל: חלב 3% ועוד חלה..." autocomplete="off" />
         <button type="button" id="chatSendBtn" class="bg-blue-600 text-white px-3 py-2 rounded text-sm shrink-0">שלח</button>
       </div>
-      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולשייך רשימה (בסנכרון) כדי לשלוח הודעות לשותפים.</p>
-    </div>
-  </div>
-
-  <div id="syncModal" class="modal">
-    <div class="modal-content max-h-[85vh] overflow-y-auto">
-      <span class="close-modal" data-close="syncModal">&times;</span>
-      <h2 class="text-xl font-bold mb-3">סנכרון ענן (Supabase)</h2>
-      <p class="text-sm text-gray-600 mb-3">
-        בפרויקט Supabase שלך: הפעל <strong>Authentication → Providers → Google</strong>, הרץ את <code class="bg-gray-100 px-1 rounded">supabase-schema.sql</code> ב־SQL Editor, והדבק ל־
-        <code class="bg-gray-100 px-1 rounded">supabase-config.js</code>
-        את ה־URL וה־anon key מ־
-        <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="text-blue-600 underline">Project Settings → API</a>.
-      </p>
-      <div class="border rounded-lg p-3 mb-4 bg-green-50 border-green-100">
-        <p class="text-sm font-semibold text-gray-900 mb-1">יצירת רשימה חדשה</p>
-        <p class="text-xs text-gray-600 mb-3">נוצרת רשימה ריקה עם מזהה ייחודי. אחר כך אפשר להעתיק קישור ולשלוח למי שרוצים — יפתחו את אותה רשימה (אחרי התחברות Google).</p>
-        <button type="button" id="createNewListBtn" class="w-full py-2 rounded-lg border border-green-600 bg-white text-green-800 text-sm font-medium hover:bg-green-50">
-          צור רשימה חדשה
-        </button>
-      </div>
-      <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
-        <p class="text-sm font-semibold text-gray-900 mb-1">שיתוף רשימה</p>
-        <p class="text-xs text-gray-600 mb-3">כל מי שמקבל את הקישור או את המזהה נכנס לאותה רשימה אחרי התחברות עם Google — כולל צ'אט בזמן אמת.</p>
-        <button type="button" id="googleSignInModal" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50">
-          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          התחבר עם Google
-        </button>
-        <p id="authStatusLine" class="text-xs mt-2 text-gray-600 min-h-[1.25rem]"></p>
-      </div>
-      <label class="block text-sm font-medium mb-1">מזהה הרשימה (מופיע בקישור השיתוף)</label>
-      <div class="flex flex-wrap gap-2 mb-2">
-        <input type="text" id="shareKeyInput" class="flex-1 min-w-[200px] border p-2 rounded font-mono text-sm" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
-        <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">מזהה אקראי</button>
-        <button type="button" id="copyShareLinkBtn" class="text-sm px-2 py-1 border rounded bg-emerald-50 text-emerald-900 whitespace-nowrap">העתק קישור שיתוף</button>
-      </div>
-      <p class="text-xs text-gray-500 mb-3">מעתיקים את הקישור לווטסאפ / SMS — או שולחים רק את המזהה למי שכבר פותח את האפליקציה.</p>
-      <label class="block text-sm font-medium mb-1">שם מוצג בצ'אט</label>
-      <input type="text" id="displayNameInput" class="w-full border p-2 rounded mb-4" placeholder="למשל: אשתי / דני" maxlength="24" />
-      <div class="flex flex-wrap gap-2 justify-end">
-        <button type="button" id="syncDisconnectBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">נתק ענן</button>
-        <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור והתחבר לרשימה</button>
-      </div>
-      <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
-      <details class="mt-4 text-xs text-gray-600">
-        <summary class="cursor-pointer font-medium text-gray-700">טבלאות ו־RLS (קובץ supabase-schema.sql)</summary>
-        <p class="mt-2">הקובץ בפרויקט יוצר את הטבלאות ומדיניות Row Level Security למשתמשים מחוברים.</p>
-      </details>
+      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולבחור רשימה במסך «רשימות» כדי לשלוח הודעות לשותפים.</p>
     </div>
   </div>
 
@@ -552,10 +604,13 @@
   <script>
     (function () {
       const STORAGE_KEY = "shoppingListApp_v1";
+      const LS_STATE_BACKUP = "shoppingListApp_prev_v1";
       const LS_SHARE = "shoppingList_share_v1";
+      const LS_RECENT_LISTS = "shoppingList_recent_lists_v1";
       const LS_DISPLAY = "shoppingList_display_v1";
       const LS_CLIENT = "shoppingList_client_v1";
       const LS_CATALOG = "shoppingList_catalogOverrides_v1";
+      const LS_TEMPLATE = "shoppingList_weekly_template_v1";
 
       const DEFAULT_META = [
         { id: "vegetables", name: "ירקות ופירות", emoji: "🥬" },
@@ -795,6 +850,14 @@
         return { categories: cats, items };
       }
 
+      /** ענן החזיר payload ריק/שבור — לא לדרוס את המכשיר (אחרת נעלמות קטגוריות, מאגר ופריטים) */
+      function isPayloadEffectivelyEmpty(raw) {
+        if (raw == null || typeof raw !== "object") return true;
+        const cats = raw.categories;
+        if (!Array.isArray(cats) || cats.length === 0) return true;
+        return false;
+      }
+
       function uid() {
         return "i_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
       }
@@ -807,6 +870,8 @@
       let authUser = null;
       let shareKey = "";
       let lastSerialized = "";
+      /** איזו קטגוריה פתוחה במצב עריכה — נשמר בין רינדורים (אחרת כל שמירה מציגה רק את הראשונה) */
+      let expandedPrepCategoryId = null;
 
       function loadState() {
         try {
@@ -819,6 +884,18 @@
       }
 
       function saveStateLocalOnly() {
+        try {
+          const prev = localStorage.getItem(STORAGE_KEY);
+          if (prev) {
+            const parsed = JSON.parse(prev);
+            const prevGood =
+              parsed &&
+              typeof parsed === "object" &&
+              Array.isArray(parsed.categories) &&
+              parsed.categories.length > 0;
+            if (prevGood) localStorage.setItem(LS_STATE_BACKUP, prev);
+          }
+        } catch (e) {}
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
 
@@ -1036,6 +1113,11 @@
 
       function applyRemotePayload(payloadObj) {
         if (payloadObj == null || typeof payloadObj !== "object") return;
+        if (isPayloadEffectivelyEmpty(payloadObj)) {
+          lastSerialized = "";
+          pushStateToCloud();
+          return;
+        }
         const normalized = normalizeState(payloadObj);
         const incStr = JSON.stringify(normalized);
         const curStr = JSON.stringify(state);
@@ -1047,8 +1129,12 @@
         state = normalized;
         lastSerialized = incStr;
         saveStateLocalOnly();
+        var listsOpen =
+          els.listsModeContainer && !els.listsModeContainer.classList.contains("hidden");
         var shop = !document.getElementById("shopModeContainer").classList.contains("hidden");
-        if (shop) {
+        if (listsOpen) {
+          refreshListsPanelData();
+        } else if (shop) {
           populateShopCategorySelect();
           renderShopView();
         } else {
@@ -1104,8 +1190,11 @@
             },
             function (payload) {
               var row = payload.new;
-              if (!row || row.payload == null) return;
-              applyRemotePayload(row.payload);
+              if (row && row.payload != null) {
+                applyRemotePayload(row.payload);
+                return;
+              }
+              fetchListRowOnce();
             }
           )
           .subscribe(function (status) {
@@ -1237,8 +1326,67 @@
           q = String(q).trim();
           if (!/^[a-zA-Z0-9_-]{6,80}$/.test(q)) return;
           localStorage.setItem(LS_SHARE, q);
+          rememberRecentListId(q);
           window.history.replaceState({}, "", window.location.pathname + window.location.hash);
         } catch (e) {}
+      }
+
+      function rememberRecentListId(id) {
+        if (!id || !/^[a-zA-Z0-9_-]{6,80}$/.test(String(id).trim())) return;
+        const key = String(id).trim();
+        try {
+          var arr = JSON.parse(localStorage.getItem(LS_RECENT_LISTS) || "[]");
+          if (!Array.isArray(arr)) arr = [];
+          arr = [key].concat(arr.filter(function (x) {
+            return x !== key;
+          })).slice(0, 14);
+          localStorage.setItem(LS_RECENT_LISTS, JSON.stringify(arr));
+        } catch (e) {}
+      }
+
+      function refreshRecentListsChips() {
+        var mount = document.getElementById("recentListsChips");
+        var sec = document.getElementById("recentListsSection");
+        if (!mount || !sec) return;
+        mount.innerHTML = "";
+        var arr = [];
+        try {
+          arr = JSON.parse(localStorage.getItem(LS_RECENT_LISTS) || "[]");
+        } catch (e) {}
+        if (!Array.isArray(arr) || arr.length === 0) {
+          sec.classList.add("hidden");
+          return;
+        }
+        sec.classList.remove("hidden");
+        arr.forEach(function (id) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className =
+            "text-xs px-2 py-1 rounded-lg border border-violet-200 bg-white text-violet-900 hover:bg-violet-50 font-mono max-w-[220px] truncate";
+          btn.title = id;
+          btn.textContent = id.length > 32 ? id.slice(0, 30) + "…" : id;
+          btn.addEventListener("click", function () {
+            if (els.shareKeyInput) els.shareKeyInput.value = id;
+            if (els.shareKeyInput) els.shareKeyInput.focus();
+          });
+          mount.appendChild(btn);
+        });
+      }
+
+      function refreshListsPanelData() {
+        if (els.shareKeyInput) els.shareKeyInput.value = localStorage.getItem(LS_SHARE) || "";
+        if (els.displayNameInput) {
+          var gu = authUser;
+          var fromGoogle = "";
+          if (gu && gu.user_metadata) {
+            fromGoogle = gu.user_metadata.full_name || gu.user_metadata.name || "";
+          }
+          els.displayNameInput.value =
+            (localStorage.getItem(LS_DISPLAY) || "").trim() || fromGoogle || "";
+        }
+        if (els.syncError) els.syncError.classList.add("hidden");
+        updateAuthUI();
+        refreshRecentListsChips();
       }
 
       function buildShareUrlForCurrentList() {
@@ -1282,6 +1430,7 @@
             shareKey = newKey;
             localStorage.setItem(LS_SHARE, newKey);
             if (els.shareKeyInput) els.shareKeyInput.value = newKey;
+            rememberRecentListId(newKey);
             syncCloudIfPossible();
             if (hasSignedInUser() && tryInitSupabase()) {
               pushStateToCloud();
@@ -1343,6 +1492,24 @@
         saveStateLocalOnly();
       }
 
+      if (Array.isArray(state.categories) && state.categories.length === 0) {
+        try {
+          const b = localStorage.getItem(LS_STATE_BACKUP);
+          if (b) {
+            const o = JSON.parse(b);
+            if (
+              o &&
+              typeof o === "object" &&
+              Array.isArray(o.categories) &&
+              o.categories.length > 0
+            ) {
+              state = normalizeState(o);
+              saveStateLocalOnly();
+            }
+          }
+        } catch (e) {}
+      }
+
       let confirmAction = null;
 
       const els = {
@@ -1354,6 +1521,8 @@
         resetBtn: document.getElementById("resetBtn"),
         prepModeContainer: document.getElementById("prepModeContainer"),
         shopModeContainer: document.getElementById("shopModeContainer"),
+        listsModeContainer: document.getElementById("listsModeContainer"),
+        listsMode: document.getElementById("listsMode"),
         categoriesList: document.getElementById("categoriesList"),
         searchInput: document.getElementById("searchInput"),
         searchResults: document.getElementById("searchResults"),
@@ -1379,7 +1548,6 @@
         newCategoryName: document.getElementById("newCategoryName"),
         newCategoryEmoji: document.getElementById("newCategoryEmoji"),
         addNewCategoryBtn: document.getElementById("addNewCategoryBtn"),
-        syncSettingsBtn: document.getElementById("syncSettingsBtn"),
         shareKeyInput: document.getElementById("shareKeyInput"),
         generateShareKeyBtn: document.getElementById("generateShareKeyBtn"),
         syncSaveBtn: document.getElementById("syncSaveBtn"),
@@ -1396,7 +1564,46 @@
         chatAddToList: document.getElementById("chatAddToList"),
         chatCategorySelect: document.getElementById("chatCategorySelect"),
         chatHint: document.getElementById("chatHint"),
+        saveTemplateBtn: document.getElementById("saveTemplateBtn"),
+        loadTemplateBtn: document.getElementById("loadTemplateBtn"),
       };
+
+      function handlePrepCategoryAccordionClick(e) {
+        const tgt = e.target;
+        const el = tgt instanceof Element ? tgt : tgt.parentElement;
+        if (!el || typeof el.closest !== "function") return;
+        const header = el.closest(".category-header");
+        if (!header || !els.categoriesList || !els.categoriesList.contains(header)) return;
+        if (e.target.closest(".delete-category")) return;
+        if (e.target.closest(".cat-drag-handle")) return;
+        if (e.target.closest(".cat-move-up") || e.target.closest(".cat-move-down")) return;
+        const wrap = header.closest(".category");
+        if (!wrap) return;
+        const content = wrap.querySelector(".category-content");
+        if (!content) return;
+        const wasOpen = content.classList.contains("is-expanded");
+        if (wasOpen) {
+          content.classList.remove("is-expanded");
+          expandedPrepCategoryId = null;
+          const ic = wrap.querySelector(".toggle-icon");
+          if (ic) ic.textContent = "◀";
+          return;
+        }
+        els.categoriesList.querySelectorAll(".category-content.is-expanded").forEach((c) => {
+          c.classList.remove("is-expanded");
+        });
+        els.categoriesList.querySelectorAll(".category .toggle-icon").forEach((ic) => {
+          ic.textContent = "◀";
+        });
+        content.classList.add("is-expanded");
+        expandedPrepCategoryId = wrap.dataset.catId || null;
+        const icon = wrap.querySelector(".toggle-icon");
+        if (icon) icon.textContent = "▼";
+      }
+
+      if (els.categoriesList) {
+        els.categoriesList.addEventListener("click", handlePrepCategoryAccordionClick);
+      }
 
       function getCategoryMeta(id) {
         return state.categories.find((c) => c.id === id);
@@ -1443,23 +1650,6 @@
         if (typeof fn === "function") fn();
       });
 
-      if (els.syncSettingsBtn) {
-        els.syncSettingsBtn.addEventListener("click", () => {
-          if (els.shareKeyInput) els.shareKeyInput.value = localStorage.getItem(LS_SHARE) || "";
-          if (els.displayNameInput) {
-            var gu = authUser;
-            var fromGoogle = "";
-            if (gu && gu.user_metadata) {
-              fromGoogle = gu.user_metadata.full_name || gu.user_metadata.name || "";
-            }
-            els.displayNameInput.value =
-              (localStorage.getItem(LS_DISPLAY) || "").trim() || fromGoogle || "";
-          }
-          if (els.syncError) els.syncError.classList.add("hidden");
-          updateAuthUI();
-          openModal("syncModal");
-        });
-      }
       if (els.generateShareKeyBtn && els.shareKeyInput) {
         els.generateShareKeyBtn.addEventListener("click", () => {
           els.shareKeyInput.value = "list_" + Math.random().toString(36).slice(2, 11);
@@ -1507,9 +1697,9 @@
           }
           shareKey = key;
           localStorage.setItem(LS_SHARE, key);
+          rememberRecentListId(key);
           syncCloudIfPossible();
           pushStateToCloud();
-          closeModal("syncModal");
           updateSyncDot(true);
           updateChatHint();
         });
@@ -1517,7 +1707,7 @@
       if (els.syncDisconnectBtn) {
         els.syncDisconnectBtn.addEventListener("click", () => {
           disconnectCloud();
-          closeModal("syncModal");
+          refreshListsPanelData();
         });
       }
 
@@ -1576,35 +1766,55 @@
         });
       }
 
-      function setMode(isShop) {
-        if (isShop) {
-          syncShopFlagsFromItems();
-          els.prepModeContainer.classList.add("hidden");
-          els.shopModeContainer.classList.remove("hidden");
-          els.prepMode.classList.remove("bg-blue-700", "text-white");
-          els.prepMode.classList.add("bg-white", "text-blue-700", "border", "border-blue-600");
-          els.shopMode.classList.remove("bg-white", "text-green-600", "border", "border-green-600");
-          els.shopMode.classList.add("bg-green-600", "text-white");
-        } else {
-          els.shopModeContainer.classList.add("hidden");
-          els.prepModeContainer.classList.remove("hidden");
-          els.shopMode.classList.remove("bg-green-600", "text-white");
-          els.shopMode.classList.add("bg-white", "text-green-600", "border", "border-green-600");
-          els.prepMode.classList.add("bg-blue-700", "text-white");
-          els.prepMode.classList.remove("bg-white", "text-blue-700", "border", "border-blue-600");
+      function setMainMode(mode) {
+        const isPrep = mode === "prep";
+        const isShop = mode === "shop";
+        const isLists = mode === "lists";
+        if (isShop) syncShopFlagsFromItems();
+
+        if (els.listsModeContainer) els.listsModeContainer.classList.toggle("hidden", !isLists);
+        els.prepModeContainer.classList.toggle("hidden", !isPrep);
+        els.shopModeContainer.classList.toggle("hidden", !isShop);
+        if (els.resetBtn) els.resetBtn.classList.toggle("hidden", isLists);
+
+        els.prepMode.classList.toggle("bg-blue-700", isPrep);
+        els.prepMode.classList.toggle("text-white", isPrep);
+        els.prepMode.classList.toggle("bg-white", !isPrep);
+        els.prepMode.classList.toggle("text-blue-700", !isPrep);
+        els.prepMode.classList.toggle("border", !isPrep);
+        els.prepMode.classList.toggle("border-blue-600", !isPrep);
+
+        els.shopMode.classList.toggle("bg-green-600", isShop);
+        els.shopMode.classList.toggle("text-white", isShop);
+        els.shopMode.classList.toggle("bg-white", !isShop);
+        els.shopMode.classList.toggle("text-green-600", !isShop);
+        els.shopMode.classList.toggle("border", !isShop);
+        els.shopMode.classList.toggle("border-green-600", !isShop);
+
+        if (els.listsMode) {
+          els.listsMode.classList.toggle("bg-violet-600", isLists);
+          els.listsMode.classList.toggle("text-white", isLists);
+          els.listsMode.classList.toggle("bg-white", !isLists);
+          els.listsMode.classList.toggle("text-violet-700", !isLists);
+          els.listsMode.classList.toggle("border", !isLists);
+          els.listsMode.classList.toggle("border-violet-500", !isLists);
         }
+
         updateSummary();
         if (isShop) {
           populateShopCategorySelect();
           renderShopView();
-        } else {
+        } else if (isPrep) {
           renderPrepCategories();
+        } else {
+          refreshListsPanelData();
         }
         updateStickySearchTop();
       }
 
-      els.prepMode.addEventListener("click", () => setMode(false));
-      els.shopMode.addEventListener("click", () => setMode(true));
+      els.prepMode.addEventListener("click", () => setMainMode("prep"));
+      els.shopMode.addEventListener("click", () => setMainMode("shop"));
+      if (els.listsMode) els.listsMode.addEventListener("click", () => setMainMode("lists"));
 
       els.resetBtn.addEventListener("click", () => {
         showConfirm("איפוס רשימה", "למחוק את כל הרשימה ולהתחיל מחדש?", () => {
@@ -1619,6 +1829,13 @@
           updateSummary();
         });
       });
+
+      if (els.saveTemplateBtn) {
+        els.saveTemplateBtn.addEventListener("click", () => saveWeeklyTemplate());
+      }
+      if (els.loadTemplateBtn) {
+        els.loadTemplateBtn.addEventListener("click", () => loadWeeklyTemplate());
+      }
 
       function syncShopFlagsFromItems() {
         Object.keys(state.items).forEach((cid) => {
@@ -1646,6 +1863,8 @@
         let unitSum = 0;
         let sum = 0;
         const shopVisible = !els.shopModeContainer.classList.contains("hidden");
+        const listsVisible =
+          els.listsModeContainer && !els.listsModeContainer.classList.contains("hidden");
 
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
@@ -1664,18 +1883,21 @@
         });
 
         els.totalItems.textContent = count + " פריטים";
-        els.itemsStatus.textContent = shopVisible
-          ? "(" + marked + " סומנו)"
-          : "(סה״כ יחידות: " + unitSum + ")";
+        els.itemsStatus.textContent = listsVisible
+          ? "(ניהול רשימות)"
+          : shopVisible
+            ? "(" + marked + " סומנו)"
+            : "(סה״כ יחידות: " + unitSum + ")";
         els.totalPrice.textContent = "₪" + sum.toFixed(2);
       }
 
-      function categoryHeaderHtml(cat, deletable, index, total) {
+      function categoryHeaderHtml(cat, deletable, index, total, expanded) {
         const del = deletable
           ? `<button type="button" class="delete-category text-red-500 mr-2" data-del-cat="${cat.id}" aria-label="מחק קטגוריה">🗑️</button>`
           : "";
         const canUp = index > 0;
         const canDown = index < total - 1;
+        const arrow = expanded ? "▼" : "◀";
         return `
           <div class="category-header flex justify-between items-center gap-2 p-2 rounded">
             <span class="cat-drag-handle shrink-0 px-1 py-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing select-none touch-manipulation text-lg leading-none"
@@ -1685,7 +1907,7 @@
               <button type="button" class="cat-move-up px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canUp ? "" : "disabled"} title="הזז למעלה">↑</button>
               <button type="button" class="cat-move-down px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canDown ? "" : "disabled"} title="הזז למטה">↓</button>
               ${del}
-              <span class="toggle-icon select-none cursor-pointer" aria-hidden="true">▼</span>
+              <span class="toggle-icon select-none cursor-pointer" aria-hidden="true">${arrow}</span>
             </div>
           </div>`;
       }
@@ -1717,6 +1939,73 @@
         renderPrepCategories();
       }
 
+      function updateTemplateBanner() {
+        const el = document.getElementById("templateStatus");
+        if (!el) return;
+        try {
+          const raw = localStorage.getItem(LS_TEMPLATE);
+          if (!raw) {
+            el.textContent =
+              'עדיין לא נשמרה תבנית. סדרו את רשימת השבת הקבועה שלכם ולחצו "שמור תבנית מהרשימה".';
+            return;
+          }
+          const data = JSON.parse(raw);
+          var t = "";
+          if (data.savedAt) {
+            try {
+              t = new Date(data.savedAt).toLocaleString("he-IL");
+            } catch (e2) {}
+          }
+          el.textContent = t
+            ? "תבנית שמורה במכשיר — עודכנה לאחרונה: " + t + ". אפשר לערוך את הרשימה בכל עת ולשמור תבנית מחדש."
+            : "יש תבנית שמורה. טעינה מחליפה את הרשימה הנוכחית (כולל במצב מחובר לענן).";
+        } catch (e) {
+          el.textContent = "לא ניתן לקרוא את נתוני התבנית.";
+        }
+      }
+
+      function saveWeeklyTemplate() {
+        const snapshot = {
+          savedAt: new Date().toISOString(),
+          categories: JSON.parse(JSON.stringify(state.categories)),
+          items: JSON.parse(JSON.stringify(state.items)),
+        };
+        localStorage.setItem(LS_TEMPLATE, JSON.stringify(snapshot));
+        updateTemplateBanner();
+        alert("התבנית נשמרה במכשיר. לפני שבת אפשר ללחוץ \"טען תבנית לרשימה\" ואז לעדכן כמויות.");
+      }
+
+      function loadWeeklyTemplate() {
+        const raw = localStorage.getItem(LS_TEMPLATE);
+        if (!raw) {
+          alert('אין תבנית שמורה. קודם לחצו "שמור תבנית מהרשימה".');
+          return;
+        }
+        var data;
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          alert("קובץ התבנית פגום.");
+          return;
+        }
+        showConfirm(
+          "טעינת תבנית",
+          "הרשימה הנוכחית (פריטים וקטגוריות) תוחלף בתבנית השמורה. קוד שיתוף וסנכרון נשארים. להמשיך?",
+          function () {
+            const merged = normalizeState({ categories: data.categories, items: data.items });
+            state.categories = merged.categories;
+            state.items = merged.items;
+            saveState();
+            renderPrepCategories();
+            renderShopView();
+            updateSummary();
+            refreshCategorySelect();
+            refreshChatCategories();
+            updateTemplateBanner();
+          }
+        );
+      }
+
       function escapeHtml(s) {
         const d = document.createElement("div");
         d.textContent = s;
@@ -1726,27 +2015,22 @@
       function renderPrepCategories() {
         els.categoriesList.innerHTML = "";
         const totalCats = state.categories.length;
+        const firstCatId = totalCats ? state.categories[0].id : "";
+        const expandedStillValid =
+          expandedPrepCategoryId &&
+          state.categories.some((c) => c.id === expandedPrepCategoryId);
+        const activeExpandedId = expandedStillValid ? expandedPrepCategoryId : firstCatId;
         state.categories.forEach((cat, index) => {
           ensureCategoryItems(cat.id);
           const isDefault = DEFAULT_META.some((d) => d.id === cat.id);
+          const expandedFirst = cat.id === activeExpandedId;
           const wrap = document.createElement("div");
           wrap.id = cat.id;
           wrap.className = "category bg-white rounded shadow p-3" + (cat.dynamic ? " dynamic-cat" : "");
           wrap.dataset.catId = cat.id;
           wrap.innerHTML =
-            categoryHeaderHtml(cat, !isDefault, index, totalCats) +
-            `<div class="category-content space-y-2 mt-2 open"></div>`;
-
-          const header = wrap.querySelector(".category-header");
-          const content = wrap.querySelector(".category-content");
-          header.addEventListener("click", (e) => {
-            if (e.target.closest(".delete-category")) return;
-            if (e.target.closest(".cat-drag-handle")) return;
-            if (e.target.closest(".cat-move-up") || e.target.closest(".cat-move-down")) return;
-            content.classList.toggle("open");
-            const icon = wrap.querySelector(".toggle-icon");
-            icon.textContent = content.classList.contains("open") ? "▼" : "◀";
-          });
+            categoryHeaderHtml(cat, !isDefault, index, totalCats, expandedFirst) +
+            `<div class="category-content space-y-2 mt-2${expandedFirst ? " is-expanded" : ""}"></div>`;
 
           const dragHandle = wrap.querySelector(".cat-drag-handle");
           if (dragHandle) {
@@ -1931,6 +2215,7 @@
 
       function refreshCategorySelect() {
         const sel = els.categorySelect;
+        if (!sel) return;
         const keep = sel.value;
         sel.innerHTML = "";
         state.categories.forEach((c) => {
@@ -1949,6 +2234,7 @@
 
       function populateShopCategorySelect() {
         const sel = els.shopCategorySelect;
+        if (!sel) return;
         const keep = sel.value;
         sel.innerHTML = "";
         state.categories.forEach((c) => {
@@ -2071,6 +2357,7 @@
         const meta = getCategoryMeta(catId);
         if (!meta) return;
         showConfirm("מחיקת קטגוריה", `למחוק את "${meta.name}" וכל הפריטים בה?`, () => {
+          if (expandedPrepCategoryId === catId) expandedPrepCategoryId = null;
           state.categories = state.categories.filter((c) => c.id !== catId);
           delete state.items[catId];
           saveState();
@@ -2150,7 +2437,7 @@
       els.shopAddItemBtn.addEventListener("click", () => {
         addItemByName(els.shopAddItemInput.value, els.shopCategorySelect.value);
         els.shopAddItemInput.value = "";
-        setMode(true);
+        setMainMode("shop");
       });
 
       function removeItemFromListEverywhere(categoryId, itemId) {
@@ -2301,17 +2588,18 @@
             });
           });
           saveState();
-          setMode(false);
+          setMainMode("prep");
           renderPrepCategories();
           updateSummary();
         });
       });
 
+      applyListQueryFromUrl();
       renderPrepCategories();
       updateSummary();
-      applyListQueryFromUrl();
       initAuthAndCloud();
       updateStickySearchTop();
+      updateTemplateBanner();
       window.addEventListener("resize", updateStickySearchTop);
       window.addEventListener("orientationchange", function () {
         setTimeout(updateStickySearchTop, 200);
@@ -2326,14 +2614,42 @@
         }
       }
 
+      var fetchListDebounceTimer = null;
+      function scheduleFetchListFromCloud() {
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
+        clearTimeout(fetchListDebounceTimer);
+        fetchListDebounceTimer = setTimeout(function () {
+          fetchListRowOnce();
+        }, 350);
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") scheduleFetchListFromCloud();
+      });
+      window.addEventListener("focus", scheduleFetchListFromCloud);
+
       window.toggleCategory = function (headerEl) {
         const wrap = headerEl.closest(".category");
-        if (!wrap) return;
+        if (!wrap || !els.categoriesList.contains(wrap)) return;
         const content = wrap.querySelector(".category-content");
         if (!content) return;
-        content.classList.toggle("open");
+        const wasOpen = content.classList.contains("is-expanded");
+        if (wasOpen) {
+          content.classList.remove("is-expanded");
+          expandedPrepCategoryId = null;
+          const ic = wrap.querySelector(".toggle-icon");
+          if (ic) ic.textContent = "◀";
+          return;
+        }
+        els.categoriesList.querySelectorAll(".category-content.is-expanded").forEach(function (c) {
+          c.classList.remove("is-expanded");
+        });
+        els.categoriesList.querySelectorAll(".category .toggle-icon").forEach(function (ic) {
+          ic.textContent = "◀";
+        });
+        content.classList.add("is-expanded");
+        expandedPrepCategoryId = wrap.dataset.catId || null;
         const icon = wrap.querySelector(".toggle-icon");
-        if (icon) icon.textContent = content.classList.contains("open") ? "▼" : "◀";
+        if (icon) icon.textContent = "▼";
       };
     })();
   </script>

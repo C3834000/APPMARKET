@@ -8,3 +8,14 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# שהדפדפן לא יישמר דף ישן אחרי פריסה — הרשימה והסקריפט יעודכנו
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
