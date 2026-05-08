@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>רשימת קניות</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <style>
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: #f9fafb;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .sticky-search {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background-color: #f9fafb;
+      padding: 10px;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+    }
+
+    .item-row:hover {
+      background-color: #f9fafb;
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+    }
+
+    .quantity-btn {
+      cursor: pointer;
+      padding: 0 8px;
+      font-size: 18px;
+      user-select: none;
+    }
+
+    .quantity-value {
+      min-width: 24px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .price-input {
+      width: 70px;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .category-content {
+      display: none;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .category-content.open {
+      display: block;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      z-index: 40;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .search-result-item:hover {
+      background-color: #f3f4f6;
+      cursor: pointer;
+    }
+
+    .missing {
+      background-color: #ffe4e6;
+    }
+
+    .purchased {
+      background-color: #d1fae5;
+    }
+
+    .shopping-list {
+      max-height: calc(100vh - 250px);
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+
+    .mode-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    .mode-btn svg {
+      margin-left: 6px;
+    }
+
+    #vegetables .category-header {
+      background-color: #86efac;
+    }
+    #bakery .category-header {
+      background-color: #fca5a5;
+    }
+    #baking .category-header {
+      background-color: #fde68a;
+    }
+    #dairy .category-header {
+      background-color: #93c5fd;
+    }
+    #canned .category-header {
+      background-color: #d1d5db;
+    }
+    #coffee .category-header {
+      background-color: #c4b5fd;
+    }
+    #cleaning .category-header {
+      background-color: #5eead4;
+    }
+    #snacks .category-header {
+      background-color: #f9a8d4;
+    }
+    #chocolate .category-header {
+      background-color: #fda4af;
+    }
+    #drinks .category-header {
+      background-color: #6ee7b7;
+    }
+    #disposable .category-header {
+      background-color: #34d399;
+    }
+
+    .category-header:hover {
+      filter: brightness(0.97);
+    }
+
+    .category-header .delete-category {
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .category-header:hover .delete-category {
+      opacity: 1;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.open {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 10vh;
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    .close-modal {
+      color: #aaa;
+      float: left;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      color: black;
+    }
+
+    .dynamic-cat .category-header {
+      background-color: #e5e7eb;
+    }
+
+    .fab-chat {
+      position: fixed;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      left: max(16px, env(safe-area-inset-left));
+      width: 56px;
+      height: 56px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      font-size: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+      z-index: 75;
+      cursor: pointer;
+      border: none;
+    }
+
+    .chat-popup {
+      position: fixed;
+      bottom: calc(84px + env(safe-area-inset-bottom));
+      left: max(12px, env(safe-area-inset-left));
+      width: min(100vw - 24px, 380px);
+      max-height: min(70vh, 520px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      z-index: 74;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-popup.open {
+      display: flex;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      background: #f3f4f6;
+      min-height: 160px;
+      max-height: 360px;
+    }
+
+    .bubble {
+      max-width: 92%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .bubble.me {
+      margin-right: 0;
+      margin-left: auto;
+      background: #dbeafe;
+      border: 1px solid #bfdbfe;
+    }
+
+    .bubble.other {
+      margin-right: auto;
+      margin-left: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+    }
+
+    .bubble-meta {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen pb-24">
+  <div class="max-w-3xl mx-auto">
+    <div class="sticky-header">
+      <header class="px-4 pt-4 pb-2 flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <button type="button" id="syncSettingsBtn" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shrink-0">
+            ☁️ סנכרון
+          </button>
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-800 text-center flex-1">רשימת קניות לשבת</h1>
+          <span id="syncStatusDot" class="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[100px] truncate text-center" title="">מקומי</span>
+        </div>
+        <div class="flex items-center justify-center gap-2 flex-wrap px-1">
+          <button type="button" id="googleSignInHeader" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 inline-flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            התחבר עם Google
+          </button>
+          <div id="authUserWrap" class="hidden items-center gap-2">
+            <img id="authUserPhoto" width="32" height="32" class="w-8 h-8 rounded-full border border-gray-200 shrink-0 hidden" alt="" />
+            <span id="authUserLabel" class="text-sm text-gray-700 max-w-[min(40vw,160px)] truncate"></span>
+            <button type="button" id="googleSignOutHeader" class="text-xs text-blue-600 underline shrink-0">יציאה מ-Google</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="summary-bar bg-white p-4 shadow flex justify-between items-center">
+        <div class="flex items-center text-lg font-medium">
+          <span id="totalItems" class="text-blue-600">0 פריטים</span>
+          <span id="itemsStatus" class="text-gray-500 text-sm mr-2">(0 סומנו)</span>
+        </div>
+        <div class="flex items-center text-lg font-bold">
+          <span id="totalPrice" class="text-green-600">₪0.00</span>
+        </div>
+      </div>
+
+      <div class="flex justify-between mb-4 gap-3 p-3 bg-gray-50 rounded-b-lg shadow">
+        <button type="button" id="prepMode" class="mode-btn bg-blue-700 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>עריכה</span>
+        </button>
+        <button type="button" id="shopMode" class="mode-btn bg-white text-green-600 border border-green-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span>קנייה</span>
+        </button>
+        <button type="button" id="resetBtn" class="mode-btn bg-white text-red-600 border border-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>איפוס</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="px-3">
+      <!-- Prep Mode -->
+      <div id="prepModeContainer" class="prep-mode-container">
+        <div class="sticky-search">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative w-full sm:w-1/3">
+              <input type="text" id="searchInput" placeholder="חפש מוצר..." class="w-full border p-2 rounded" autocomplete="off" />
+              <div id="searchResults" class="search-results hidden"></div>
+            </div>
+            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2">
+              <input type="text" id="addItemInput" placeholder="הוסף פריט חדש..." class="flex-1 border p-2 rounded" />
+              <select id="categorySelect" class="border p-2 rounded min-w-0">
+                <option value="vegetables">🥬 ירקות ופירות</option>
+                <option value="bakery">🥐 מוצרי מאפה</option>
+                <option value="baking">🧁 מוצרי אפייה</option>
+                <option value="dairy">🥛 מוצרי חלב</option>
+                <option value="canned">🥫 שימורים, פסטות ודגנים</option>
+                <option value="coffee">☕️ קפה, סוכר ומדף</option>
+                <option value="cleaning">🧴 טואלטיקה וניקוי</option>
+                <option value="snacks">🍿 חטיפים</option>
+                <option value="chocolate">🍫 שוקולדים</option>
+                <option value="drinks">🥤 שתייה</option>
+                <option value="disposable">🍽 חד־פעמי</option>
+                <option value="new">➕ קטגוריה חדשה...</option>
+              </select>
+              <button type="button" id="addItemBtn" class="bg-blue-600 text-white px-3 py-2 rounded shrink-0">הוסף</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="categoriesList" class="space-y-4"></div>
+      </div>
+
+      <!-- Shop Mode -->
+      <div id="shopModeContainer" class="shop-mode-container hidden">
+        <div class="sticky-search">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative w-full sm:w-1/3">
+              <input type="text" id="shopSearchInput" placeholder="חפש מוצר..." class="w-full border p-2 rounded" autocomplete="off" />
+              <div id="shopSearchResults" class="search-results hidden"></div>
+            </div>
+            <div class="w-full sm:w-2/3 flex flex-col sm:flex-row gap-2">
+              <input type="text" id="shopAddItemInput" placeholder="הוסף פריט חדש..." class="flex-1 border p-2 rounded" />
+              <select id="shopCategorySelect" class="border p-2 rounded min-w-0"></select>
+              <button type="button" id="shopAddItemBtn" class="bg-green-600 text-white px-3 py-2 rounded shrink-0">הוסף</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h3 class="text-lg font-bold mb-2">רשימת קניות</h3>
+          <div id="shoppingList" class="shopping-list space-y-2"></div>
+          <p id="shoppingListEmpty" class="text-gray-500 text-sm hidden">אין פריטים ברשימה — חזרו לעריכה והוסיפו.</p>
+        </div>
+
+        <div class="mb-4">
+          <h3 class="text-lg font-bold mb-2 text-green-600">מוצרים שנקנו</h3>
+          <div id="purchasedItems" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+        </div>
+
+        <div class="mb-4">
+          <h3 class="text-lg font-bold mb-2 text-red-600">מוצרים חסרים</h3>
+          <div id="missingItems" class="space-y-2"></div>
+        </div>
+
+        <div class="mt-6">
+          <button type="button" id="finishShoppingBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg">
+            סיימתי את הקנייה
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- צ'אט צף -->
+  <button type="button" id="chatFab" class="fab-chat" aria-label="פתח צ'אט משפחתי">💬</button>
+  <div id="chatPopup" class="chat-popup" aria-live="polite">
+    <div class="flex items-center justify-between px-3 py-2 border-b bg-white">
+      <span class="font-bold text-gray-800">צ'אט משפחתי</span>
+      <button type="button" id="chatCloseBtn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div class="p-3 border-t bg-white space-y-2">
+      <div class="flex flex-wrap gap-2 items-center text-xs text-gray-600">
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" id="chatAddToList" checked class="rounded" />
+          הוסף את ההודעה לרשימה
+        </label>
+        <select id="chatCategorySelect" class="border rounded px-1 py-0.5 text-xs max-w-[160px]"></select>
+      </div>
+      <div class="flex gap-2">
+        <input type="text" id="chatInput" class="flex-1 border rounded px-2 py-2 text-sm" placeholder="למשל: חלב 3% ועוד חלה..." autocomplete="off" />
+        <button type="button" id="chatSendBtn" class="bg-blue-600 text-white px-3 py-2 rounded text-sm shrink-0">שלח</button>
+      </div>
+      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולהזין קוד משפחה (בסנכרון) כדי לשלוח הודעות לכל בני המשפחה.</p>
+    </div>
+  </div>
+
+  <div id="syncModal" class="modal">
+    <div class="modal-content max-h-[85vh] overflow-y-auto">
+      <span class="close-modal" data-close="syncModal">&times;</span>
+      <h2 class="text-xl font-bold mb-3">סנכרון ענן (Firebase)</h2>
+      <p class="text-sm text-gray-600 mb-3">
+        לאחר יצירת פרויקט ב־
+        <a href="https://console.firebase.google.com/" target="_blank" rel="noopener" class="text-blue-600 underline">Firebase Console</a>
+        הפעל <strong>Authentication → Sign-in method → Google</strong>, הפעל <strong>Firestore</strong>, והדבק את ערכי הקונפיג (אפשר קובץ <code class="bg-gray-100 px-1 rounded">firebase-config.js</code>).
+      </p>
+      <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
+        <p class="text-sm font-semibold text-gray-900 mb-1">שיתוף רשימה בין בני המשפחה</p>
+        <p class="text-xs text-gray-600 mb-3">כל בן משפחה מתחבר עם חשבון Google, ואז מזין את <strong>אותו קוד רשימה</strong> — הרשימה והצ'אט משותפים בזמן אמת.</p>
+        <button type="button" id="googleSignInModal" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          התחבר עם Google
+        </button>
+        <p id="authStatusLine" class="text-xs mt-2 text-gray-600 min-h-[1.25rem]"></p>
+      </div>
+      <label class="block text-sm font-medium mb-1">קוד רשימה משפחתית (משותף לכל המכשירים)</label>
+      <div class="flex gap-2 mb-2">
+        <input type="text" id="shareKeyInput" class="flex-1 border p-2 rounded font-mono text-sm" placeholder="למשל: cohen-shabat-2026" dir="ltr" autocomplete="off" />
+        <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">צור קוד</button>
+      </div>
+      <p class="text-xs text-gray-500 mb-3">שולחים את הקוד בני משפחה בווטסאפ — אחרי התחברות Google הרשימה מסתנכרנת בכל מכשיר.</p>
+      <label class="block text-sm font-medium mb-1">שם מוצג בצ'אט</label>
+      <input type="text" id="displayNameInput" class="w-full border p-2 rounded mb-4" placeholder="למשל: אשתי / דני" maxlength="24" />
+      <div class="flex flex-wrap gap-2 justify-end">
+        <button type="button" id="syncDisconnectBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">נתק ענן</button>
+        <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור קוד והתחבר לרשימה</button>
+      </div>
+      <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
+      <details class="mt-4 text-xs text-gray-600">
+        <summary class="cursor-pointer font-medium text-gray-700">כללי אבטחה לדוגמה (Firestore)</summary>
+        <pre class="mt-2 p-2 bg-gray-100 rounded overflow-x-auto text-left" dir="ltr">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sharedLists/{id} {
+      allow read, write: if request.auth != null
+        && id.matches('^[a-zA-Z0-9_-]{6,80}$');
+      match /messages/{m} {
+        allow read, write: if request.auth != null
+          && id.matches('^[a-zA-Z0-9_-]{6,80}$');
+      }
+    }
+  }
+}</pre>
+      </details>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="confirmModal">&times;</span>
+      <h2 class="text-xl font-bold mb-4" id="modalTitle">אישור פעולה</h2>
+      <p id="modalMessage">האם אתה בטוח שברצונך לבצע פעולה זו?</p>
+      <div class="flex justify-end mt-4 gap-2">
+        <button type="button" id="modalCancelBtn" class="bg-gray-300 px-4 py-2 rounded">ביטול</button>
+        <button type="button" id="modalConfirmBtn" class="bg-red-600 text-white px-4 py-2 rounded">אישור</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="newCategoryModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" data-close="newCategoryModal">&times;</span>
+      <h2 class="text-xl font-bold mb-4">הוספת קטגוריה חדשה</h2>
+      <div class="mb-4">
+        <label for="newCategoryName" class="block mb-2">שם הקטגוריה:</label>
+        <input type="text" id="newCategoryName" class="w-full border p-2 rounded" placeholder="הזן שם קטגוריה..." />
+      </div>
+      <div class="mb-4">
+        <label for="newCategoryEmoji" class="block mb-2">אייקון:</label>
+        <input type="text" id="newCategoryEmoji" class="w-full border p-2 rounded" placeholder="הזן אימוג'י..." maxlength="8" />
+      </div>
+      <div class="flex justify-end mt-4">
+        <button type="button" id="addNewCategoryBtn" class="bg-blue-600 text-white px-4 py-2 rounded">הוסף קטגוריה</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = "shoppingListApp_v1";
+      const LS_SHARE = "shoppingList_share_v1";
+      const LS_DISPLAY = "shoppingList_display_v1";
+      const LS_CLIENT = "shoppingList_client_v1";
+
+      const DEFAULT_META = [
+        { id: "vegetables", name: "ירקות ופירות", emoji: "🥬" },
+        { id: "bakery", name: "מוצרי מאפה", emoji: "🥐" },
+        { id: "baking", name: "מוצרי אפייה", emoji: "🧁" },
+        { id: "dairy", name: "מוצרי חלב", emoji: "🥛" },
+        { id: "canned", name: "שימורים, פסטות ודגנים", emoji: "🥫" },
+        { id: "coffee", name: "קפה, סוכר ומדף", emoji: "☕️" },
+        { id: "cleaning", name: "טואלטיקה וניקוי", emoji: "🧴" },
+        { id: "snacks", name: "חטיפים", emoji: "🍿" },
+        { id: "chocolate", name: "שוקולדים", emoji: "🍫" },
+        { id: "drinks", name: "שתייה", emoji: "🥤" },
+        { id: "disposable", name: "חד־פעמי", emoji: "🍽" },
+      ];
+
+      function freshDefaultState() {
+        const s = {
+          categories: DEFAULT_META.map((c) => ({ ...c })),
+          items: {},
+        };
+        DEFAULT_META.forEach((c) => {
+          s.items[c.id] = [];
+        });
+        return s;
+      }
+
+      function normalizeState(raw) {
+        if (!raw || typeof raw !== "object") return freshDefaultState();
+        const cats = Array.isArray(raw.categories) ? raw.categories : [];
+        const items = raw.items && typeof raw.items === "object" ? { ...raw.items } : {};
+        cats.forEach((c) => {
+          if (c && c.id && !items[c.id]) items[c.id] = [];
+        });
+        return { categories: cats, items };
+      }
+
+      function uid() {
+        return "i_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+      }
+
+      let applyingRemote = false;
+      let cloudPushTimer = null;
+      let listUnsub = null;
+      let chatUnsub = null;
+      let db = null;
+      let shareKey = "";
+      let lastSerialized = "";
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+
+      function saveStateLocalOnly() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function hasSignedInUser() {
+        try {
+          return !!(typeof firebase !== "undefined" && firebase.auth && firebase.auth().currentUser);
+        } catch {
+          return false;
+        }
+      }
+
+      function scheduleCloudPush() {
+        if (applyingRemote || !shareKey || !db || !hasSignedInUser()) return;
+        clearTimeout(cloudPushTimer);
+        cloudPushTimer = setTimeout(pushStateToCloud, 450);
+      }
+
+      function pushStateToCloud() {
+        if (!shareKey || !db || applyingRemote || !hasSignedInUser()) return;
+        const serialized = JSON.stringify(state);
+        if (serialized === lastSerialized) return;
+        db.collection("sharedLists")
+          .doc(shareKey)
+          .set(
+            {
+              stateJson: serialized,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              editor: getClientId(),
+            },
+            { merge: true }
+          )
+          .then(() => {
+            lastSerialized = serialized;
+            updateSyncDot(true);
+          })
+          .catch((e) => {
+            console.error(e);
+            updateSyncDot(false, e.message || String(e));
+          });
+      }
+
+      function saveState() {
+        saveStateLocalOnly();
+        scheduleCloudPush();
+      }
+
+      function getFirebaseConfig() {
+        const w = window.__SHOPPING_LIST_FIREBASE__;
+        if (w && typeof w === "object" && w.apiKey && String(w.apiKey).length > 10 && !String(w.apiKey).startsWith("YOUR_")) {
+          return w;
+        }
+        return null;
+      }
+
+      function tryInitFirebase() {
+        const cfg = getFirebaseConfig();
+        if (!cfg || typeof firebase === "undefined") return false;
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(cfg);
+          }
+          db = firebase.firestore();
+          return true;
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+      }
+
+      function getClientId() {
+        let c = localStorage.getItem(LS_CLIENT);
+        if (!c) {
+          c = "c_" + Math.random().toString(36).slice(2, 12);
+          localStorage.setItem(LS_CLIENT, c);
+        }
+        return c;
+      }
+
+      function getDisplayName() {
+        const u = firebase.auth && firebase.auth().currentUser;
+        if (u && u.displayName) return u.displayName.trim().slice(0, 28);
+        return (localStorage.getItem(LS_DISPLAY) || "").trim() || "משתמש";
+      }
+
+      function updateSyncDot(ok, errMsg) {
+        const el = document.getElementById("syncStatusDot");
+        if (!el) return;
+        const user = hasSignedInUser();
+        if (shareKey && db && user) {
+          el.textContent = errMsg ? "שגיאה" : "ענן";
+          el.className = errMsg
+            ? "text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 shrink-0 max-w-[100px] truncate text-center"
+            : "text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0 max-w-[100px] truncate text-center";
+          el.title = errMsg || "מסונכרן — רשימה משפחתית";
+        } else if (user && !shareKey) {
+          el.textContent = "ללא קוד";
+          el.className =
+            "text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-900 shrink-0 max-w-[100px] truncate text-center";
+          el.title = "מחובר ל-Google — הזן קוד משפחה בסנכרון";
+        } else {
+          el.textContent = "מקומי";
+          el.className =
+            "text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 shrink-0 max-w-[100px] truncate text-center";
+          el.title = "רק במכשיר זה — התחבר עם Google לשיתוף";
+        }
+      }
+
+      function updateAuthUI() {
+        if (typeof firebase === "undefined" || !firebase.auth) {
+          var btnIn0 = document.getElementById("googleSignInHeader");
+          var btnModal0 = document.getElementById("googleSignInModal");
+          var wrap0 = document.getElementById("authUserWrap");
+          if (btnIn0) btnIn0.classList.remove("hidden");
+          if (btnModal0) btnModal0.classList.remove("hidden");
+          if (wrap0) {
+            wrap0.classList.add("hidden");
+            wrap0.classList.remove("flex");
+          }
+          return;
+        }
+        const u = firebase.auth().currentUser;
+        const btnIn = document.getElementById("googleSignInHeader");
+        const btnModal = document.getElementById("googleSignInModal");
+        const wrap = document.getElementById("authUserWrap");
+        const photo = document.getElementById("authUserPhoto");
+        const label = document.getElementById("authUserLabel");
+        const statusLine = document.getElementById("authStatusLine");
+        if (u) {
+          if (btnIn) btnIn.classList.add("hidden");
+          if (btnModal) btnModal.classList.add("hidden");
+          if (wrap) wrap.classList.remove("hidden");
+          if (wrap) wrap.classList.add("flex");
+          if (label) label.textContent = u.displayName || u.email || "משתמש";
+          if (photo && u.photoURL) {
+            photo.src = u.photoURL;
+            photo.classList.remove("hidden");
+          } else if (photo) {
+            photo.classList.add("hidden");
+          }
+          if (statusLine) {
+            statusLine.textContent = "מחובר: " + (u.email || "");
+          }
+          var dni = document.getElementById("displayNameInput");
+          if (dni && !dni.value.trim()) {
+            dni.value = (u.displayName || "").slice(0, 24);
+          }
+        } else {
+          if (btnIn) btnIn.classList.remove("hidden");
+          if (btnModal) btnModal.classList.remove("hidden");
+          if (wrap) {
+            wrap.classList.add("hidden");
+            wrap.classList.remove("flex");
+          }
+          if (statusLine) {
+            statusLine.textContent = "לא מחובר — לחץ להתחברות לפני שיתוף רשימה.";
+          }
+        }
+      }
+
+      function signInWithGoogle() {
+        if (!tryInitFirebase()) {
+          alert("יש להגדיר firebase-config.js עם מפתחות Firebase.");
+          return;
+        }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .then(function (result) {
+            const u = result.user;
+            if (u && u.displayName) {
+              localStorage.setItem(LS_DISPLAY, u.displayName.slice(0, 24));
+            }
+            updateAuthUI();
+            syncCloudIfPossible();
+          })
+          .catch(function (e) {
+            console.error(e);
+            alert(e.message || "התחברות נכשלה");
+          });
+      }
+
+      function signOutGoogle() {
+        if (!firebase.apps.length) return;
+        firebase
+          .auth()
+          .signOut()
+          .then(function () {
+            stopListeners();
+            updateSyncDot();
+            updateChatHint();
+            updateAuthUI();
+          })
+          .catch(function (e) {
+            console.error(e);
+          });
+      }
+
+      function attachListListener() {
+        if (listUnsub) {
+          listUnsub();
+          listUnsub = null;
+        }
+        if (!shareKey || !db || !hasSignedInUser()) return;
+        const docRef = db.collection("sharedLists").doc(shareKey);
+        listUnsub = docRef.onSnapshot(
+          (snap) => {
+            if (!snap.exists) {
+              lastSerialized = "";
+              pushStateToCloud();
+              return;
+            }
+            const data = snap.data();
+            const sj = data.stateJson;
+            if (!sj || typeof sj !== "string") return;
+            let incoming;
+            try {
+              incoming = JSON.parse(sj);
+            } catch {
+              return;
+            }
+            const normalized = normalizeState(incoming);
+            const incStr = JSON.stringify(normalized);
+            const curStr = JSON.stringify(state);
+            if (incStr === curStr) {
+              lastSerialized = incStr;
+              return;
+            }
+            applyingRemote = true;
+            state = normalized;
+            lastSerialized = incStr;
+            saveStateLocalOnly();
+            const shop = !document.getElementById("shopModeContainer").classList.contains("hidden");
+            if (shop) {
+              populateShopCategorySelect();
+              renderShopView();
+            } else {
+              renderPrepCategories();
+            }
+            updateSummary();
+            refreshChatCategories();
+            applyingRemote = false;
+            updateSyncDot(true);
+          },
+          (err) => {
+            console.error(err);
+            updateSyncDot(false, err.message || "שגיאת האזנה");
+          }
+        );
+      }
+
+      function renderChatMessages(rows) {
+        const box = document.getElementById("chatMessages");
+        if (!box) return;
+        box.innerHTML = "";
+        const myId = getClientId();
+        var myUid = "";
+        try {
+          if (firebase.auth && firebase.auth().currentUser) myUid = firebase.auth().currentUser.uid;
+        } catch (e2) {}
+        rows.forEach((row) => {
+          const wrap = document.createElement("div");
+          const mine =
+            (myUid && row.uid === myUid) || (!row.uid && row.clientId === myId);
+          wrap.className = "bubble " + (mine ? "me" : "other");
+          const meta = document.createElement("div");
+          meta.className = "bubble-meta";
+          let tstr = "";
+          if (row.createdAt && row.createdAt.toDate) {
+            const d = row.createdAt.toDate();
+            tstr = d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+          }
+          meta.textContent = (row.sender || "?") + (tstr ? " · " + tstr : "");
+          const body = document.createElement("div");
+          body.textContent = row.text || "";
+          wrap.appendChild(meta);
+          wrap.appendChild(body);
+          box.appendChild(wrap);
+        });
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function attachChatListener() {
+        if (chatUnsub) {
+          chatUnsub();
+          chatUnsub = null;
+        }
+        if (!shareKey || !db || !hasSignedInUser()) return;
+        const q = db
+          .collection("sharedLists")
+          .doc(shareKey)
+          .collection("messages")
+          .orderBy("createdAt", "desc")
+          .limit(40);
+        chatUnsub = q.onSnapshot(
+          (snap) => {
+            const arr = [];
+            snap.forEach((d) => arr.push({ id: d.id, ...d.data() }));
+            arr.reverse();
+            renderChatMessages(arr);
+          },
+          (err) => console.error(err)
+        );
+      }
+
+      function refreshChatCategories() {
+        const sel = document.getElementById("chatCategorySelect");
+        if (!sel || !state.categories) return;
+        const keep = sel.value;
+        sel.innerHTML = "";
+        state.categories.forEach((c) => {
+          const o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = c.emoji + " " + c.name;
+          sel.appendChild(o);
+        });
+        if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+      }
+
+      function updateChatHint() {
+        const h = document.getElementById("chatHint");
+        if (!h) return;
+        if (!shareKey || !db || !hasSignedInUser()) h.classList.remove("hidden");
+        else h.classList.add("hidden");
+      }
+
+      function stopListeners() {
+        if (listUnsub) {
+          listUnsub();
+          listUnsub = null;
+        }
+        if (chatUnsub) {
+          chatUnsub();
+          chatUnsub = null;
+        }
+      }
+
+      function disconnectCloud() {
+        stopListeners();
+        shareKey = "";
+        lastSerialized = "";
+        localStorage.removeItem(LS_SHARE);
+        updateSyncDot();
+        updateChatHint();
+      }
+
+      function syncCloudIfPossible() {
+        shareKey = (localStorage.getItem(LS_SHARE) || "").trim();
+        if (!shareKey || !db || !hasSignedInUser()) {
+          stopListeners();
+          updateSyncDot();
+          updateChatHint();
+          return;
+        }
+        lastSerialized = JSON.stringify(state);
+        attachListListener();
+        attachChatListener();
+        updateSyncDot(true);
+        updateChatHint();
+      }
+
+      function initAuthAndCloud() {
+        if (!tryInitFirebase()) {
+          updateSyncDot();
+          updateChatHint();
+          updateAuthUI();
+          return;
+        }
+        firebase.auth().onAuthStateChanged(function () {
+          updateAuthUI();
+          syncCloudIfPossible();
+        });
+      }
+
+      let state = loadState();
+
+      if (!state || !state.categories || !state.items) {
+        state = freshDefaultState();
+        saveStateLocalOnly();
+      } else {
+        state = normalizeState(state);
+        saveStateLocalOnly();
+      }
+
+      let confirmAction = null;
+
+      const els = {
+        totalItems: document.getElementById("totalItems"),
+        itemsStatus: document.getElementById("itemsStatus"),
+        totalPrice: document.getElementById("totalPrice"),
+        prepMode: document.getElementById("prepMode"),
+        shopMode: document.getElementById("shopMode"),
+        resetBtn: document.getElementById("resetBtn"),
+        prepModeContainer: document.getElementById("prepModeContainer"),
+        shopModeContainer: document.getElementById("shopModeContainer"),
+        categoriesList: document.getElementById("categoriesList"),
+        searchInput: document.getElementById("searchInput"),
+        searchResults: document.getElementById("searchResults"),
+        addItemInput: document.getElementById("addItemInput"),
+        categorySelect: document.getElementById("categorySelect"),
+        addItemBtn: document.getElementById("addItemBtn"),
+        shopSearchInput: document.getElementById("shopSearchInput"),
+        shopSearchResults: document.getElementById("shopSearchResults"),
+        shopAddItemInput: document.getElementById("shopAddItemInput"),
+        shopCategorySelect: document.getElementById("shopCategorySelect"),
+        shopAddItemBtn: document.getElementById("shopAddItemBtn"),
+        shoppingList: document.getElementById("shoppingList"),
+        shoppingListEmpty: document.getElementById("shoppingListEmpty"),
+        purchasedItems: document.getElementById("purchasedItems"),
+        missingItems: document.getElementById("missingItems"),
+        finishShoppingBtn: document.getElementById("finishShoppingBtn"),
+        confirmModal: document.getElementById("confirmModal"),
+        modalTitle: document.getElementById("modalTitle"),
+        modalMessage: document.getElementById("modalMessage"),
+        modalCancelBtn: document.getElementById("modalCancelBtn"),
+        modalConfirmBtn: document.getElementById("modalConfirmBtn"),
+        newCategoryModal: document.getElementById("newCategoryModal"),
+        newCategoryName: document.getElementById("newCategoryName"),
+        newCategoryEmoji: document.getElementById("newCategoryEmoji"),
+        addNewCategoryBtn: document.getElementById("addNewCategoryBtn"),
+        syncSettingsBtn: document.getElementById("syncSettingsBtn"),
+        shareKeyInput: document.getElementById("shareKeyInput"),
+        generateShareKeyBtn: document.getElementById("generateShareKeyBtn"),
+        syncSaveBtn: document.getElementById("syncSaveBtn"),
+        syncDisconnectBtn: document.getElementById("syncDisconnectBtn"),
+        syncError: document.getElementById("syncError"),
+        displayNameInput: document.getElementById("displayNameInput"),
+        chatFab: document.getElementById("chatFab"),
+        chatPopup: document.getElementById("chatPopup"),
+        chatInput: document.getElementById("chatInput"),
+        chatSendBtn: document.getElementById("chatSendBtn"),
+        chatCloseBtn: document.getElementById("chatCloseBtn"),
+        chatAddToList: document.getElementById("chatAddToList"),
+        chatCategorySelect: document.getElementById("chatCategorySelect"),
+        chatHint: document.getElementById("chatHint"),
+      };
+
+      function getCategoryMeta(id) {
+        return state.categories.find((c) => c.id === id);
+      }
+
+      function ensureCategoryItems(catId) {
+        if (!state.items[catId]) state.items[catId] = [];
+      }
+
+      function openModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+          m.classList.add("open");
+        }
+      }
+
+      function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+          m.classList.remove("open");
+        }
+      }
+
+      function showConfirm(title, message, onConfirm) {
+        els.modalTitle.textContent = title;
+        els.modalMessage.textContent = message;
+        confirmAction = onConfirm;
+        openModal("confirmModal");
+      }
+
+      document.querySelectorAll(".close-modal").forEach((btn) => {
+        btn.addEventListener("click", () => closeModal(btn.dataset.close));
+      });
+
+      els.modalCancelBtn.addEventListener("click", () => {
+        confirmAction = null;
+        closeModal("confirmModal");
+      });
+
+      els.modalConfirmBtn.addEventListener("click", () => {
+        const fn = confirmAction;
+        confirmAction = null;
+        closeModal("confirmModal");
+        if (typeof fn === "function") fn();
+      });
+
+      if (els.syncSettingsBtn) {
+        els.syncSettingsBtn.addEventListener("click", () => {
+          if (els.shareKeyInput) els.shareKeyInput.value = localStorage.getItem(LS_SHARE) || "";
+          if (els.displayNameInput) {
+            var gu = null;
+            try {
+              gu = typeof firebase !== "undefined" && firebase.auth ? firebase.auth().currentUser : null;
+            } catch (e1) {}
+            els.displayNameInput.value =
+              (localStorage.getItem(LS_DISPLAY) || "").trim() ||
+              (gu && gu.displayName ? gu.displayName : "") ||
+              "";
+          }
+          if (els.syncError) els.syncError.classList.add("hidden");
+          updateAuthUI();
+          openModal("syncModal");
+        });
+      }
+      if (els.generateShareKeyBtn && els.shareKeyInput) {
+        els.generateShareKeyBtn.addEventListener("click", () => {
+          els.shareKeyInput.value = "fam_" + Math.random().toString(36).slice(2, 11);
+        });
+      }
+      if (els.syncSaveBtn) {
+        els.syncSaveBtn.addEventListener("click", () => {
+          if (els.syncError) els.syncError.classList.add("hidden");
+          if (!hasSignedInUser()) {
+            if (els.syncError) {
+              els.syncError.textContent = "יש להתחבר עם Google כדי לשתף את הרשימה עם המשפחה.";
+              els.syncError.classList.remove("hidden");
+            }
+            return;
+          }
+          const key = (els.shareKeyInput && els.shareKeyInput.value.trim()) || "";
+          if (!/^[a-zA-Z0-9_-]{6,80}$/.test(key)) {
+            if (els.syncError) {
+              els.syncError.textContent =
+                "קוד חייב להיות באורך 6–80 תווים: אנגלית, מספרים, מקף וקו תחתון בלבד.";
+              els.syncError.classList.remove("hidden");
+            }
+            return;
+          }
+          const disp = ((els.displayNameInput && els.displayNameInput.value.trim()) || getDisplayName() || "משתמש").slice(
+            0,
+            24
+          );
+          localStorage.setItem(LS_DISPLAY, disp);
+          stopListeners();
+          lastSerialized = "";
+          if (!tryInitFirebase()) {
+            if (els.syncError) {
+              els.syncError.textContent =
+                "לא נמצא Firebase. צור קובץ firebase-config.js מהדוגמה או הגדר window.__SHOPPING_LIST_FIREBASE__ לפני טעינת הדף.";
+              els.syncError.classList.remove("hidden");
+            }
+            return;
+          }
+          shareKey = key;
+          localStorage.setItem(LS_SHARE, key);
+          syncCloudIfPossible();
+          pushStateToCloud();
+          closeModal("syncModal");
+          updateSyncDot(true);
+          updateChatHint();
+        });
+      }
+      if (els.syncDisconnectBtn) {
+        els.syncDisconnectBtn.addEventListener("click", () => {
+          disconnectCloud();
+          closeModal("syncModal");
+        });
+      }
+
+      var gBtn = document.getElementById("googleSignInHeader");
+      if (gBtn) gBtn.addEventListener("click", signInWithGoogle);
+      gBtn = document.getElementById("googleSignInModal");
+      if (gBtn) gBtn.addEventListener("click", signInWithGoogle);
+      gBtn = document.getElementById("googleSignOutHeader");
+      if (gBtn) gBtn.addEventListener("click", signOutGoogle);
+
+      function sendChatMessage() {
+        const text = els.chatInput && els.chatInput.value.trim();
+        if (!text) return;
+        if (!shareKey || !db || !hasSignedInUser()) {
+          if (els.chatHint) els.chatHint.classList.remove("hidden");
+          return;
+        }
+        if (els.chatHint) els.chatHint.classList.add("hidden");
+        const au = firebase.auth().currentUser;
+        db.collection("sharedLists").doc(shareKey).collection("messages").add({
+          text: text,
+          sender: getDisplayName(),
+          uid: au ? au.uid : "",
+          clientId: getClientId(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        if (els.chatAddToList && els.chatAddToList.checked) {
+          const cat = (els.chatCategorySelect && els.chatCategorySelect.value) || "vegetables";
+          addItemByName(text, cat);
+        }
+        if (els.chatInput) els.chatInput.value = "";
+      }
+
+      if (els.chatFab && els.chatPopup) {
+        els.chatFab.addEventListener("click", () => {
+          els.chatPopup.classList.toggle("open");
+          refreshChatCategories();
+          updateChatHint();
+        });
+      }
+      if (els.chatCloseBtn && els.chatPopup) {
+        els.chatCloseBtn.addEventListener("click", () => els.chatPopup.classList.remove("open"));
+      }
+      if (els.chatSendBtn) {
+        els.chatSendBtn.addEventListener("click", sendChatMessage);
+      }
+      if (els.chatInput) {
+        els.chatInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            sendChatMessage();
+          }
+        });
+      }
+
+      function setMode(isShop) {
+        if (isShop) {
+          syncShopFlagsFromItems();
+          els.prepModeContainer.classList.add("hidden");
+          els.shopModeContainer.classList.remove("hidden");
+          els.prepMode.classList.remove("bg-blue-700", "text-white");
+          els.prepMode.classList.add("bg-white", "text-blue-700", "border", "border-blue-600");
+          els.shopMode.classList.remove("bg-white", "text-green-600", "border", "border-green-600");
+          els.shopMode.classList.add("bg-green-600", "text-white");
+        } else {
+          els.shopModeContainer.classList.add("hidden");
+          els.prepModeContainer.classList.remove("hidden");
+          els.shopMode.classList.remove("bg-green-600", "text-white");
+          els.shopMode.classList.add("bg-white", "text-green-600", "border", "border-green-600");
+          els.prepMode.classList.add("bg-blue-700", "text-white");
+          els.prepMode.classList.remove("bg-white", "text-blue-700", "border", "border-blue-600");
+        }
+        updateSummary();
+        if (isShop) {
+          populateShopCategorySelect();
+          renderShopView();
+        } else {
+          renderPrepCategories();
+        }
+      }
+
+      els.prepMode.addEventListener("click", () => setMode(false));
+      els.shopMode.addEventListener("click", () => setMode(true));
+
+      els.resetBtn.addEventListener("click", () => {
+        showConfirm("איפוס רשימה", "למחוק את כל הרשימה ולהתחיל מחדש?", () => {
+          state.categories = DEFAULT_META.map((c) => ({ ...c }));
+          state.items = {};
+          DEFAULT_META.forEach((c) => {
+            state.items[c.id] = [];
+          });
+          saveState();
+          renderPrepCategories();
+          renderShopView();
+          updateSummary();
+        });
+      });
+
+      function syncShopFlagsFromItems() {
+        Object.keys(state.items).forEach((cid) => {
+          state.items[cid].forEach((it) => {
+            if (it.sessionPurchased === undefined) it.sessionPurchased = false;
+            if (it.sessionMissing === undefined) it.sessionMissing = false;
+          });
+        });
+      }
+
+      function collectAllItemsFlat() {
+        const out = [];
+        state.categories.forEach((cat) => {
+          ensureCategoryItems(cat.id);
+          state.items[cat.id].forEach((it) => {
+            out.push({ ...it, categoryId: cat.id });
+          });
+        });
+        return out;
+      }
+
+      function updateSummary() {
+        let count = 0;
+        let marked = 0;
+        let unitSum = 0;
+        let sum = 0;
+        const shopVisible = !els.shopModeContainer.classList.contains("hidden");
+
+        state.categories.forEach((cat) => {
+          ensureCategoryItems(cat.id);
+          state.items[cat.id].forEach((it) => {
+            const q = Math.max(0, Number(it.quantity) || 0);
+            const p = parseFloat(it.price) || 0;
+            if (q > 0) {
+              count += 1;
+              unitSum += q;
+              sum += q * p;
+            }
+            if (shopVisible && q > 0) {
+              if (it.sessionPurchased || it.sessionMissing) marked += 1;
+            }
+          });
+        });
+
+        els.totalItems.textContent = count + " פריטים";
+        els.itemsStatus.textContent = shopVisible
+          ? "(" + marked + " סומנו)"
+          : "(סה״כ יחידות: " + unitSum + ")";
+        els.totalPrice.textContent = "₪" + sum.toFixed(2);
+      }
+
+      function categoryHeaderHtml(cat, deletable) {
+        const del = deletable
+          ? `<button type="button" class="delete-category text-red-500 mr-2" data-del-cat="${cat.id}" aria-label="מחק קטגוריה">🗑️</button>`
+          : "";
+        return `
+          <div class="category-header flex justify-between items-center cursor-pointer p-2 rounded">
+            <h2 class="text-lg font-bold flex-1 text-right">${cat.emoji} ${escapeHtml(cat.name)}</h2>
+            <div class="flex items-center shrink-0">
+              ${del}
+              <span class="toggle-icon select-none" aria-hidden="true">▼</span>
+            </div>
+          </div>`;
+      }
+
+      function escapeHtml(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function renderPrepCategories() {
+        els.categoriesList.innerHTML = "";
+        state.categories.forEach((cat) => {
+          ensureCategoryItems(cat.id);
+          const isDefault = DEFAULT_META.some((d) => d.id === cat.id);
+          const wrap = document.createElement("div");
+          wrap.id = cat.id;
+          wrap.className = "category bg-white rounded shadow p-3" + (cat.dynamic ? " dynamic-cat" : "");
+          wrap.innerHTML =
+            categoryHeaderHtml(cat, !isDefault) +
+            `<div class="category-content space-y-2 mt-2 open"></div>`;
+
+          const header = wrap.querySelector(".category-header");
+          const content = wrap.querySelector(".category-content");
+          header.addEventListener("click", (e) => {
+            if (e.target.closest(".delete-category")) return;
+            content.classList.toggle("open");
+            const icon = wrap.querySelector(".toggle-icon");
+            icon.textContent = content.classList.contains("open") ? "▼" : "◀";
+          });
+
+          const delBtn = wrap.querySelector("[data-del-cat]");
+          if (delBtn) {
+            delBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              confirmDeleteCategory(cat.id);
+            });
+          }
+
+          const listEl = wrap.querySelector(".category-content");
+          state.items[cat.id].forEach((item) => {
+            listEl.appendChild(renderPrepItemRow(cat.id, item));
+          });
+
+          els.categoriesList.appendChild(wrap);
+        });
+
+        refreshCategorySelect();
+      }
+
+      function renderPrepItemRow(catId, item) {
+        const row = document.createElement("div");
+        row.className = "item-row flex flex-wrap items-center gap-2 p-2 border rounded";
+        row.dataset.itemId = item.id;
+        row.innerHTML = `
+          <span class="flex-1 min-w-[120px] font-medium">${escapeHtml(item.name)}</span>
+          <div class="quantity-controls border rounded px-1">
+            <span class="quantity-btn" data-act="dec">−</span>
+            <span class="quantity-value">${item.quantity}</span>
+            <span class="quantity-btn" data-act="inc">+</span>
+          </div>
+          <label class="flex items-center gap-1 text-sm text-gray-600">
+            ₪
+            <input type="number" min="0" step="0.01" class="price-input" value="${Number(item.price) || 0}" />
+          </label>
+          <button type="button" class="text-red-600 text-sm mr-auto delete-item">מחק</button>
+        `;
+
+        row.querySelector('[data-act="dec"]').addEventListener("click", () => {
+          item.quantity = Math.max(0, (Number(item.quantity) || 0) - 1);
+          row.querySelector(".quantity-value").textContent = item.quantity;
+          saveState();
+          updateSummary();
+          renderShopView();
+        });
+        row.querySelector('[data-act="inc"]').addEventListener("click", () => {
+          item.quantity = (Number(item.quantity) || 0) + 1;
+          row.querySelector(".quantity-value").textContent = item.quantity;
+          saveState();
+          updateSummary();
+          renderShopView();
+        });
+        row.querySelector(".price-input").addEventListener("change", (e) => {
+          item.price = parseFloat(e.target.value) || 0;
+          saveState();
+          updateSummary();
+        });
+        row.querySelector(".delete-item").addEventListener("click", () => {
+          state.items[catId] = state.items[catId].filter((x) => x.id !== item.id);
+          saveState();
+          row.remove();
+          updateSummary();
+          renderShopView();
+        });
+
+        return row;
+      }
+
+      function refreshCategorySelect() {
+        const sel = els.categorySelect;
+        const keep = sel.value;
+        sel.innerHTML = "";
+        state.categories.forEach((c) => {
+          const o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = `${c.emoji} ${c.name}`;
+          sel.appendChild(o);
+        });
+        const extra = document.createElement("option");
+        extra.value = "new";
+        extra.textContent = "➕ קטגוריה חדשה...";
+        sel.appendChild(extra);
+        if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+        refreshChatCategories();
+      }
+
+      function populateShopCategorySelect() {
+        const sel = els.shopCategorySelect;
+        const keep = sel.value;
+        sel.innerHTML = "";
+        state.categories.forEach((c) => {
+          const o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = `${c.emoji} ${c.name}`;
+          sel.appendChild(o);
+        });
+        if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+        refreshChatCategories();
+      }
+
+      function addItemByName(name, catId) {
+        const n = (name || "").trim();
+        if (!n) return;
+        ensureCategoryItems(catId);
+        const existing = state.items[catId].find((x) => x.name.trim() === n);
+        if (existing) {
+          existing.quantity = (Number(existing.quantity) || 0) + 1;
+        } else {
+          state.items[catId].push({
+            id: uid(),
+            name: n,
+            quantity: 1,
+            price: 0,
+            sessionPurchased: false,
+            sessionMissing: false,
+          });
+        }
+        saveState();
+        renderPrepCategories();
+        updateSummary();
+        renderShopView();
+      }
+
+      els.addItemBtn.addEventListener("click", () => {
+        const cat = els.categorySelect.value;
+        if (cat === "new") {
+          els.newCategoryName.value = "";
+          els.newCategoryEmoji.value = "";
+          openModal("newCategoryModal");
+          return;
+        }
+        addItemByName(els.addItemInput.value, cat);
+        els.addItemInput.value = "";
+      });
+
+      els.categorySelect.addEventListener("change", () => {
+        if (els.categorySelect.value === "new") {
+          els.newCategoryName.value = "";
+          els.newCategoryEmoji.value = "";
+          openModal("newCategoryModal");
+          els.categorySelect.value = state.categories[0]?.id || "vegetables";
+        }
+      });
+
+      els.addNewCategoryBtn.addEventListener("click", () => {
+        const name = (els.newCategoryName.value || "").trim();
+        const emoji = (els.newCategoryEmoji.value || "").trim() || "📁";
+        if (!name) {
+          alert("נא להזין שם קטגוריה");
+          return;
+        }
+        const id = "cat_" + Math.random().toString(36).slice(2, 9);
+        state.categories.push({ id, name, emoji, dynamic: true });
+        state.items[id] = [];
+        saveState();
+        closeModal("newCategoryModal");
+        refreshCategorySelect();
+        els.categorySelect.value = id;
+        renderPrepCategories();
+      });
+
+      function confirmDeleteCategory(catId) {
+        const meta = getCategoryMeta(catId);
+        if (!meta) return;
+        showConfirm("מחיקת קטגוריה", `למחוק את "${meta.name}" וכל הפריטים בה?`, () => {
+          state.categories = state.categories.filter((c) => c.id !== catId);
+          delete state.items[catId];
+          saveState();
+          renderPrepCategories();
+          renderShopView();
+          updateSummary();
+        });
+      }
+
+      window.confirmDeleteCategory = confirmDeleteCategory;
+
+      function searchCatalog(query, container) {
+        const q = (query || "").trim().toLowerCase();
+        if (!q) return [];
+        const names = new Map();
+        collectAllItemsFlat().forEach((it) => {
+          if (!names.has(it.name)) names.set(it.name, it.categoryId);
+        });
+        const hits = [];
+        names.forEach((cid, name) => {
+          if (name.toLowerCase().includes(q)) hits.push({ name, categoryId: cid });
+        });
+        return hits.slice(0, 20);
+      }
+
+      function attachSearch(inputEl, resultsEl, onPick) {
+        inputEl.addEventListener("input", () => {
+          const hits = searchCatalog(inputEl.value);
+          resultsEl.innerHTML = "";
+          if (!hits.length) {
+            resultsEl.classList.add("hidden");
+            return;
+          }
+          hits.forEach((h) => {
+            const div = document.createElement("div");
+            div.className = "search-result-item px-3 py-2 text-sm";
+            div.textContent = h.name;
+            div.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              onPick(h);
+            });
+            resultsEl.appendChild(div);
+          });
+          resultsEl.classList.remove("hidden");
+        });
+        inputEl.addEventListener("blur", () => {
+          setTimeout(() => resultsEl.classList.add("hidden"), 200);
+        });
+      }
+
+      attachSearch(els.searchInput, els.searchResults, (h) => {
+        els.addItemInput.value = h.name;
+        els.categorySelect.value = h.categoryId;
+        els.searchInput.value = "";
+        els.searchResults.classList.add("hidden");
+      });
+
+      attachSearch(els.shopSearchInput, els.shopSearchResults, (h) => {
+        els.shopAddItemInput.value = h.name;
+        els.shopCategorySelect.value = h.categoryId;
+        els.shopSearchInput.value = "";
+        els.shopSearchResults.classList.add("hidden");
+      });
+
+      els.shopAddItemBtn.addEventListener("click", () => {
+        addItemByName(els.shopAddItemInput.value, els.shopCategorySelect.value);
+        els.shopAddItemInput.value = "";
+        setMode(true);
+      });
+
+      function renderShopView() {
+        if (els.shopModeContainer.classList.contains("hidden")) return;
+
+        const pending = [];
+        const purchased = [];
+        const missing = [];
+
+        state.categories.forEach((cat) => {
+          ensureCategoryItems(cat.id);
+          state.items[cat.id].forEach((it) => {
+            if ((Number(it.quantity) || 0) <= 0) return;
+            const row = { ...it, categoryId: cat.id, cat };
+            if (it.sessionPurchased) purchased.push(row);
+            else if (it.sessionMissing) missing.push(row);
+            else pending.push(row);
+          });
+        });
+
+        els.shoppingList.innerHTML = "";
+        pending.forEach((it) => {
+          els.shoppingList.appendChild(shopRow(it, false));
+        });
+        els.shoppingListEmpty.classList.toggle("hidden", pending.length > 0);
+
+        els.purchasedItems.innerHTML = "";
+        purchased.forEach((it) => {
+          els.purchasedItems.appendChild(shopRow(it, "purchased"));
+        });
+
+        els.missingItems.innerHTML = "";
+        missing.forEach((it) => {
+          els.missingItems.appendChild(shopRow(it, "missing"));
+        });
+
+        updateSummary();
+      }
+
+      function shopRow(it, modeFlag) {
+        const div = document.createElement("div");
+        const base =
+          "flex flex-wrap items-center gap-2 p-3 rounded border text-sm";
+        if (modeFlag === "purchased") div.className = base + " purchased";
+        else if (modeFlag === "missing") div.className = base + " missing";
+        else div.className = base + " bg-white";
+
+        const meta = it.cat || getCategoryMeta(it.categoryId);
+        const catLabel = meta ? `${meta.emoji} ${meta.name}` : "";
+
+        if (!modeFlag) {
+          div.innerHTML = `
+            <div class="flex-1 min-w-[140px]">
+              <div class="font-semibold">${escapeHtml(it.name)}</div>
+              <div class="text-xs text-gray-500">${escapeHtml(catLabel)} · כמות: ${it.quantity}</div>
+            </div>
+            <button type="button" class="bg-green-600 text-white px-3 py-1 rounded shrink-0 shop-buy">נקנה</button>
+            <button type="button" class="bg-rose-500 text-white px-3 py-1 rounded shrink-0 shop-miss">חסר</button>
+          `;
+          div.querySelector(".shop-buy").addEventListener("click", () => {
+            const raw = state.items[it.categoryId];
+            const found = raw.find((x) => x.id === it.id);
+            if (found) found.sessionPurchased = true;
+            saveState();
+            renderShopView();
+          });
+          div.querySelector(".shop-miss").addEventListener("click", () => {
+            const raw = state.items[it.categoryId];
+            const found = raw.find((x) => x.id === it.id);
+            if (found) found.sessionMissing = true;
+            saveState();
+            renderShopView();
+          });
+        } else if (modeFlag === "purchased") {
+          div.innerHTML = `
+            <div class="flex-1">
+              <div class="font-medium">${escapeHtml(it.name)}</div>
+              <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
+            </div>
+            <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
+          `;
+          div.querySelector(".shop-undo").addEventListener("click", () => {
+            const raw = state.items[it.categoryId];
+            const found = raw.find((x) => x.id === it.id);
+            if (found) {
+              found.sessionPurchased = false;
+              found.sessionMissing = false;
+            }
+            saveState();
+            renderShopView();
+          });
+        } else {
+          div.innerHTML = `
+            <div class="flex-1">
+              <div class="font-medium">${escapeHtml(it.name)}</div>
+              <div class="text-xs text-gray-600">${escapeHtml(catLabel)}</div>
+            </div>
+            <button type="button" class="text-blue-600 underline text-xs shop-undo">בטל</button>
+          `;
+          div.querySelector(".shop-undo").addEventListener("click", () => {
+            const raw = state.items[it.categoryId];
+            const found = raw.find((x) => x.id === it.id);
+            if (found) {
+              found.sessionMissing = false;
+              found.sessionPurchased = false;
+            }
+            saveState();
+            renderShopView();
+          });
+        }
+
+        return div;
+      }
+
+      els.finishShoppingBtn.addEventListener("click", () => {
+        showConfirm("סיום קנייה", "להסיר מהרשימה את מה שנקנה, ולשמור את החסרים?", () => {
+          state.categories.forEach((cat) => {
+            ensureCategoryItems(cat.id);
+            state.items[cat.id] = state.items[cat.id].filter((it) => {
+              if (it.sessionPurchased) return false;
+              if (it.sessionMissing) {
+                it.sessionMissing = false;
+                it.sessionPurchased = false;
+              }
+              return true;
+            });
+          });
+          saveState();
+          setMode(false);
+          renderPrepCategories();
+          updateSummary();
+        });
+      });
+
+      renderPrepCategories();
+      updateSummary();
+      initAuthAndCloud();
+
+      window.toggleCategory = function (headerEl) {
+        const wrap = headerEl.closest(".category");
+        if (!wrap) return;
+        const content = wrap.querySelector(".category-content");
+        if (!content) return;
+        content.classList.toggle("open");
+        const icon = wrap.querySelector(".toggle-icon");
+        if (icon) icon.textContent = content.classList.contains("open") ? "▼" : "◀";
+      };
+    })();
+  </script>
+</body>
+</html>

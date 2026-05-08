@@ -1,0 +1,11 @@
+# מפתחות Firebase — לא לדחוף לגיטאהב ציבורי. מקומית: העתק מ-firebase-config.example.js ל-firebase-config.js
+firebase-config.js
+
+# Netlify מקומי
+.netlify/
+
+# מערכת הפעלה / עורך
+Thumbs.db
+.DS_Store
+*.swp
+.cursor/
