@@ -1,0 +1,21 @@
+בדיקה שעשינו: ב-Netlify (production) היו רק משתני NODE_VERSION.
+חובה להוסיף לפני פריסה: SUPABASE_URL , SUPABASE_ANON_KEY (מ-Supabase → Project Settings → API).
+
+מתוך PowerShell בתיקיית הפרויקט (c:\APPMARKET) — להחליף את הערכים במרכאות:
+
+  netlify env:set SUPABASE_URL "https://XXXX.supabase.co" --context production
+  netlify env:set SUPABASE_ANON_KEY "eyJ..." --context production --secret
+
+אימות (לא חושף סודות אם השתמשת ב--secret):
+
+  netlify env:list --context production --plain
+
+פריסה לייצור (מריץ npm run build ואז מעלה):
+
+  npm run deploy
+
+או:
+
+  netlify deploy --prod
+
+מקומית: ערוך את supabase-config.js עם אותם URL ו-anon key (ללא xxxxxxxx).

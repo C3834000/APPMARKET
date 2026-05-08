@@ -2,6 +2,7 @@
   "name": "appmarket-shopping-list",
   "private": true,
   "scripts": {
-    "build": "node scripts/generate-supabase-config.js"
+    "build": "node scripts/generate-supabase-config.js",
+    "deploy": "netlify deploy --prod"
   }
 }
