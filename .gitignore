@@ -1,5 +1,5 @@
-# מפתחות Firebase — לא לדחוף לגיטאהב ציבורי. מקומית: העתק מ-firebase-config.example.js ל-firebase-config.js
-firebase-config.js
+# מפתחות Supabase — לא לדחוף לריפו ציבורי
+supabase-config.js
 
 # Netlify מקומי
 .netlify/

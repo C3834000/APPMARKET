@@ -5,32 +5,19 @@
 -----------------------
   • אתחול גיט בתיקיית הפרויקט (git init)
   • קומיט ראשון עם כל הקבצים (חוץ ממה שב-.gitignore)
-  • הקובץ firebase-config.js לא נכנס לגיט — כדי שלא ידלוף מפתחות. יש firebase-config.example.js כדוגמה.
+  • הקובץ supabase-config.js לא נכנס לגיט — כדי שלא ידלפו מפתחות. יש supabase-config.example.js כדוגמה.
 
 אחרי clone על מחשב אחר
 ------------------------
-  העתק:  firebase-config.example.js  →  firebase-config.js  
-  ומלא מפתחות אמיתיים.
+  העתק:  supabase-config.example.js  →  supabase-config.js  
+  ומלא URL ו-anon key מהדשבורד של Supabase.
 
 
 חיבור לגיטהב (פעם אחת)
 -----------------------
-  1) נכנס ל-github.com ויוצר חשבון (אם אין).
+  כבר מחובר — הריפו: https://github.com/C3834000/APPMARKET
 
-  2) New repository — שם למשל APPMARKET, בלי README אוטומטי (או עם, לא קריטי).
-
-  3) ב-PowerShell מתוך c:\APPMARKET:
-
-     git remote add origin https://github.com/השם-שלך/APPMARKET.git
-     git branch -M main
-     git push -u origin main
-
-     (אם גיטהב מבקש סיסמה — משתמשים ב-Personal Access Token, לא בסיסמה של האתר.)
-
-  4) אם GitHub מציע פקודות אחרי יצירת הריפו — אפשר להדביק אותן; הן שקולות לרעיון למעלה.
-
-
-עדכונים הבאים אחרי שינוי קבצים
+עדכונים אחרי שינוי קבצים
 -------------------------------
   git add .
   git commit -m "תיאור קצר מה שינית"

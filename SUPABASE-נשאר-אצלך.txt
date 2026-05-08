@@ -1,0 +1,29 @@
+סנכרון עם Supabase — מה אתה עושה בפרויקט ב-Supabase (פעם אחת + דומיין)
+================================================================
+
+1) יצירת פרויקט ב-Supabase (אם אין): https://supabase.com/dashboard
+
+2) API keys  
+   Project Settings → API  
+   • Project URL  
+   • anon public key  
+   להדביק בקובץ supabase-config.js (במחשב שלך, לא בגיט).
+
+3) טבלאות ואבטחה  
+   SQL Editor → להדביק ולהריץ את הקובץ supabase-schema.sql מהפרויקט.  
+   אם שורת publication נופשת שגיאה — ב-Database → Publications הוסף ידנית את הטבלאות ל-realtime.
+
+4) Google להתחברות  
+   Authentication → Providers → Google → הפעלה + Client ID/Secret מ-Google Cloud Console (כמו בפרויקטים האחרים שלך ב-Supabase).
+
+5) כתובות Redirect ל-OAuth  
+   Authentication → URL Configuration  
+   • Site URL: כתובת האתר שלך (למשל Netlify) או לפחות https://xxxx.netlify.app  
+   • Redirect URLs: להוסיף את כתובת האתר המלאה וגם http://localhost:* לבדיקות מקומיות.
+
+6) העלאה ל-Netlify אחרי עדכון supabase-config.js  
+   מתוך תיקיית הפרויקט:
+   npx netlify-cli deploy --dir . --prod  
+   או גרירת התיקייה ל-Netlify.
+
+זכור: supabase-config.js לא נשמר בגיט — להעתיק מ-supabase-config.example.js במחשב חדש.

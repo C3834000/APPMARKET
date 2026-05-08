@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>רשימת קניות</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="firebase-config.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
   <style>
     .sticky-header {
       position: sticky;
@@ -445,11 +443,12 @@
   <div id="syncModal" class="modal">
     <div class="modal-content max-h-[85vh] overflow-y-auto">
       <span class="close-modal" data-close="syncModal">&times;</span>
-      <h2 class="text-xl font-bold mb-3">סנכרון ענן (Firebase)</h2>
+      <h2 class="text-xl font-bold mb-3">סנכרון ענן (Supabase)</h2>
       <p class="text-sm text-gray-600 mb-3">
-        לאחר יצירת פרויקט ב־
-        <a href="https://console.firebase.google.com/" target="_blank" rel="noopener" class="text-blue-600 underline">Firebase Console</a>
-        הפעל <strong>Authentication → Sign-in method → Google</strong>, הפעל <strong>Firestore</strong>, והדבק את ערכי הקונפיג (אפשר קובץ <code class="bg-gray-100 px-1 rounded">firebase-config.js</code>).
+        בפרויקט Supabase שלך: הפעל <strong>Authentication → Providers → Google</strong>, הרץ את <code class="bg-gray-100 px-1 rounded">supabase-schema.sql</code> ב־SQL Editor, והדבק ל־
+        <code class="bg-gray-100 px-1 rounded">supabase-config.js</code>
+        את ה־URL וה־anon key מ־
+        <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="text-blue-600 underline">Project Settings → API</a>.
       </p>
       <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
         <p class="text-sm font-semibold text-gray-900 mb-1">שיתוף רשימה בין בני המשפחה</p>
@@ -474,20 +473,8 @@
       </div>
       <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
       <details class="mt-4 text-xs text-gray-600">
-        <summary class="cursor-pointer font-medium text-gray-700">כללי אבטחה לדוגמה (Firestore)</summary>
-        <pre class="mt-2 p-2 bg-gray-100 rounded overflow-x-auto text-left" dir="ltr">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /sharedLists/{id} {
-      allow read, write: if request.auth != null
-        && id.matches('^[a-zA-Z0-9_-]{6,80}$');
-      match /messages/{m} {
-        allow read, write: if request.auth != null
-          && id.matches('^[a-zA-Z0-9_-]{6,80}$');
-      }
-    }
-  }
-}</pre>
+        <summary class="cursor-pointer font-medium text-gray-700">טבלאות ו־RLS (קובץ supabase-schema.sql)</summary>
+        <p class="mt-2">הקובץ בפרויקט יוצר את הטבלאות ומדיניות Row Level Security למשתמשים מחוברים.</p>
       </details>
     </div>
   </div>
@@ -572,7 +559,8 @@ service cloud.firestore {
       let cloudPushTimer = null;
       let listUnsub = null;
       let chatUnsub = null;
-      let db = null;
+      let supabaseClient = null;
+      let authUser = null;
       let shareKey = "";
       let lastSerialized = "";
 
@@ -590,70 +578,68 @@ service cloud.firestore {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }
 
-      function hasSignedInUser() {
-        try {
-          return !!(typeof firebase !== "undefined" && firebase.auth && firebase.auth().currentUser);
-        } catch {
-          return false;
-        }
-      }
-
-      function scheduleCloudPush() {
-        if (applyingRemote || !shareKey || !db || !hasSignedInUser()) return;
-        clearTimeout(cloudPushTimer);
-        cloudPushTimer = setTimeout(pushStateToCloud, 450);
-      }
-
-      function pushStateToCloud() {
-        if (!shareKey || !db || applyingRemote || !hasSignedInUser()) return;
-        const serialized = JSON.stringify(state);
-        if (serialized === lastSerialized) return;
-        db.collection("sharedLists")
-          .doc(shareKey)
-          .set(
-            {
-              stateJson: serialized,
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-              editor: getClientId(),
-            },
-            { merge: true }
-          )
-          .then(() => {
-            lastSerialized = serialized;
-            updateSyncDot(true);
-          })
-          .catch((e) => {
-            console.error(e);
-            updateSyncDot(false, e.message || String(e));
-          });
-      }
-
-      function saveState() {
-        saveStateLocalOnly();
-        scheduleCloudPush();
-      }
-
-      function getFirebaseConfig() {
-        const w = window.__SHOPPING_LIST_FIREBASE__;
-        if (w && typeof w === "object" && w.apiKey && String(w.apiKey).length > 10 && !String(w.apiKey).startsWith("YOUR_")) {
-          return w;
-        }
+      function getSupabaseGlobal() {
+        if (typeof self !== "undefined" && self.supabase) return self.supabase;
         return null;
       }
 
-      function tryInitFirebase() {
-        const cfg = getFirebaseConfig();
-        if (!cfg || typeof firebase === "undefined") return false;
+      function getSupabaseConfig() {
+        const w = window.__SHOPPING_LIST_SUPABASE__;
+        if (!w || typeof w !== "object" || !w.url || !w.anonKey) return null;
+        if (String(w.url).indexOf("YOUR_") === 0 || String(w.anonKey).indexOf("YOUR_") === 0) return null;
+        return w;
+      }
+
+      function tryInitSupabase() {
+        const cfg = getSupabaseConfig();
+        const S = getSupabaseGlobal();
+        if (!cfg || !S || typeof S.createClient !== "function") return false;
         try {
-          if (!firebase.apps.length) {
-            firebase.initializeApp(cfg);
-          }
-          db = firebase.firestore();
+          supabaseClient = S.createClient(cfg.url, cfg.anonKey);
           return true;
         } catch (e) {
           console.error(e);
           return false;
         }
+      }
+
+      function hasSignedInUser() {
+        return !!authUser;
+      }
+
+      function scheduleCloudPush() {
+        if (applyingRemote || !shareKey || !supabaseClient || !hasSignedInUser()) return;
+        clearTimeout(cloudPushTimer);
+        cloudPushTimer = setTimeout(pushStateToCloud, 450);
+      }
+
+      function pushStateToCloud() {
+        if (!shareKey || !supabaseClient || applyingRemote || !authUser) return;
+        const serialized = JSON.stringify(state);
+        if (serialized === lastSerialized) return;
+        (async function () {
+          try {
+            const { error } = await supabaseClient.from("family_lists").upsert(
+              {
+                list_id: shareKey,
+                payload: state,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "list_id" }
+            );
+            if (error) throw error;
+            lastSerialized = serialized;
+            updateSyncDot(true);
+          } catch (e) {
+            console.error(e);
+            updateSyncDot(false, e.message || String(e));
+          }
+        })();
+      }
+
+      function saveState() {
+        saveStateLocalOnly();
+        scheduleCloudPush();
       }
 
       function getClientId() {
@@ -666,8 +652,11 @@ service cloud.firestore {
       }
 
       function getDisplayName() {
-        const u = firebase.auth && firebase.auth().currentUser;
-        if (u && u.displayName) return u.displayName.trim().slice(0, 28);
+        if (authUser) {
+          const m = authUser.user_metadata || {};
+          const n = m.full_name || m.name || m.display_name || authUser.email;
+          if (n) return String(n).trim().slice(0, 28);
+        }
         return (localStorage.getItem(LS_DISPLAY) || "").trim() || "משתמש";
       }
 
@@ -675,7 +664,7 @@ service cloud.firestore {
         const el = document.getElementById("syncStatusDot");
         if (!el) return;
         const user = hasSignedInUser();
-        if (shareKey && db && user) {
+        if (shareKey && supabaseClient && user) {
           el.textContent = errMsg ? "שגיאה" : "ענן";
           el.className = errMsg
             ? "text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 shrink-0 max-w-[100px] truncate text-center"
@@ -685,7 +674,7 @@ service cloud.firestore {
           el.textContent = "ללא קוד";
           el.className =
             "text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-900 shrink-0 max-w-[100px] truncate text-center";
-          el.title = "מחובר ל-Google — הזן קוד משפחה בסנכרון";
+          el.title = "מחובר — הזן קוד משפחה בסנכרון";
         } else {
           el.textContent = "מקומי";
           el.className =
@@ -695,7 +684,7 @@ service cloud.firestore {
       }
 
       function updateAuthUI() {
-        if (typeof firebase === "undefined" || !firebase.auth) {
+        if (!supabaseClient) {
           var btnIn0 = document.getElementById("googleSignInHeader");
           var btnModal0 = document.getElementById("googleSignInModal");
           var wrap0 = document.getElementById("authUserWrap");
@@ -707,7 +696,7 @@ service cloud.firestore {
           }
           return;
         }
-        const u = firebase.auth().currentUser;
+        const u = authUser;
         const btnIn = document.getElementById("googleSignInHeader");
         const btnModal = document.getElementById("googleSignInModal");
         const wrap = document.getElementById("authUserWrap");
@@ -719,9 +708,13 @@ service cloud.firestore {
           if (btnModal) btnModal.classList.add("hidden");
           if (wrap) wrap.classList.remove("hidden");
           if (wrap) wrap.classList.add("flex");
-          if (label) label.textContent = u.displayName || u.email || "משתמש";
-          if (photo && u.photoURL) {
-            photo.src = u.photoURL;
+          if (label) {
+            var um = u.user_metadata || {};
+            label.textContent = um.full_name || um.name || u.email || "משתמש";
+          }
+          var picUrl = (u.user_metadata && (u.user_metadata.avatar_url || u.user_metadata.picture)) || "";
+          if (photo && picUrl) {
+            photo.src = picUrl;
             photo.classList.remove("hidden");
           } else if (photo) {
             photo.classList.add("hidden");
@@ -731,7 +724,8 @@ service cloud.firestore {
           }
           var dni = document.getElementById("displayNameInput");
           if (dni && !dni.value.trim()) {
-            dni.value = (u.displayName || "").slice(0, 24);
+            var um2 = u.user_metadata || {};
+            dni.value = (um2.full_name || um2.name || "").slice(0, 24);
           }
         } else {
           if (btnIn) btnIn.classList.remove("hidden");
@@ -747,22 +741,21 @@ service cloud.firestore {
       }
 
       function signInWithGoogle() {
-        if (!tryInitFirebase()) {
-          alert("יש להגדיר firebase-config.js עם מפתחות Firebase.");
+        if (!tryInitSupabase()) {
+          alert("יש להגדיר supabase-config.js עם URL ו-anon key מ-Supabase.");
           return;
         }
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-        firebase
-          .auth()
-          .signInWithPopup(provider)
-          .then(function (result) {
-            const u = result.user;
-            if (u && u.displayName) {
-              localStorage.setItem(LS_DISPLAY, u.displayName.slice(0, 24));
-            }
-            updateAuthUI();
-            syncCloudIfPossible();
+        var baseUrl = window.location.href.split("#")[0];
+        supabaseClient.auth
+          .signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: baseUrl,
+              queryParams: { prompt: "select_account" },
+            },
+          })
+          .then(function (res) {
+            if (res.error) alert(res.error.message || "התחברות נכשלה");
           })
           .catch(function (e) {
             console.error(e);
@@ -771,11 +764,11 @@ service cloud.firestore {
       }
 
       function signOutGoogle() {
-        if (!firebase.apps.length) return;
-        firebase
-          .auth()
+        if (!supabaseClient) return;
+        supabaseClient.auth
           .signOut()
           .then(function () {
+            authUser = null;
             stopListeners();
             updateSyncDot();
             updateChatHint();
@@ -786,57 +779,83 @@ service cloud.firestore {
           });
       }
 
-      function attachListListener() {
-        if (listUnsub) {
-          listUnsub();
-          listUnsub = null;
+      function applyRemotePayload(payloadObj) {
+        if (payloadObj == null || typeof payloadObj !== "object") return;
+        const normalized = normalizeState(payloadObj);
+        const incStr = JSON.stringify(normalized);
+        const curStr = JSON.stringify(state);
+        if (incStr === curStr) {
+          lastSerialized = incStr;
+          return;
         }
-        if (!shareKey || !db || !hasSignedInUser()) return;
-        const docRef = db.collection("sharedLists").doc(shareKey);
-        listUnsub = docRef.onSnapshot(
-          (snap) => {
-            if (!snap.exists) {
+        applyingRemote = true;
+        state = normalized;
+        lastSerialized = incStr;
+        saveStateLocalOnly();
+        var shop = !document.getElementById("shopModeContainer").classList.contains("hidden");
+        if (shop) {
+          populateShopCategorySelect();
+          renderShopView();
+        } else {
+          renderPrepCategories();
+        }
+        updateSummary();
+        refreshChatCategories();
+        applyingRemote = false;
+        updateSyncDot(true);
+      }
+
+      function fetchListRowOnce() {
+        if (!shareKey || !supabaseClient || !authUser) return;
+        supabaseClient
+          .from("family_lists")
+          .select("payload")
+          .eq("list_id", shareKey)
+          .maybeSingle()
+          .then(function (res) {
+            if (res.error) {
+              console.error(res.error);
+              updateSyncDot(false, res.error.message);
+              return;
+            }
+            if (!res.data || res.data.payload == null) {
               lastSerialized = "";
               pushStateToCloud();
               return;
             }
-            const data = snap.data();
-            const sj = data.stateJson;
-            if (!sj || typeof sj !== "string") return;
-            let incoming;
-            try {
-              incoming = JSON.parse(sj);
-            } catch {
-              return;
+            applyRemotePayload(res.data.payload);
+          });
+      }
+
+      function attachListListener() {
+        if (listUnsub && supabaseClient) {
+          supabaseClient.removeChannel(listUnsub);
+          listUnsub = null;
+        }
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
+
+        fetchListRowOnce();
+
+        var listCh = supabaseClient.channel("family_list:" + shareKey);
+        listUnsub = listCh;
+        listCh
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "family_lists",
+              filter: "list_id=eq." + shareKey,
+            },
+            function (payload) {
+              var row = payload.new;
+              if (!row || row.payload == null) return;
+              applyRemotePayload(row.payload);
             }
-            const normalized = normalizeState(incoming);
-            const incStr = JSON.stringify(normalized);
-            const curStr = JSON.stringify(state);
-            if (incStr === curStr) {
-              lastSerialized = incStr;
-              return;
-            }
-            applyingRemote = true;
-            state = normalized;
-            lastSerialized = incStr;
-            saveStateLocalOnly();
-            const shop = !document.getElementById("shopModeContainer").classList.contains("hidden");
-            if (shop) {
-              populateShopCategorySelect();
-              renderShopView();
-            } else {
-              renderPrepCategories();
-            }
-            updateSummary();
-            refreshChatCategories();
-            applyingRemote = false;
-            updateSyncDot(true);
-          },
-          (err) => {
-            console.error(err);
-            updateSyncDot(false, err.message || "שגיאת האזנה");
-          }
-        );
+          )
+          .subscribe(function (status) {
+            if (status === "SUBSCRIBED") updateSyncDot(true);
+          });
       }
 
       function renderChatMessages(rows) {
@@ -844,53 +863,74 @@ service cloud.firestore {
         if (!box) return;
         box.innerHTML = "";
         const myId = getClientId();
-        var myUid = "";
-        try {
-          if (firebase.auth && firebase.auth().currentUser) myUid = firebase.auth().currentUser.uid;
-        } catch (e2) {}
+        var myUid = authUser && authUser.id ? authUser.id : "";
         rows.forEach((row) => {
           const wrap = document.createElement("div");
-          const mine =
-            (myUid && row.uid === myUid) || (!row.uid && row.clientId === myId);
+          var uid = row.user_id || row.uid;
+          const mine = (myUid && uid === myUid) || (!uid && row.client_id === myId);
           wrap.className = "bubble " + (mine ? "me" : "other");
           const meta = document.createElement("div");
           meta.className = "bubble-meta";
           let tstr = "";
-          if (row.createdAt && row.createdAt.toDate) {
-            const d = row.createdAt.toDate();
-            tstr = d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+          if (row.created_at) {
+            const d = new Date(row.created_at);
+            if (!isNaN(d.getTime())) {
+              tstr = d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+            }
           }
           meta.textContent = (row.sender || "?") + (tstr ? " · " + tstr : "");
-          const body = document.createElement("div");
-          body.textContent = row.text || "";
+          const bodyEl = document.createElement("div");
+          bodyEl.textContent = row.body || row.text || "";
           wrap.appendChild(meta);
-          wrap.appendChild(body);
+          wrap.appendChild(bodyEl);
           box.appendChild(wrap);
         });
         box.scrollTop = box.scrollHeight;
       }
 
+      function loadChatMessagesFromDb() {
+        if (!shareKey || !supabaseClient || !authUser) return;
+        supabaseClient
+          .from("list_messages")
+          .select("*")
+          .eq("list_id", shareKey)
+          .order("created_at", { ascending: false })
+          .limit(40)
+          .then(function (res) {
+            if (res.error) {
+              console.error(res.error);
+              return;
+            }
+            var arr = (res.data || []).slice().reverse();
+            renderChatMessages(arr);
+          });
+      }
+
       function attachChatListener() {
-        if (chatUnsub) {
-          chatUnsub();
+        if (chatUnsub && supabaseClient) {
+          supabaseClient.removeChannel(chatUnsub);
           chatUnsub = null;
         }
-        if (!shareKey || !db || !hasSignedInUser()) return;
-        const q = db
-          .collection("sharedLists")
-          .doc(shareKey)
-          .collection("messages")
-          .orderBy("createdAt", "desc")
-          .limit(40);
-        chatUnsub = q.onSnapshot(
-          (snap) => {
-            const arr = [];
-            snap.forEach((d) => arr.push({ id: d.id, ...d.data() }));
-            arr.reverse();
-            renderChatMessages(arr);
-          },
-          (err) => console.error(err)
-        );
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
+
+        loadChatMessagesFromDb();
+
+        var msgCh = supabaseClient.channel("list_msgs:" + shareKey);
+        chatUnsub = msgCh;
+        msgCh
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "list_messages",
+              filter: "list_id=eq." + shareKey,
+            },
+            function () {
+              loadChatMessagesFromDb();
+            }
+          )
+          .subscribe();
       }
 
       function refreshChatCategories() {
@@ -910,17 +950,17 @@ service cloud.firestore {
       function updateChatHint() {
         const h = document.getElementById("chatHint");
         if (!h) return;
-        if (!shareKey || !db || !hasSignedInUser()) h.classList.remove("hidden");
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) h.classList.remove("hidden");
         else h.classList.add("hidden");
       }
 
       function stopListeners() {
-        if (listUnsub) {
-          listUnsub();
+        if (listUnsub && supabaseClient) {
+          supabaseClient.removeChannel(listUnsub);
           listUnsub = null;
         }
-        if (chatUnsub) {
-          chatUnsub();
+        if (chatUnsub && supabaseClient) {
+          supabaseClient.removeChannel(chatUnsub);
           chatUnsub = null;
         }
       }
@@ -936,7 +976,7 @@ service cloud.firestore {
 
       function syncCloudIfPossible() {
         shareKey = (localStorage.getItem(LS_SHARE) || "").trim();
-        if (!shareKey || !db || !hasSignedInUser()) {
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) {
           stopListeners();
           updateSyncDot();
           updateChatHint();
@@ -950,13 +990,20 @@ service cloud.firestore {
       }
 
       function initAuthAndCloud() {
-        if (!tryInitFirebase()) {
+        if (!tryInitSupabase()) {
+          authUser = null;
           updateSyncDot();
           updateChatHint();
           updateAuthUI();
           return;
         }
-        firebase.auth().onAuthStateChanged(function () {
+        supabaseClient.auth.getSession().then(function (res) {
+          authUser = res.data && res.data.session ? res.data.session.user : null;
+          updateAuthUI();
+          syncCloudIfPossible();
+        });
+        supabaseClient.auth.onAuthStateChange(function (_evt, session) {
+          authUser = session ? session.user : null;
           updateAuthUI();
           syncCloudIfPossible();
         });
@@ -1074,14 +1121,13 @@ service cloud.firestore {
         els.syncSettingsBtn.addEventListener("click", () => {
           if (els.shareKeyInput) els.shareKeyInput.value = localStorage.getItem(LS_SHARE) || "";
           if (els.displayNameInput) {
-            var gu = null;
-            try {
-              gu = typeof firebase !== "undefined" && firebase.auth ? firebase.auth().currentUser : null;
-            } catch (e1) {}
+            var gu = authUser;
+            var fromGoogle = "";
+            if (gu && gu.user_metadata) {
+              fromGoogle = gu.user_metadata.full_name || gu.user_metadata.name || "";
+            }
             els.displayNameInput.value =
-              (localStorage.getItem(LS_DISPLAY) || "").trim() ||
-              (gu && gu.displayName ? gu.displayName : "") ||
-              "";
+              (localStorage.getItem(LS_DISPLAY) || "").trim() || fromGoogle || "";
           }
           if (els.syncError) els.syncError.classList.add("hidden");
           updateAuthUI();
@@ -1119,10 +1165,10 @@ service cloud.firestore {
           localStorage.setItem(LS_DISPLAY, disp);
           stopListeners();
           lastSerialized = "";
-          if (!tryInitFirebase()) {
+          if (!tryInitSupabase()) {
             if (els.syncError) {
               els.syncError.textContent =
-                "לא נמצא Firebase. צור קובץ firebase-config.js מהדוגמה או הגדר window.__SHOPPING_LIST_FIREBASE__ לפני טעינת הדף.";
+                "לא נמצא Supabase. מלא ב-supabase-config.js את ה-URL וה-anon key מ-Project Settings → API.";
               els.syncError.classList.remove("hidden");
             }
             return;
@@ -1153,19 +1199,22 @@ service cloud.firestore {
       function sendChatMessage() {
         const text = els.chatInput && els.chatInput.value.trim();
         if (!text) return;
-        if (!shareKey || !db || !hasSignedInUser()) {
+        if (!shareKey || !supabaseClient || !hasSignedInUser()) {
           if (els.chatHint) els.chatHint.classList.remove("hidden");
           return;
         }
         if (els.chatHint) els.chatHint.classList.add("hidden");
-        const au = firebase.auth().currentUser;
-        db.collection("sharedLists").doc(shareKey).collection("messages").add({
-          text: text,
-          sender: getDisplayName(),
-          uid: au ? au.uid : "",
-          clientId: getClientId(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
+        supabaseClient
+          .from("list_messages")
+          .insert({
+            list_id: shareKey,
+            body: text,
+            sender: getDisplayName(),
+            user_id: authUser ? authUser.id : null,
+          })
+          .then(function (res) {
+            if (res.error) console.error(res.error);
+          });
         if (els.chatAddToList && els.chatAddToList.checked) {
           const cat = (els.chatCategorySelect && els.chatCategorySelect.value) || "vegetables";
           addItemByName(text, cat);
