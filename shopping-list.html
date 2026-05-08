@@ -164,6 +164,15 @@
       opacity: 1;
     }
 
+    .category-drag-active {
+      opacity: 0.65;
+    }
+
+    .category-drag-over {
+      box-shadow: 0 0 0 2px rgb(59 130 246);
+      border-radius: 0.5rem;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -1646,18 +1655,51 @@
         els.totalPrice.textContent = "₪" + sum.toFixed(2);
       }
 
-      function categoryHeaderHtml(cat, deletable) {
+      function categoryHeaderHtml(cat, deletable, index, total) {
         const del = deletable
           ? `<button type="button" class="delete-category text-red-500 mr-2" data-del-cat="${cat.id}" aria-label="מחק קטגוריה">🗑️</button>`
           : "";
+        const canUp = index > 0;
+        const canDown = index < total - 1;
         return `
-          <div class="category-header flex justify-between items-center cursor-pointer p-2 rounded">
-            <h2 class="text-lg font-bold flex-1 text-right">${cat.emoji} ${escapeHtml(cat.name)}</h2>
-            <div class="flex items-center shrink-0">
+          <div class="category-header flex justify-between items-center gap-2 p-2 rounded">
+            <span class="cat-drag-handle shrink-0 px-1 py-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing select-none touch-manipulation text-lg leading-none"
+              draggable="true" title="גרירה לסידור לפי מחלקות">⠿</span>
+            <h2 class="text-lg font-bold flex-1 text-right min-w-0 cat-title-area cursor-pointer">${cat.emoji} ${escapeHtml(cat.name)}</h2>
+            <div class="flex items-center shrink-0 gap-0.5 flex-wrap justify-end">
+              <button type="button" class="cat-move-up px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canUp ? "" : "disabled"} title="הזז למעלה">↑</button>
+              <button type="button" class="cat-move-down px-2 py-0.5 rounded border border-gray-200 bg-gray-50 text-sm leading-none disabled:opacity-25 disabled:cursor-not-allowed" data-cat="${cat.id}" ${canDown ? "" : "disabled"} title="הזז למטה">↓</button>
               ${del}
-              <span class="toggle-icon select-none" aria-hidden="true">▼</span>
+              <span class="toggle-icon select-none cursor-pointer" aria-hidden="true">▼</span>
             </div>
           </div>`;
+      }
+
+      function reorderCategoriesBefore(fromId, beforeId) {
+        if (!fromId || !beforeId || fromId === beforeId) return;
+        const arr = state.categories.slice();
+        const fromIdx = arr.findIndex((c) => c.id === fromId);
+        const beforeIdx = arr.findIndex((c) => c.id === beforeId);
+        if (fromIdx < 0 || beforeIdx < 0) return;
+        const [item] = arr.splice(fromIdx, 1);
+        const insertAt = arr.findIndex((c) => c.id === beforeId);
+        arr.splice(insertAt >= 0 ? insertAt : arr.length, 0, item);
+        state.categories = arr;
+        saveState();
+        renderPrepCategories();
+      }
+
+      function moveCategoryStep(catId, delta) {
+        const arr = state.categories;
+        const i = arr.findIndex((c) => c.id === catId);
+        if (i < 0) return;
+        const j = i + delta;
+        if (j < 0 || j >= arr.length) return;
+        const t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+        saveState();
+        renderPrepCategories();
       }
 
       function escapeHtml(s) {
@@ -1668,24 +1710,71 @@
 
       function renderPrepCategories() {
         els.categoriesList.innerHTML = "";
-        state.categories.forEach((cat) => {
+        const totalCats = state.categories.length;
+        state.categories.forEach((cat, index) => {
           ensureCategoryItems(cat.id);
           const isDefault = DEFAULT_META.some((d) => d.id === cat.id);
           const wrap = document.createElement("div");
           wrap.id = cat.id;
           wrap.className = "category bg-white rounded shadow p-3" + (cat.dynamic ? " dynamic-cat" : "");
+          wrap.dataset.catId = cat.id;
           wrap.innerHTML =
-            categoryHeaderHtml(cat, !isDefault) +
+            categoryHeaderHtml(cat, !isDefault, index, totalCats) +
             `<div class="category-content space-y-2 mt-2 open"></div>`;
 
           const header = wrap.querySelector(".category-header");
           const content = wrap.querySelector(".category-content");
           header.addEventListener("click", (e) => {
             if (e.target.closest(".delete-category")) return;
+            if (e.target.closest(".cat-drag-handle")) return;
+            if (e.target.closest(".cat-move-up") || e.target.closest(".cat-move-down")) return;
             content.classList.toggle("open");
             const icon = wrap.querySelector(".toggle-icon");
             icon.textContent = content.classList.contains("open") ? "▼" : "◀";
           });
+
+          const dragHandle = wrap.querySelector(".cat-drag-handle");
+          if (dragHandle) {
+            dragHandle.addEventListener("dragstart", (e) => {
+              e.dataTransfer.setData("text/plain", cat.id);
+              e.dataTransfer.effectAllowed = "move";
+              wrap.classList.add("category-drag-active");
+            });
+            dragHandle.addEventListener("dragend", () => {
+              wrap.classList.remove("category-drag-active");
+              document.querySelectorAll(".category-drag-over").forEach((el) => el.classList.remove("category-drag-over"));
+            });
+          }
+
+          wrap.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            wrap.classList.add("category-drag-over");
+          });
+          wrap.addEventListener("dragleave", (e) => {
+            if (!wrap.contains(e.relatedTarget)) wrap.classList.remove("category-drag-over");
+          });
+          wrap.addEventListener("drop", (e) => {
+            e.preventDefault();
+            wrap.classList.remove("category-drag-over");
+            const fromId = e.dataTransfer.getData("text/plain");
+            reorderCategoriesBefore(fromId, cat.id);
+          });
+
+          const upBtn = wrap.querySelector(".cat-move-up");
+          const downBtn = wrap.querySelector(".cat-move-down");
+          if (upBtn) {
+            upBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              moveCategoryStep(cat.id, -1);
+            });
+          }
+          if (downBtn) {
+            downBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              moveCategoryStep(cat.id, 1);
+            });
+          }
 
           const delBtn = wrap.querySelector("[data-del-cat]");
           if (delBtn) {
