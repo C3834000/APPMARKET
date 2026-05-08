@@ -16,15 +16,16 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
+    /* מתחת ל־sticky-header; הערך המדויק מגיע מ־--sticky-search-top (גובה הכותרת) */
     .sticky-search {
       position: sticky;
-      top: 0;
-      z-index: 40;
+      top: var(--sticky-search-top, 220px);
+      z-index: 45;
       background-color: #f9fafb;
-      padding: 10px;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 16px;
+      padding: 10px 8px;
+      margin-bottom: 12px;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .item-row:hover {
@@ -922,6 +923,13 @@
         }
       }
 
+      function updateStickySearchTop() {
+        const bar = document.querySelector(".sticky-header");
+        if (!bar) return;
+        const h = bar.getBoundingClientRect().height;
+        document.documentElement.style.setProperty("--sticky-search-top", Math.round(h + 2) + "px");
+      }
+
       function updateAuthUI() {
         if (!supabaseClient) {
           var btnIn0 = document.getElementById("googleSignInHeader");
@@ -933,6 +941,7 @@
             wrap0.classList.add("hidden");
             wrap0.classList.remove("flex");
           }
+          updateStickySearchTop();
           return;
         }
         const u = authUser;
@@ -977,6 +986,7 @@
             statusLine.textContent = "לא מחובר — לחץ להתחברות לפני שיתוף רשימה.";
           }
         }
+        updateStickySearchTop();
       }
 
       function signInWithGoogle() {
@@ -1586,6 +1596,7 @@
         } else {
           renderPrepCategories();
         }
+        updateStickySearchTop();
       }
 
       els.prepMode.addEventListener("click", () => setMode(false));
@@ -2289,6 +2300,20 @@
       updateSummary();
       applyListQueryFromUrl();
       initAuthAndCloud();
+      updateStickySearchTop();
+      window.addEventListener("resize", updateStickySearchTop);
+      window.addEventListener("orientationchange", function () {
+        setTimeout(updateStickySearchTop, 200);
+      });
+      if (typeof ResizeObserver !== "undefined") {
+        var stickyHdr = document.querySelector(".sticky-header");
+        if (stickyHdr) {
+          var roHdr = new ResizeObserver(function () {
+            updateStickySearchTop();
+          });
+          roHdr.observe(stickyHdr);
+        }
+      }
 
       window.toggleCategory = function (headerEl) {
         const wrap = headerEl.closest(".category");
