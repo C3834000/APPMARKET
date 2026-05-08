@@ -436,7 +436,7 @@
         <input type="text" id="chatInput" class="flex-1 border rounded px-2 py-2 text-sm" placeholder="למשל: חלב 3% ועוד חלה..." autocomplete="off" />
         <button type="button" id="chatSendBtn" class="bg-blue-600 text-white px-3 py-2 rounded text-sm shrink-0">שלח</button>
       </div>
-      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולהזין קוד משפחה (בסנכרון) כדי לשלוח הודעות לכל בני המשפחה.</p>
+      <p id="chatHint" class="text-xs text-amber-700 hidden">יש להתחבר עם Google ולשייך רשימה (בסנכרון) כדי לשלוח הודעות לשותפים.</p>
     </div>
   </div>
 
@@ -450,26 +450,34 @@
         את ה־URL וה־anon key מ־
         <a href="https://supabase.com/dashboard" target="_blank" rel="noopener" class="text-blue-600 underline">Project Settings → API</a>.
       </p>
+      <div class="border rounded-lg p-3 mb-4 bg-green-50 border-green-100">
+        <p class="text-sm font-semibold text-gray-900 mb-1">יצירת רשימה חדשה</p>
+        <p class="text-xs text-gray-600 mb-3">נוצרת רשימה ריקה עם מזהה ייחודי. אחר כך אפשר להעתיק קישור ולשלוח למי שרוצים — יפתחו את אותה רשימה (אחרי התחברות Google).</p>
+        <button type="button" id="createNewListBtn" class="w-full py-2 rounded-lg border border-green-600 bg-white text-green-800 text-sm font-medium hover:bg-green-50">
+          צור רשימה חדשה
+        </button>
+      </div>
       <div class="border rounded-lg p-3 mb-4 bg-blue-50 border-blue-100">
-        <p class="text-sm font-semibold text-gray-900 mb-1">שיתוף רשימה בין בני המשפחה</p>
-        <p class="text-xs text-gray-600 mb-3">כל בן משפחה מתחבר עם חשבון Google, ואז מזין את <strong>אותו קוד רשימה</strong> — הרשימה והצ'אט משותפים בזמן אמת.</p>
+        <p class="text-sm font-semibold text-gray-900 mb-1">שיתוף רשימה</p>
+        <p class="text-xs text-gray-600 mb-3">כל מי שמקבל את הקישור או את המזהה נכנס לאותה רשימה אחרי התחברות עם Google — כולל צ'אט בזמן אמת.</p>
         <button type="button" id="googleSignInModal" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50">
           <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
           התחבר עם Google
         </button>
         <p id="authStatusLine" class="text-xs mt-2 text-gray-600 min-h-[1.25rem]"></p>
       </div>
-      <label class="block text-sm font-medium mb-1">קוד רשימה משפחתית (משותף לכל המכשירים)</label>
-      <div class="flex gap-2 mb-2">
-        <input type="text" id="shareKeyInput" class="flex-1 border p-2 rounded font-mono text-sm" placeholder="למשל: cohen-shabat-2026" dir="ltr" autocomplete="off" />
-        <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">צור קוד</button>
+      <label class="block text-sm font-medium mb-1">מזהה הרשימה (מופיע בקישור השיתוף)</label>
+      <div class="flex flex-wrap gap-2 mb-2">
+        <input type="text" id="shareKeyInput" class="flex-1 min-w-[200px] border p-2 rounded font-mono text-sm" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
+        <button type="button" id="generateShareKeyBtn" class="text-sm px-2 py-1 border rounded bg-gray-50 whitespace-nowrap">מזהה אקראי</button>
+        <button type="button" id="copyShareLinkBtn" class="text-sm px-2 py-1 border rounded bg-emerald-50 text-emerald-900 whitespace-nowrap">העתק קישור שיתוף</button>
       </div>
-      <p class="text-xs text-gray-500 mb-3">שולחים את הקוד בני משפחה בווטסאפ — אחרי התחברות Google הרשימה מסתנכרנת בכל מכשיר.</p>
+      <p class="text-xs text-gray-500 mb-3">מעתיקים את הקישור לווטסאפ / SMS — או שולחים רק את המזהה למי שכבר פותח את האפליקציה.</p>
       <label class="block text-sm font-medium mb-1">שם מוצג בצ'אט</label>
       <input type="text" id="displayNameInput" class="w-full border p-2 rounded mb-4" placeholder="למשל: אשתי / דני" maxlength="24" />
       <div class="flex flex-wrap gap-2 justify-end">
         <button type="button" id="syncDisconnectBtn" class="bg-gray-200 px-4 py-2 rounded text-sm">נתק ענן</button>
-        <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור קוד והתחבר לרשימה</button>
+        <button type="button" id="syncSaveBtn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">שמור והתחבר לרשימה</button>
       </div>
       <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
       <details class="mt-4 text-xs text-gray-600">
@@ -669,12 +677,12 @@
           el.className = errMsg
             ? "text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 shrink-0 max-w-[100px] truncate text-center"
             : "text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0 max-w-[100px] truncate text-center";
-          el.title = errMsg || "מסונכרן — רשימה משפחתית";
+          el.title = errMsg || "מסונכרן לענן";
         } else if (user && !shareKey) {
-          el.textContent = "ללא קוד";
+          el.textContent = "ללא רשימה";
           el.className =
             "text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-900 shrink-0 max-w-[100px] truncate text-center";
-          el.title = "מחובר — הזן קוד משפחה בסנכרון";
+          el.title = "מחובר — בחר או צור רשימה בסנכרון";
         } else {
           el.textContent = "מקומי";
           el.className =
@@ -976,6 +984,75 @@
         updateChatHint();
       }
 
+      function applyListQueryFromUrl() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var q = params.get("list");
+          if (!q) return;
+          q = String(q).trim();
+          if (!/^[a-zA-Z0-9_-]{6,80}$/.test(q)) return;
+          localStorage.setItem(LS_SHARE, q);
+          window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+        } catch (e) {}
+      }
+
+      function buildShareUrlForCurrentList() {
+        var inp = document.getElementById("shareKeyInput");
+        var key =
+          (inp && inp.value.trim()) || shareKey || (localStorage.getItem(LS_SHARE) || "").trim();
+        if (!key || !/^[a-zA-Z0-9_-]{6,80}$/.test(key)) return "";
+        return window.location.origin + window.location.pathname + "?list=" + encodeURIComponent(key);
+      }
+
+      function copyShareLinkToClipboard() {
+        var url = buildShareUrlForCurrentList();
+        if (!url) {
+          alert("אין מזהה רשימה תקין — צור רשימה או הזן מזהה בשדה.");
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(
+            function () {
+              alert("הקישור הועתק. אפשר לשלוח בווטסאפ או במייל.");
+            },
+            function () {
+              window.prompt("העתק את הקישור:", url);
+            }
+          );
+        } else {
+          window.prompt("העתק את הקישור:", url);
+        }
+      }
+
+      function runCreateNewList() {
+        showConfirm(
+          "רשימה חדשה",
+          "נוצרת רשימה ריקה עם מזהה חדש. הרשימה הנוכחית במכשיר תוחלף (רשימות אחרות בענן לא משתנות). להמשיך?",
+          function () {
+            stopListeners();
+            state = freshDefaultState();
+            saveStateLocalOnly();
+            lastSerialized = "";
+            var newKey = "list_" + Math.random().toString(36).slice(2, 11);
+            shareKey = newKey;
+            localStorage.setItem(LS_SHARE, newKey);
+            if (els.shareKeyInput) els.shareKeyInput.value = newKey;
+            syncCloudIfPossible();
+            if (hasSignedInUser() && tryInitSupabase()) {
+              pushStateToCloud();
+            }
+            renderPrepCategories();
+            renderShopView();
+            updateSummary();
+            refreshCategorySelect();
+            refreshChatCategories();
+            loadChatMessagesFromDb();
+            updateSyncDot(true);
+            updateChatHint();
+          }
+        );
+      }
+
       function syncCloudIfPossible() {
         shareKey = (localStorage.getItem(LS_SHARE) || "").trim();
         if (!shareKey || !supabaseClient || !hasSignedInUser()) {
@@ -1063,6 +1140,8 @@
         syncSaveBtn: document.getElementById("syncSaveBtn"),
         syncDisconnectBtn: document.getElementById("syncDisconnectBtn"),
         syncError: document.getElementById("syncError"),
+        createNewListBtn: document.getElementById("createNewListBtn"),
+        copyShareLinkBtn: document.getElementById("copyShareLinkBtn"),
         displayNameInput: document.getElementById("displayNameInput"),
         chatFab: document.getElementById("chatFab"),
         chatPopup: document.getElementById("chatPopup"),
@@ -1138,8 +1217,14 @@
       }
       if (els.generateShareKeyBtn && els.shareKeyInput) {
         els.generateShareKeyBtn.addEventListener("click", () => {
-          els.shareKeyInput.value = "fam_" + Math.random().toString(36).slice(2, 11);
+          els.shareKeyInput.value = "list_" + Math.random().toString(36).slice(2, 11);
         });
+      }
+      if (els.createNewListBtn) {
+        els.createNewListBtn.addEventListener("click", () => runCreateNewList());
+      }
+      if (els.copyShareLinkBtn) {
+        els.copyShareLinkBtn.addEventListener("click", () => copyShareLinkToClipboard());
       }
       if (els.syncSaveBtn) {
         els.syncSaveBtn.addEventListener("click", () => {
@@ -1155,7 +1240,7 @@
           if (!/^[a-zA-Z0-9_-]{6,80}$/.test(key)) {
             if (els.syncError) {
               els.syncError.textContent =
-                "קוד חייב להיות באורך 6–80 תווים: אנגלית, מספרים, מקף וקו תחתון בלבד.";
+                "המזהה חייב להיות 6–80 תווים: אנגלית, מספרים, מקף וקו תחתון בלבד.";
               els.syncError.classList.remove("hidden");
             }
             return;
@@ -1748,6 +1833,7 @@
 
       renderPrepCategories();
       updateSummary();
+      applyListQueryFromUrl();
       initAuthAndCloud();
 
       window.toggleCategory = function (headerEl) {
