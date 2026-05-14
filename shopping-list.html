@@ -2151,21 +2151,32 @@
           const catalogResolved = getResolvedCatalog(cat.id);
           if (catalogResolved.length) {
             const strip = document.createElement("div");
-            strip.className =
-              "catalog-strip mb-4 rounded-2xl border border-emerald-100/90 bg-gradient-to-br from-emerald-50/95 to-teal-50/40 p-3 shadow-sm sm:p-3.5";
+            strip.className = "catalog-strip mb-3 hidden";
+            strip.id = `catalog-${cat.id}`;
+            
+            // כפתור קטן להצגת המאגר
+            const toggleBtn = document.createElement("button");
+            toggleBtn.className = "catalog-toggle-btn mb-2 text-xs text-emerald-700 hover:text-emerald-900 underline";
+            toggleBtn.textContent = "הוסף מהמאגר ⊕";
+            toggleBtn.onclick = () => {
+              strip.classList.toggle("hidden");
+              toggleBtn.textContent = strip.classList.contains("hidden") ? "הוסף מהמאגר ⊕" : "הסתר מאגר ⊖";
+            };
+            
             const titleEl = document.createElement("div");
-            titleEl.className = "mb-2 text-xs font-bold text-emerald-950";
-            titleEl.textContent = "מאגר מוצרים — לחיצה על השם מוסיפה לרשימה (✏️ עורך מאגר)";
+            titleEl.className = "mb-2 text-xs font-medium text-emerald-800 border-b border-emerald-200 pb-1";
+            titleEl.textContent = "לחיצה מוסיפה לרשימה";
             strip.appendChild(titleEl);
+            
             const chips = document.createElement("div");
-            chips.className = "flex flex-wrap gap-x-2 gap-y-2 items-center";
+            chips.className = "flex flex-wrap gap-x-2 gap-y-2 items-center p-2 bg-emerald-50/50 rounded-lg border border-emerald-100";
             catalogResolved.forEach((entry) => {
               const row = document.createElement("div");
               row.className = "flex flex-wrap items-center gap-1 max-w-full";
               const mainBtn = document.createElement("button");
               mainBtn.type = "button";
               mainBtn.className =
-                "catalog-chip rounded-xl border border-emerald-200/90 bg-white px-2.5 py-1.5 text-right text-xs text-slate-800 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98]";
+                "catalog-chip rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-right text-xs text-slate-700 transition hover:bg-slate-100 hover:border-slate-300";
               mainBtn.innerHTML =
                 '<span class="font-medium">' +
                 escapeHtml(entry.name) +
@@ -2183,7 +2194,7 @@
               const editBtn = document.createElement("button");
               editBtn.type = "button";
               editBtn.className =
-                "catalog-edit-btn shrink-0 rounded-lg p-1 text-sm leading-none text-amber-600 transition hover:bg-amber-100";
+                "catalog-edit-btn shrink-0 rounded p-1 text-xs leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-700";
               editBtn.setAttribute("aria-label", "עריכת מוצר במאגר");
               editBtn.textContent = "✏️";
               editBtn.addEventListener("click", (ev) => {
@@ -2195,6 +2206,7 @@
               chips.appendChild(row);
             });
             strip.appendChild(chips);
+            listEl.appendChild(toggleBtn);
             listEl.appendChild(strip);
           }
           state.items[cat.id].forEach((item) => {
