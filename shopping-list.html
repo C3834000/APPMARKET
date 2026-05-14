@@ -411,7 +411,10 @@
     <div class="sticky-header">
       <header class="px-4 pt-5 pb-3 flex flex-col gap-3">
         <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 px-1">
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 text-center tracking-tight">רשימת קניות לשבת</h1>
+          <div class="flex items-center gap-2">
+            <h1 id="currentListTitle" class="text-xl sm:text-2xl font-extrabold text-slate-800 text-center tracking-tight cursor-pointer hover:text-teal-700 transition-colors" onclick="openListManager()">רשימת קניות</h1>
+            <button id="listManagerBtn" class="text-xs text-slate-500 hover:text-slate-700 p-1 rounded hover:bg-slate-100" title="ניהול רשימות">📋</button>
+          </div>
           <button type="button" id="syncSettingsBtn" class="text-xs sm:text-sm px-3.5 py-1.5 rounded-full border border-slate-200/90 bg-white/95 text-slate-700 font-medium shadow-sm hover:bg-teal-50/90 hover:border-teal-200/80 hover:text-teal-900 transition-colors shrink-0">
             שיתוף
           </button>
@@ -662,6 +665,35 @@
       <div class="flex justify-end gap-2">
         <button type="button" id="catalogEditCancelBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">ביטול</button>
         <button type="button" id="catalogEditSaveBtn" class="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-900/20">שמור</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Manager Modal -->
+  <div id="listManagerModal" class="modal">
+    <div class="modal-content max-w-lg">
+      <span class="close-modal" data-close="listManagerModal">&times;</span>
+      <h2 class="mb-4 text-xl font-extrabold text-slate-900">ניהול רשימות</h2>
+      
+      <div class="mb-4">
+        <h3 class="text-sm font-semibold text-slate-700 mb-2">רשימה נוכחית:</h3>
+        <div class="flex items-center gap-2 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+          <span id="currentListNameDisplay" class="font-medium text-teal-900">רשימת קניות</span>
+          <button id="editListNameBtn" class="text-xs text-teal-700 hover:text-teal-900 underline">✏️ שנה שם</button>
+        </div>
+        <input id="listNameInput" class="hidden w-full mt-2 p-2 border border-slate-300 rounded-lg text-sm" placeholder="שם הרשימה" />
+      </div>
+      
+      <div class="mb-4">
+        <h3 class="text-sm font-semibold text-slate-700 mb-2">רשימות קיימות:</h3>
+        <div id="existingListsList" class="space-y-1 max-h-40 overflow-y-auto">
+          <!-- רשימות יוצגו כאן -->
+        </div>
+      </div>
+      
+      <div class="flex justify-between">
+        <button id="newListBtn" class="rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md">רשימה חדשה</button>
+        <button type="button" class="close-modal rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300" data-close="listManagerModal">סגור</button>
       </div>
     </div>
   </div>
@@ -1356,22 +1388,22 @@
         const h = document.getElementById("chatHint");
         if (!h) return;
         if (!hasSignedInUser()) {
-          h.textContent = "לא מחובר.";
+          h.textContent = "💡 לשיתוף וצ'אט משפחתי: התחבר עם Google (כרגע Google OAuth בהגדרה)";
           h.classList.remove("hidden");
           return;
         }
         if (!shareKey) {
-          h.textContent = "אין מזהה רשימה.";
+          h.textContent = "💡 לצ'אט משפחתי: צור מזהה רשימה בלחצן 'שיתוף'";
           h.classList.remove("hidden");
           return;
         }
         if (!supabaseClient) {
-          h.textContent = "אין חיבור לענן.";
+          h.textContent = "⚠️ אין חיבור לענן - בדוק הגדרות Supabase";
           h.classList.remove("hidden");
           return;
         }
-        h.textContent = "";
-        h.classList.add("hidden");
+        h.textContent = "💬 צ'אט משפחתי פעיל - ההודעות נשמרות בענן";
+        h.classList.remove("hidden");
       }
 
       function stopListeners() {
@@ -2151,32 +2183,22 @@
           const catalogResolved = getResolvedCatalog(cat.id);
           if (catalogResolved.length) {
             const strip = document.createElement("div");
-            strip.className = "catalog-strip mb-3 hidden";
-            strip.id = `catalog-${cat.id}`;
-            
-            // כפתור קטן להצגת המאגר
-            const toggleBtn = document.createElement("button");
-            toggleBtn.className = "catalog-toggle-btn mb-2 text-xs text-emerald-700 hover:text-emerald-900 underline";
-            toggleBtn.textContent = "הוסף מהמאגר ⊕";
-            toggleBtn.onclick = () => {
-              strip.classList.toggle("hidden");
-              toggleBtn.textContent = strip.classList.contains("hidden") ? "הוסף מהמאגר ⊕" : "הסתר מאגר ⊖";
-            };
+            strip.className = "catalog-strip mb-3 p-2 bg-slate-50/80 border border-slate-200 rounded-lg";
             
             const titleEl = document.createElement("div");
-            titleEl.className = "mb-2 text-xs font-medium text-emerald-800 border-b border-emerald-200 pb-1";
-            titleEl.textContent = "לחיצה מוסיפה לרשימה";
+            titleEl.className = "mb-2 text-xs font-medium text-slate-600 flex items-center gap-1";
+            titleEl.innerHTML = "🛒 <span>לחיצה להוספה:</span>";
             strip.appendChild(titleEl);
             
             const chips = document.createElement("div");
-            chips.className = "flex flex-wrap gap-x-2 gap-y-2 items-center p-2 bg-emerald-50/50 rounded-lg border border-emerald-100";
+            chips.className = "flex flex-wrap gap-1 items-center";
             catalogResolved.forEach((entry) => {
               const row = document.createElement("div");
               row.className = "flex flex-wrap items-center gap-1 max-w-full";
               const mainBtn = document.createElement("button");
               mainBtn.type = "button";
               mainBtn.className =
-                "catalog-chip rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-right text-xs text-slate-700 transition hover:bg-slate-100 hover:border-slate-300";
+                "catalog-chip rounded-md border border-slate-300 bg-white px-1.5 py-0.5 text-right text-xs text-slate-700 transition hover:bg-slate-100 hover:border-slate-400";
               mainBtn.innerHTML =
                 '<span class="font-medium">' +
                 escapeHtml(entry.name) +
@@ -2206,7 +2228,6 @@
               chips.appendChild(row);
             });
             strip.appendChild(chips);
-            listEl.appendChild(toggleBtn);
             listEl.appendChild(strip);
           }
           state.items[cat.id].forEach((item) => {
@@ -2222,7 +2243,7 @@
       function renderPrepItemRow(catId, item) {
         const row = document.createElement("div");
         row.className =
-          "item-row flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 p-3 shadow-sm";
+          "item-row flex flex-wrap items-center gap-2 rounded-lg border border-slate-100 p-2 shadow-sm";
         row.dataset.itemId = item.id;
         if (item.note === undefined) item.note = "";
         row.innerHTML = `
@@ -2231,7 +2252,7 @@
               <span class="font-medium flex-1 break-words">${escapeHtml(item.name)}</span>
               <button type="button" class="item-focus-note shrink-0 text-amber-600 text-base leading-none p-0.5 rounded hover:bg-amber-50" title="קפיצה להערה">✏️</button>
             </div>
-            <input type="text" class="item-note-input w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs shadow-inner focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400/30" dir="rtl" placeholder="הערה — מותג, גודל…" />
+            <input type="text" class="item-note-input w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs shadow-inner focus:border-teal-400 focus:outline-none focus:ring-1 focus:ring-teal-400/30" dir="rtl" placeholder="הערה (מותג, גודל)" />
           </div>
           <div class="quantity-controls rounded-xl border border-slate-200 bg-white px-1 shadow-sm">
             <span class="quantity-btn" data-act="dec">−</span>
@@ -2428,6 +2449,136 @@
             closeModal("catalogEditModal");
           });
         }
+      })();
+
+      // List Manager Functions
+      const LS_LIST_NAMES = "shoppingList_list_names_v1";
+      
+      function openListManager() {
+        updateListManagerContent();
+        openModal("listManagerModal");
+      }
+      
+      function updateListManagerContent() {
+        const currentName = getCurrentListName();
+        document.getElementById("currentListNameDisplay").textContent = currentName;
+        document.getElementById("currentListTitle").textContent = currentName;
+        
+        // Update existing lists
+        const listNames = JSON.parse(localStorage.getItem(LS_LIST_NAMES) || "{}");
+        const container = document.getElementById("existingListsList");
+        container.innerHTML = "";
+        
+        Object.keys(listNames).forEach(listId => {
+          if (listId === (localStorage.getItem(LS_SHARE) || "")) return; // Skip current list
+          
+          const listItem = document.createElement("div");
+          listItem.className = "flex items-center justify-between p-2 bg-slate-50 rounded border";
+          listItem.innerHTML = `
+            <span class="text-sm">${escapeHtml(listNames[listId])}</span>
+            <button class="text-xs text-teal-600 underline switch-list-btn" data-list-id="${listId}">עבור אליה</button>
+          `;
+          container.appendChild(listItem);
+        });
+        
+        // Add event listeners for switch buttons
+        container.querySelectorAll(".switch-list-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const listId = btn.dataset.listId;
+            switchToList(listId);
+            closeModal("listManagerModal");
+          });
+        });
+      }
+      
+      function getCurrentListName() {
+        const currentListId = localStorage.getItem(LS_SHARE) || "";
+        const listNames = JSON.parse(localStorage.getItem(LS_LIST_NAMES) || "{}");
+        return listNames[currentListId] || "רשימת קניות";
+      }
+      
+      function setCurrentListName(name) {
+        const currentListId = localStorage.getItem(LS_SHARE) || "";
+        if (!currentListId) return;
+        
+        const listNames = JSON.parse(localStorage.getItem(LS_LIST_NAMES) || "{}");
+        listNames[currentListId] = name;
+        localStorage.setItem(LS_LIST_NAMES, JSON.stringify(listNames));
+        
+        document.getElementById("currentListTitle").textContent = name;
+        document.getElementById("currentListNameDisplay").textContent = name;
+      }
+      
+      function switchToList(listId) {
+        // Save current list name if not saved
+        const currentListId = localStorage.getItem(LS_SHARE) || "";
+        if (currentListId && !getCurrentListName()) {
+          setCurrentListName("רשימת קניות");
+        }
+        
+        // Switch to new list
+        localStorage.setItem(LS_SHARE, listId);
+        shareKey = listId;
+        
+        // Load new list data or reset to empty
+        const newName = getCurrentListName();
+        document.getElementById("currentListTitle").textContent = newName;
+        
+        // Trigger refresh
+        location.reload();
+      }
+      
+      function createNewListWithName(name) {
+        const newId = "list_" + Math.random().toString(36).slice(2, 11);
+        
+        // Save old list name
+        const currentListId = localStorage.getItem(LS_SHARE) || "";
+        if (currentListId) {
+          const currentName = getCurrentListName() || "רשימת קניות";
+          setCurrentListName(currentName);
+        }
+        
+        // Create new list
+        const listNames = JSON.parse(localStorage.getItem(LS_LIST_NAMES) || "{}");
+        listNames[newId] = name;
+        localStorage.setItem(LS_LIST_NAMES, JSON.stringify(listNames));
+        
+        // Switch to new list
+        switchToList(newId);
+      }
+      
+      // Initialize list manager events
+      (function initListManager() {
+        document.getElementById("listManagerBtn").addEventListener("click", openListManager);
+        
+        const editBtn = document.getElementById("editListNameBtn");
+        const nameDisplay = document.getElementById("currentListNameDisplay");
+        const nameInput = document.getElementById("listNameInput");
+        
+        editBtn.addEventListener("click", () => {
+          nameInput.value = nameDisplay.textContent;
+          nameDisplay.classList.add("hidden");
+          nameInput.classList.remove("hidden");
+          nameInput.focus();
+        });
+        
+        nameInput.addEventListener("blur", () => {
+          const newName = nameInput.value.trim() || "רשימת קניות";
+          setCurrentListName(newName);
+          nameDisplay.classList.remove("hidden");
+          nameInput.classList.add("hidden");
+        });
+        
+        nameInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") nameInput.blur();
+        });
+        
+        document.getElementById("newListBtn").addEventListener("click", () => {
+          const name = prompt("שם הרשימה החדשה:", "רשימה חדשה");
+          if (name && name.trim()) {
+            createNewListWithName(name.trim());
+          }
+        });
       })();
 
       function confirmDeleteCategory(catId) {
