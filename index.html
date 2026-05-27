@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#ecfdf5" />
+  <meta name="theme-color" content="#0d9488" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="קניות" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
   <title>רשימת קניות</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -480,6 +485,47 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      min-height: 44px;
+    }
+
+    .zone-chips.collapsed {
+      display: none;
+    }
+
+    .fab-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #f43f5e;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    .fab-chat.has-badge .fab-badge {
+      display: flex;
+    }
+
+    .cloud-banner h4 {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+    }
+
+    .cloud-banner p {
+      font-size: 15px;
+      color: var(--color-muted);
+      margin-bottom: 0.75rem;
     }
 
     .zone-chips {
@@ -1058,6 +1104,14 @@
           <button type="button" id="addItemBtn" class="btn-primary">+ הוסף לרשימה</button>
         </div>
         <p id="templateStatus" class="text-sm text-slate-600 mb-3 px-1 hidden"></p>
+        <div id="prepEmptyState" class="empty-state hidden mb-4">
+          <h4>הרשימה עדיין ריקה</h4>
+          <p>אפשר להתחיל ממוצר ראשון או לטעון תבנית קבועה</p>
+          <div class="flex flex-col gap-2 max-w-xs mx-auto">
+            <button type="button" id="prepEmptyAddBtn" class="btn-primary">+ הוסף מוצר</button>
+            <button type="button" id="prepEmptyTemplateBtn" class="btn-secondary">טען תבנית שבת</button>
+          </div>
+        </div>
         <div id="categoriesList" class="space-y-4"></div>
       </div>
 
@@ -1084,27 +1138,40 @@
         <div id="shoppingList" class="shopping-list space-y-1"></div>
         <div id="shoppingListEmpty" class="empty-state hidden">
           <h4>הרשימה עדיין ריקה</h4>
-          <p>אפשר להתחיל ממוצר ראשון או לעבור למצב הכנה</p>
-          <button type="button" id="emptyGoPrepBtn" class="btn-primary max-w-xs mx-auto">עבור להכנה</button>
+          <p>אפשר להתחיל ממוצר ראשון, לטעון תבנית, או לעבור למצב הכנה</p>
+          <div class="flex flex-col gap-2 max-w-xs mx-auto">
+            <button type="button" id="emptyGoPrepBtn" class="btn-primary">עבור להכנה</button>
+            <button type="button" id="emptyLoadTemplateBtn" class="btn-secondary">טען תבנית שבת</button>
+          </div>
         </div>
 
-        <div id="purchasedZone" class="zone-card purchased-zone">
-          <div class="zone-title"><span>✅ נקנו</span><span id="purchasedCount">0</span></div>
+        <div id="purchasedZone" class="zone-card purchased-zone hidden">
+          <button type="button" class="zone-title w-full text-right bg-transparent border-0 p-0" id="purchasedZoneToggle" aria-expanded="true">
+            <span>✅ נקנו</span><span><span id="purchasedCount">0</span> · ▾</span>
+          </button>
           <div id="purchasedItems" class="zone-chips"></div>
         </div>
 
-        <div id="missingZone" class="zone-card missing-zone">
-          <div class="zone-title"><span>⚠️ חסר</span><span id="missingCount">0</span></div>
+        <div id="missingZone" class="zone-card missing-zone hidden">
+          <button type="button" class="zone-title w-full text-right bg-transparent border-0 p-0" id="missingZoneToggle" aria-expanded="true">
+            <span>⚠️ חסר</span><span><span id="missingCount">0</span> · ▾</span>
+          </button>
           <div id="missingItems" class="zone-chips"></div>
         </div>
       </div>
 
       <!-- More panel -->
       <div id="moreModeContainer" class="more-panel hidden">
+        <div id="moreCloudBanner" class="ui-card cloud-banner border-sky-200/80 bg-gradient-to-br from-sky-50 to-blue-50/70 hidden">
+          <h4>הרשימה נשמרת במכשיר</h4>
+          <p id="moreCloudBannerText">כדי לשתף עם המשפחה, התחבר לענן</p>
+          <button type="button" id="moreCloudSignInBtn" class="btn-primary">התחברות עם Google</button>
+        </div>
         <div class="ui-card">
           <p class="more-section-title">הגדרות</p>
           <div class="more-btn-row">
             <button type="button" id="moreSyncBtn">☁️ שיתוף וענן</button>
+            <button type="button" id="moreInstallBtn" class="hidden">📲 התקנה על מסך הבית</button>
             <button type="button" id="moreDarkBtn">🌙 מצב כהה</button>
             <button type="button" id="moreLargeTextBtn">🔤 טקסט גדול</button>
           </div>
@@ -1177,10 +1244,10 @@
     </div>
   </div>
 
-  <div id="syncModal" class="modal">
+  <div id="syncModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
     <div class="modal-content max-h-[85vh] overflow-y-auto">
-      <span class="close-modal" data-close="syncModal">&times;</span>
-      <h2 class="mb-4 text-xl font-extrabold text-slate-800">שיתוף וענן</h2>
+      <span class="close-modal" data-close="syncModal" aria-label="סגור">&times;</span>
+      <h2 id="syncModalTitle" class="mb-4 text-xl font-extrabold text-slate-800">שיתוף וענן</h2>
 
       <div id="recentListsSection" class="mb-4 hidden">
         <p class="mb-2 text-sm font-bold text-slate-800">מזהים אחרונים במכשיר</p>
@@ -1231,7 +1298,10 @@
   </div>
 
   <!-- צ'אט צף -->
-  <button type="button" id="chatFab" class="fab-chat" aria-label="פתח צ'אט משפחתי">💬</button>
+  <button type="button" id="chatFab" class="fab-chat" aria-label="פתח צ'אט משפחתי">
+    <span class="fab-badge" id="chatFabBadge" aria-hidden="true">0</span>
+    💬
+  </button>
   <div id="chatPopup" class="chat-popup" aria-live="polite">
     <div class="flex items-center justify-between border-b border-slate-200/90 bg-gradient-to-l from-teal-600/95 to-slate-800 px-3 py-2.5">
       <span class="font-bold text-white">צ'אט משפחתי</span>
@@ -1383,6 +1453,71 @@
         { id: "drinks", name: "שתייה", emoji: "🥤" },
         { id: "disposable", name: "חד־פעמי", emoji: "🍽" },
       ];
+
+      const CATEGORY_HEADER_BG = {
+        vegetables: "#86efac",
+        bakery: "#fca5a5",
+        baking: "#fde68a",
+        dairy: "#93c5fd",
+        canned: "#d1d5db",
+        coffee: "#c4b5fd",
+        cleaning: "#5eead4",
+        snacks: "#f9a8d4",
+        chocolate: "#fda4af",
+        drinks: "#6ee7b7",
+        disposable: "#34d399",
+      };
+
+      function getCategoryHeaderBg(catId) {
+        return CATEGORY_HEADER_BG[catId] || "rgba(148, 163, 184, 0.25)";
+      }
+
+      function countActiveItems() {
+        var n = 0;
+        state.categories.forEach(function (cat) {
+          ensureCategoryItems(cat.id);
+          state.items[cat.id].forEach(function (it) {
+            if ((Number(it.quantity) || 0) > 0) n++;
+          });
+        });
+        return n;
+      }
+
+      function updatePrepEmptyState() {
+        var el = document.getElementById("prepEmptyState");
+        if (el) el.classList.toggle("hidden", countActiveItems() > 0);
+      }
+
+      function updateMoreCloudBanner() {
+        var banner = document.getElementById("moreCloudBanner");
+        var txt = document.getElementById("moreCloudBannerText");
+        if (!banner) return;
+        if (shareKey && hasSignedInUser()) {
+          banner.classList.add("hidden");
+          return;
+        }
+        banner.classList.remove("hidden");
+        if (txt) {
+          txt.textContent =
+            hasSignedInUser() && !shareKey
+              ? "מחובר — פתח שיתוף וענן כדי לקשר רשימה משותפת"
+              : "כדי לשתף עם המשפחה, התחבר לענן";
+        }
+      }
+
+      var deferredInstallPrompt = null;
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        var btn = document.getElementById("moreInstallBtn");
+        if (btn) btn.classList.remove("hidden");
+      });
+      window.addEventListener("appinstalled", function () {
+        deferredInstallPrompt = null;
+        var btn = document.getElementById("moreInstallBtn");
+        if (btn) btn.classList.add("hidden");
+        showToast("האפליקציה הותקנה על מסך הבית", "success");
+      });
 
       /** מאגר: שם, מחיר משוער בישראל (ממוצע), הערת יחידה */
       function catalogRows(catId, rows) {
@@ -1801,6 +1936,7 @@
             wrap0.classList.remove("flex");
           }
           updateStickySearchTop();
+          updateMoreCloudBanner();
           return;
         }
         const u = authUser;
@@ -1846,6 +1982,7 @@
           }
         }
         updateStickySearchTop();
+        updateMoreCloudBanner();
       }
 
       function signInWithGoogle() {
@@ -1999,6 +2136,11 @@
         const box = document.getElementById("chatMessages");
         if (!box) return;
         box.innerHTML = "";
+        if (!rows || !rows.length) {
+          box.innerHTML =
+            '<p class="text-center text-slate-500 text-base py-10 px-4 leading-relaxed">כאן המשפחה יכולה לעדכן מה חסר — שלחו הודעה ראשונה</p>';
+          return;
+        }
         const myId = getClientId();
         var myUid = authUser && authUser.id ? authUser.id : "";
         rows.forEach((row) => {
@@ -2441,6 +2583,7 @@
         } else if (view === "more") {
           if (moreEl) moreEl.classList.remove("hidden");
           updateMoreTemplateStatus();
+          updateMoreCloudBanner();
         } else if (view === "lists") {
           els.prepModeContainer.classList.remove("hidden");
         }
@@ -2608,6 +2751,56 @@
           setAppView("prep");
         });
       }
+      var prepEmptyAddBtn = document.getElementById("prepEmptyAddBtn");
+      if (prepEmptyAddBtn && els.addItemInput) {
+        prepEmptyAddBtn.addEventListener("click", function () {
+          els.addItemInput.focus();
+          els.addItemInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+      var prepEmptyTemplateBtn = document.getElementById("prepEmptyTemplateBtn");
+      if (prepEmptyTemplateBtn) {
+        prepEmptyTemplateBtn.addEventListener("click", function () {
+          loadWeeklyTemplate();
+        });
+      }
+      var emptyLoadTemplateBtn = document.getElementById("emptyLoadTemplateBtn");
+      if (emptyLoadTemplateBtn) {
+        emptyLoadTemplateBtn.addEventListener("click", function () {
+          loadWeeklyTemplate();
+        });
+      }
+      var moreInstallBtn = document.getElementById("moreInstallBtn");
+      if (moreInstallBtn) {
+        moreInstallBtn.addEventListener("click", function () {
+          if (!deferredInstallPrompt) {
+            showToast("בדפדפן Chrome/Edge: תפריט → התקן אפליקציה", "success");
+            return;
+          }
+          deferredInstallPrompt.prompt();
+          deferredInstallPrompt.userChoice.then(function () {
+            deferredInstallPrompt = null;
+            moreInstallBtn.classList.add("hidden");
+          });
+        });
+      }
+      var moreCloudSignInBtn = document.getElementById("moreCloudSignInBtn");
+      if (moreCloudSignInBtn) {
+        moreCloudSignInBtn.addEventListener("click", function () {
+          signInWithGoogle();
+        });
+      }
+      function bindZoneToggle(toggleId, chipsId) {
+        var toggle = document.getElementById(toggleId);
+        var chips = document.getElementById(chipsId);
+        if (!toggle || !chips) return;
+        toggle.addEventListener("click", function () {
+          var collapsed = chips.classList.toggle("collapsed");
+          toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        });
+      }
+      bindZoneToggle("purchasedZoneToggle", "purchasedItems");
+      bindZoneToggle("missingZoneToggle", "missingItems");
       if (els.shopSortCategory) {
         els.shopSortCategory.addEventListener("click", function () {
           shopGroupByCategory = true;
@@ -3270,6 +3463,7 @@
         });
 
         refreshCategorySelect();
+        updatePrepEmptyState();
       }
 
       function renderPrepItemRow(catId, item) {
@@ -4135,7 +4329,7 @@
             const header = document.createElement("button");
             header.type = "button";
             header.className = "shop-cat-header";
-            header.style.background = "rgba(148, 163, 184, 0.15)";
+            header.style.background = getCategoryHeaderBg(cat.id);
             header.innerHTML =
               "<span>" +
               escapeHtml(cat.emoji + " " + cat.name) +

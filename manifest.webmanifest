@@ -1,0 +1,21 @@
+{
+  "name": "רשימת קניות משפחתית",
+  "short_name": "קניות",
+  "description": "רשימת קניות משותפת — הכנה, קניות ושיתוף משפחתי",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecfdf5",
+  "theme_color": "#0d9488",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
