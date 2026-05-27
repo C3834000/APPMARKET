@@ -1,0 +1,131 @@
+================================================================================
+  פרומpt עיצוב — רשימת קניות משפחתית
+  העתק הכל מתחת לקו (או את כל הקובץ) והדבק ב-ChatGPT / v0 / Figma AI
+================================================================================
+
+Redesign the UI/UX of a mobile-first family shopping list web app — Hebrew RTL.
+
+## Product overview
+A shared shopping list app for families/couples in Israel. Users build a list at home (Edit mode), go to the supermarket (Shop mode), and mark items as purchased or missing. Includes cloud sync, link sharing, and a family chat.
+
+Primary use: mobile (iPhone/Android), often one-handed in a supermarket.
+Audience: Israeli families, Hebrew speakers, RTL layout.
+
+## Technical constraints (must keep)
+- Language: Hebrew, RTL (right-to-left)
+- Single-page app: HTML + Tailwind CSS + JavaScript
+- Max width ~768px, centered, mobile-first
+- iPhone safe areas (notch, home indicator)
+- Current palette: teal/emerald (edit/shop), amber (lists), rose (reset/missing)
+- Redesign UI/UX only — do NOT remove features or change core flows
+
+## Screens & flows
+
+### 1. Sticky header
+- Sync status: "Local" / "Connected" / error
+- Summary: item count, checked count, estimated total (₪)
+- Small Google sign-in button
+- 4 mode buttons in one row: Lists | Edit | Shop | Reset
+
+### 2. Edit mode (Prep) — build the list
+- Search + add item + category picker + add button (currently cramped in one row)
+- Collapsible category accordions, each with color + emoji:
+  Produce, Bakery, Baking, Dairy, Canned/pasta, Coffee/pantry,
+  Cleaning, Snacks, Chocolate, Drinks, Disposable
+- Items: name, quantity (+/-), price, note (brand/size)
+- "Add from catalog" — chips of common products with estimated prices
+- Drag to reorder categories
+- Add custom category
+
+### 3. Shop mode — MOST IMPORTANT SCREEN
+- Same search/add bar
+- Pending items list: name, category, quantity, note
+- Actions per item: Purchased | Missing | Delete
+- "Purchased" zone (green) — compact grid
+- "Missing" zone (pink) — compact grid
+- Large CTA: "Finish shopping"
+- Desired additions: progress bar, sort by category, tap row = mark purchased
+
+### 4. List manager (modal)
+- Create new list (name)
+- All my lists
+- Per list: edit, share, delete
+- Cloud share + copy link
+- Email-based access control
+
+### 5. Share & cloud (modal)
+- Google sign-in
+- List ID + copy share link
+- Display name for chat
+- Authorized emails whitelist
+- Recent lists (chips)
+
+### 6. Family chat (FAB + popup)
+- Floating chat button
+- Chat bubbles (mine / others)
+- Send field + "Add message to list"
+- Smart parse: "milk 3% and challah" → list items
+
+### 7. Other modals
+- Confirm dialog (delete, reset, finish shopping)
+- Add category (name + emoji)
+- Edit catalog product (name, price, note)
+- Edit list (name, share, emails)
+
+### 8. Background features (plan UI hooks)
+- Weekly template (save/load fixed Shabbat list)
+- PWA install to home screen
+- Dark mode / large text
+- Toast notifications instead of alert()
+
+## Current UX problems
+1. Text too small (10–12px) — hard to read on mobile
+2. Buttons ~38px — below 44px minimum
+3. Crowded header — unclear status at a glance
+4. 4 nav buttons in one row — Reset too close to Shop (accidental tap risk)
+5. Search/add row too cramped (4 elements)
+6. Shop mode — too many small buttons, bad for one hand
+7. No onboarding for new users
+8. Weak visual feedback (no progress, minimal motion)
+9. Partial accessibility — missing labels, skip link, incomplete modal a11y
+
+## What I need from you
+Redesign the app — modern, pleasant, accessible, fresh — keeping ALL features.
+
+### Style direction (suggest 2–3 variations)
+- Mobile-first, clean, friendly — not corporate
+- Inspiration: Apple Reminders + AnyList + Notion — with warm family feel
+- Soft glassmorphism, soft shadows, 16–24px radius
+- Colors: teal/emerald primary, warm accent (amber/coral)
+- Icons: minimal outline (emoji only for categories)
+- Micro-interactions: check animation, progress fill
+- Hebrew-friendly typography: Heebo / Rubik / Assistant
+
+### Deliverables
+1. Wireframes — all main screens + key modals
+2. High-fidelity mockups — Edit mode + Shop mode (390×844)
+3. Mini design system: colors, type, spacing, buttons, cards
+4. Navigation proposal — bottom tabs? hamburger? FAB placement?
+5. Shop mode redesign — tap-to-check, progress, category grouping
+6. Empty states — no items, no template, not connected
+7. Onboarding — 3 slides: Edit → Shop → Share
+8. Dark mode variant (supermarket lighting)
+9. Accessibility notes — contrast, touch targets, focus rings
+
+### UX rules (non-negotiable)
+- Min 44×44px touch targets
+- Body text 16px+, visible labels (not placeholder-only)
+- Shop mode: single tap on row = mark purchased
+- Reset moved to settings + double confirmation
+- Shopping progress: "7/15 purchased"
+- Toasts instead of blocking alerts
+- Full RTL layout
+
+### Do NOT remove
+- Chat, cloud sync, catalog, categories, prices, notes
+- Flow: Edit → Shop → Finish
+- Link sharing + Google auth
+
+Present 2–3 design directions (e.g. Minimal / Playful / Premium) with pros, cons, and best audience fit.
+
+Start with Shop mode mockup + navigation proposal. Hebrew RTL.
