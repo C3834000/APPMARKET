@@ -2561,7 +2561,7 @@
 
       function verifySupabaseReachable() {
         var cfg = getSupabaseConfig();
-        if (!cfg || !cfg.url) return;
+        if (!cfg || !cfg.url || !cfg.anonKey) return;
         var host;
         try {
           host = new URL(cfg.url).hostname;
@@ -2569,7 +2569,11 @@
           showToast("כתובת Supabase לא תקינה ב-supabase-config.js", "error");
           return;
         }
-        fetch(cfg.url + "/auth/v1/health", { method: "GET", mode: "cors" })
+        fetch(cfg.url + "/auth/v1/health", {
+          method: "GET",
+          mode: "cors",
+          headers: { apikey: cfg.anonKey },
+        })
           .then(function (res) {
             if (!res.ok) {
               showToast("Supabase לא מגיב — בדוק בדשבורד שהפרויקט פעיל", "error");
