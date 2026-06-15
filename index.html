@@ -1831,7 +1831,13 @@
         const S = getSupabaseGlobal();
         if (!cfg || !S || typeof S.createClient !== "function") return false;
         try {
-          supabaseClient = S.createClient(cfg.url, cfg.anonKey);
+          supabaseClient = S.createClient(cfg.url, cfg.anonKey, {
+            auth: {
+              detectSessionInUrl: true,
+              persistSession: true,
+              autoRefreshToken: true,
+            },
+          });
           return true;
         } catch (e) {
           console.error(e);
@@ -1985,15 +1991,34 @@
         updateMoreCloudBanner();
       }
 
+      function handleOAuthReturnErrors() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var hash = (window.location.hash || "").replace(/^#/, "");
+          var hashParams = new URLSearchParams(hash);
+          var err = params.get("error") || hashParams.get("error");
+          var desc = params.get("error_description") || hashParams.get("error_description");
+          if (!err) return;
+          var msg = (desc || err).replace(/\+/g, " ");
+          if (err === "access_denied") msg = "ההתחברות בוטלה — נסו שוב";
+          showToast(msg, "error");
+          window.history.replaceState({}, "", window.location.pathname + (params.get("list") ? "?list=" + params.get("list") : ""));
+        } catch (e) {}
+      }
+
       function signInWithGoogle() {
         if (!tryInitSupabase()) {
+          var cfgMissing = !window.__SHOPPING_LIST_SUPABASE__;
           showToast(
-            "חסר חיבור ל-Supabase — מלא supabase-config.js או Environment variables ב-Netlify",
+            cfgMissing
+              ? "חסר קובץ supabase-config.js — ב-Netlify הגדר SUPABASE_URL ו-SUPABASE_ANON_KEY ופרוס מחדש"
+              : "הגדרות Supabase לא תקינות — בדוק את supabase-config.js",
             "error"
           );
           return;
         }
-        var redirectUrl = window.location.origin + "/";
+        var redirectUrl = window.location.origin + window.location.pathname;
+        if (!redirectUrl.endsWith("/")) redirectUrl += "/";
         var queryParams = window.location.search;
         if (queryParams && queryParams.length > 1) {
           redirectUrl += queryParams;
@@ -2004,11 +2029,19 @@
             options: {
               redirectTo: redirectUrl,
               queryParams: { prompt: "select_account" },
-              skipBrowserRedirect: false,
+              skipBrowserRedirect: true,
             },
           })
           .then(function (res) {
-            if (res.error) showToast(res.error.message || "התחברות נכשלה", "error");
+            if (res.error) {
+              showToast(res.error.message || "התחברות נכשלה", "error");
+              return;
+            }
+            if (res.data && res.data.url) {
+              window.location.assign(res.data.url);
+              return;
+            }
+            showToast("לא התקבל קישור מ-Google — בדוק ב-Supabase שה-Provider מופעל", "error");
           })
           .catch(function (e) {
             console.error(e);
@@ -2469,6 +2502,32 @@
         updateChatHint();
       }
 
+      function verifySupabaseReachable() {
+        var cfg = getSupabaseConfig();
+        if (!cfg || !cfg.url) return;
+        var host;
+        try {
+          host = new URL(cfg.url).hostname;
+        } catch (e) {
+          showToast("כתובת Supabase לא תקינה ב-supabase-config.js", "error");
+          return;
+        }
+        fetch(cfg.url + "/auth/v1/health", { method: "GET", mode: "cors" })
+          .then(function (res) {
+            if (!res.ok) {
+              showToast("Supabase לא מגיב — בדוק בדשבורד שהפרויקט פעיל", "error");
+            }
+          })
+          .catch(function () {
+            showToast(
+              "לא מתחבר ל-Supabase (" +
+                host +
+                ") — הפרויקט נמחק/מושהה או כתובת שגויה ב-Netlify. עדכן SUPABASE_URL מ-Dashboard",
+              "error"
+            );
+          });
+      }
+
       function initAuthAndCloud() {
         if (!tryInitSupabase()) {
           authUser = null;
@@ -2477,6 +2536,7 @@
           updateAuthUI();
           return;
         }
+        verifySupabaseReachable();
         supabaseClient.auth.getSession().then(function (res) {
           authUser = res.data && res.data.session ? res.data.session.user : null;
           updateAuthUI();
@@ -4494,6 +4554,7 @@
         });
       });
 
+      handleOAuthReturnErrors();
       applyListQueryFromUrl();
       ensureRegistryHasActive();
       setActiveListLabel(getCurrentListName());

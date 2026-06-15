@@ -10,8 +10,37 @@ const root = path.join(__dirname, "..");
 const outPath = path.join(root, "supabase-config.js");
 const examplePath = path.join(root, "supabase-config.example.js");
 
+function extractAnonKey(raw) {
+  const s = String(raw).trim();
+  const m = s.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
+  return m ? m[0] : s;
+}
+
+function projectRefFromUrl(u) {
+  try {
+    const m = new URL(u).hostname.match(/^([a-z0-9]+)\.supabase\.co$/i);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+function projectRefFromJwt(key) {
+  const parts = key.split(".");
+  if (parts.length < 2) return null;
+  try {
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = Buffer.from(b64, "base64").toString("utf8");
+    const payload = JSON.parse(json);
+    return payload.ref || null;
+  } catch {
+    return null;
+  }
+}
+
 const url = process.env.SUPABASE_URL && String(process.env.SUPABASE_URL).trim();
-const key = process.env.SUPABASE_ANON_KEY && String(process.env.SUPABASE_ANON_KEY).trim();
+const key =
+  process.env.SUPABASE_ANON_KEY && extractAnonKey(process.env.SUPABASE_ANON_KEY);
 const isCI =
   process.env.NETLIFY === "true" ||
   String(process.env.NETLIFY || "") === "1" ||
@@ -30,6 +59,24 @@ window.__SHOPPING_LIST_SUPABASE__ = {
 }
 
 if (url && key) {
+  if (/SUPABASE_|=\s*https?:\/\//i.test(String(process.env.SUPABASE_ANON_KEY || ""))) {
+    console.error(
+      "SUPABASE_ANON_KEY נראה מקולקל (הודבקו גם URL ושם המשתנה).\n" +
+        "ב-Netlify הגדר רק את מפתח ה-anon (שורה אחת שמתחילה ב-eyJ...)."
+    );
+    process.exit(1);
+  }
+  const urlRef = projectRefFromUrl(url);
+  const keyRef = projectRefFromJwt(key);
+  if (urlRef && keyRef && urlRef !== keyRef) {
+    console.error(
+      "SUPABASE_URL וה-anon key לא מאותו פרויקט Supabase:\n" +
+        `  URL → ${urlRef}\n` +
+        `  key → ${keyRef}\n` +
+        "העתק את שניהם מ-Project Settings → API באותו פרויקט."
+    );
+    process.exit(1);
+  }
   writeConfig(url, key);
   process.exit(0);
 }
