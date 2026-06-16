@@ -1043,48 +1043,51 @@
     @media (max-width: 640px) {
       /* קלף ההכנה/קניות הקומפקטי — פחות שטח, יותר מקום לקטגוריות */
       .sticky-search {
-        padding: 0.5rem 0.6rem !important;
+        padding: 0.4rem 0.5rem !important;
       }
       .sticky-search .field-label {
         display: none !important;
       }
       .sticky-search .mb-3 {
-        margin-bottom: 0.4rem !important;
+        margin-bottom: 0.3rem !important;
       }
       .sticky-search .ui-input,
       .sticky-search .ui-select {
-        min-height: 38px !important;
-        padding: 0.4rem 0.65rem !important;
+        min-height: 34px !important;
+        padding: 0.3rem 0.55rem !important;
         font-size: 14px !important;
       }
       .sticky-search .btn-primary {
-        min-height: 38px !important;
-        font-size: 14px !important;
-        padding: 0.4rem 0.85rem !important;
+        min-height: 34px !important;
+        font-size: 13px !important;
+        padding: 0.3rem 0.75rem !important;
       }
       
       :root {
-        --bottom-nav-h: 56px;
-        --finish-bar-h: 56px;
+        --bottom-nav-h: 50px;
+        --finish-bar-h: 50px;
       }
       .app-shell {
         padding-left: max(0.4rem, env(safe-area-inset-left, 0px));
         padding-right: max(0.4rem, env(safe-area-inset-right, 0px));
       }
       .app-header {
-        padding: max(0.3rem, env(safe-area-inset-top, 0px)) 0.5rem 0.4rem;
+        padding: max(0.25rem, env(safe-area-inset-top, 0px)) 0.4rem 0.3rem;
       }
       .header-top {
-        margin-bottom: 0.25rem;
-        gap: 0.35rem;
+        margin-bottom: 0.2rem;
+        gap: 0.25rem;
       }
       .status-chip {
-        font-size: 11px;
-        padding: 0.2rem 0.5rem;
-        min-height: 26px;
+        font-size: 10px;
+        padding: 0.15rem 0.4rem;
+        min-height: 22px;
       }
       .header-summary {
-        font-size: 12px;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       /* כותרת המסך מיותרת במובייל — תפריט תחתון מסמן מצב */
       .screen-title {
@@ -1123,20 +1126,20 @@
         height: 6px;
       }
       .bottom-nav {
-        padding: 0.25rem max(0.3rem, env(safe-area-inset-left, 0px)) max(0.3rem, env(safe-area-inset-bottom, 0px)) max(0.3rem, env(safe-area-inset-right, 0px));
-        gap: 0.15rem;
+        padding: 0.15rem max(0.25rem, env(safe-area-inset-left, 0px)) max(0.25rem, env(safe-area-inset-bottom, 0px)) max(0.25rem, env(safe-area-inset-right, 0px));
+        gap: 0.1rem;
       }
       .bottom-nav-btn {
-        min-height: 42px;
-        padding: 0.2rem 0.1rem;
-        gap: 0.05rem;
+        min-height: 38px;
+        padding: 0.15rem 0.1rem;
+        gap: 0;
       }
       .bottom-nav-btn svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
       }
       .bottom-nav-btn span {
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 600;
       }
       .finish-cta-bar {
