@@ -362,10 +362,10 @@
     .shop-item-row {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      min-height: 72px;
-      padding: 0.85rem 1rem;
-      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+      min-height: 44px;
+      padding: 0.4rem 0.6rem;
+      margin-bottom: 0.3rem;
       background: var(--color-card);
       border: 1px solid rgba(226, 232, 240, 0.95);
       border-radius: var(--radius-md);
@@ -388,9 +388,9 @@
     }
 
     .shop-check {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
       border-radius: 999px;
       border: 2px solid rgba(148, 163, 184, 0.6);
       background: transparent;
@@ -402,36 +402,48 @@
       flex: 1;
       min-width: 0;
       text-align: right;
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      overflow: hidden;
     }
 
     .shop-item-name {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--color-text);
-      line-height: 1.3;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 0 1 auto;
     }
 
     .shop-item-meta {
-      font-size: 14px;
+      font-size: 11px;
       color: var(--color-muted);
-      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 0 1 auto;
+      min-width: 0;
     }
 
     .shop-item-actions {
       display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
+      flex-direction: row;
+      gap: 0.25rem;
       flex-shrink: 0;
     }
 
     .icon-btn {
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
       border-radius: var(--radius-sm);
       border: 1px solid rgba(226, 232, 240, 0.95);
       background: rgba(248, 250, 252, 0.95);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -706,6 +718,11 @@
       box-shadow: 0 2px 12px -4px rgba(15, 23, 42, 0.08);
     }
 
+    .item-focus-note.edited {
+      background: rgba(252, 211, 77, 0.25);
+      color: #b45309;
+    }
+
     .quantity-controls {
       display: flex;
       align-items: center;
@@ -713,23 +730,24 @@
 
     .quantity-btn {
       cursor: pointer;
-      padding: 0 8px;
-      font-size: 22px;
+      padding: 0 4px;
+      font-size: 18px;
       user-select: none;
+      line-height: 1;
     }
 
     .quantity-value {
-      min-width: 24px;
+      min-width: 20px;
       text-align: center;
       font-weight: 500;
     }
 
     .price-input {
-      width: 88px;
-      padding: 8px 8px;
-      font-size: 16px;
+      width: 56px;
+      padding: 4px 6px;
+      font-size: 13px;
       border: 1px solid rgba(203, 213, 225, 0.95);
-      border-radius: 0.5rem;
+      border-radius: 0.4rem;
       text-align: center;
       background: rgba(255, 255, 255, 0.95);
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -3807,33 +3825,31 @@
       function renderPrepItemRow(catId, item) {
         const row = document.createElement("div");
         row.className =
-          "item-row flex flex-wrap items-center gap-3 rounded-xl border border-slate-100 p-3 shadow-sm min-h-[72px]";
+          "item-row prep-item-row flex items-center gap-2 rounded-xl border border-slate-100 px-2 py-1.5 shadow-sm";
         row.dataset.itemId = item.id;
         if (item.note === undefined) item.note = "";
+        const noteIndicator = item.note ? "edited" : "";
         row.innerHTML = `
-          <div class="flex flex-col flex-1 min-w-[140px] gap-1">
-            <div class="flex items-start gap-1">
-              <span class="font-semibold text-base flex-1 break-words">${escapeHtml(item.name)}</span>
-              <button type="button" class="item-focus-note shrink-0 min-w-[44px] min-h-[44px] text-amber-600 text-lg leading-none rounded-lg hover:bg-amber-50 flex items-center justify-center" title="קפיצה להערה" aria-label="עריכת הערה">✏️</button>
-            </div>
-            <input type="text" class="item-note-input w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-base shadow-inner focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" dir="rtl" placeholder="הערה (מותג, גודל)" aria-label="הערה למוצר" />
+          <span class="prep-name font-semibold text-sm flex-1 min-w-0 truncate" title="${escapeHtml(item.name)}${item.note ? ' — ' + escapeHtml(item.note) : ''}">${escapeHtml(item.name)}</span>
+          <button type="button" class="item-focus-note shrink-0 w-7 h-7 text-amber-600 text-sm leading-none rounded-md hover:bg-amber-50 flex items-center justify-center ${noteIndicator}" title="הערה" aria-label="הערה">✏️</button>
+          <div class="quantity-controls rounded-lg border border-slate-200 bg-white shrink-0 flex items-center">
+            <span class="quantity-btn w-7 h-7 flex items-center justify-center text-base" data-act="dec" role="button" aria-label="הפחת כמות">−</span>
+            <span class="quantity-value text-sm w-6 text-center">${item.quantity}</span>
+            <span class="quantity-btn w-7 h-7 flex items-center justify-center text-base" data-act="inc" role="button" aria-label="הוסף כמות">+</span>
           </div>
-          <div class="quantity-controls rounded-xl border border-slate-200 bg-white px-1 shadow-sm min-h-[44px]">
-            <span class="quantity-btn min-w-[44px] min-h-[44px] flex items-center justify-center" data-act="dec" role="button" aria-label="הפחת כמות">−</span>
-            <span class="quantity-value text-base">${item.quantity}</span>
-            <span class="quantity-btn min-w-[44px] min-h-[44px] flex items-center justify-center" data-act="inc" role="button" aria-label="הוסף כמות">+</span>
-          </div>
-          <label class="flex items-center gap-1 text-base text-gray-600">
-            ₪
-            <input type="number" min="0" step="0.01" class="price-input text-base min-h-[44px]" value="${Number(item.price) || 0}" aria-label="מחיר" />
+          <label class="flex items-center gap-0.5 text-xs text-gray-600 shrink-0">
+            ₪<input type="number" min="0" step="0.01" class="price-input text-xs w-14 h-7 text-center" value="${Number(item.price) || 0}" aria-label="מחיר" />
           </label>
-          <button type="button" class="text-red-600 text-base font-semibold min-h-[44px] px-3 delete-item" aria-label="מחק פריט">מחק</button>
+          <button type="button" class="text-red-500 text-base shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-red-50 delete-item" aria-label="מחק פריט">×</button>
+          <input type="text" class="item-note-input hidden w-full mt-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" dir="rtl" placeholder="הערה (מותג, גודל)" aria-label="הערה למוצר" />
         `;
         const noteInput = row.querySelector(".item-note-input");
         if (noteInput) {
           noteInput.value = item.note || "";
           noteInput.addEventListener("input", () => {
             item.note = noteInput.value;
+            const focusBtn = row.querySelector(".item-focus-note");
+            if (focusBtn) focusBtn.classList.toggle("edited", !!item.note);
             saveState();
           });
         }
@@ -3841,8 +3857,17 @@
         if (focusNote && noteInput) {
           focusNote.addEventListener("click", (ev) => {
             ev.preventDefault();
-            noteInput.focus();
+            const isHidden = noteInput.classList.contains("hidden");
+            if (isHidden) {
+              noteInput.classList.remove("hidden");
+              row.classList.add("flex-wrap");
+              noteInput.focus();
+            } else {
+              noteInput.classList.add("hidden");
+              row.classList.remove("flex-wrap");
+            }
           });
+          if (item.note) noteInput.classList.remove("hidden");
         }
 
         row.querySelector('[data-act="dec"]').addEventListener("click", () => {
