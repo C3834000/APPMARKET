@@ -3772,39 +3772,20 @@
             const chips = document.createElement("div");
             chips.className = "flex flex-wrap gap-1 items-center";
             catalogResolved.forEach((entry) => {
-              const row = document.createElement("div");
-              row.className = "flex flex-wrap items-center gap-1 max-w-full";
               const mainBtn = document.createElement("button");
               mainBtn.type = "button";
               mainBtn.className =
-                "catalog-chip rounded-lg border border-slate-300 bg-white px-2 py-2 text-right text-sm text-slate-700 transition hover:bg-slate-100 hover:border-slate-400 min-h-[44px]";
-              mainBtn.innerHTML =
-                '<span class="font-medium">' +
-                escapeHtml(entry.name) +
-                '</span> <span class="text-emerald-800 whitespace-nowrap">~₪' +
-                (Number(entry.price) || 0).toFixed(2) +
-                "</span>";
-              if (entry.note) {
-                mainBtn.innerHTML +=
-                  '<span class="block text-[10px] text-gray-500 mt-0.5">' + escapeHtml(entry.note) + "</span>";
-              }
+                "catalog-chip rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-700 transition hover:bg-teal-50 hover:border-teal-400 active:bg-teal-100 leading-tight";
+              mainBtn.textContent = entry.name;
               mainBtn.addEventListener("click", (ev) => {
                 ev.stopPropagation();
                 addItemFromCatalogEntry(cat.id, entry);
               });
-              const editBtn = document.createElement("button");
-              editBtn.type = "button";
-              editBtn.className =
-                "catalog-edit-btn shrink-0 rounded p-1 text-xs leading-none text-slate-500 transition hover:bg-slate-200 hover:text-slate-700";
-              editBtn.setAttribute("aria-label", "עריכת מוצר במאגר");
-              editBtn.textContent = "✏️";
-              editBtn.addEventListener("click", (ev) => {
-                ev.stopPropagation();
+              mainBtn.addEventListener("contextmenu", (ev) => {
+                ev.preventDefault();
                 openCatalogItemEditor(cat.id, entry);
               });
-              row.appendChild(mainBtn);
-              row.appendChild(editBtn);
-              chips.appendChild(row);
+              chips.appendChild(mainBtn);
             });
             strip.appendChild(chips);
             catalogWrap.appendChild(toggleBtn);
