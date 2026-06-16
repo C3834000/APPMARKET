@@ -3828,10 +3828,14 @@
           "item-row prep-item-row flex items-center gap-2 rounded-xl border border-slate-100 px-2 py-1.5 shadow-sm";
         row.dataset.itemId = item.id;
         if (item.note === undefined) item.note = "";
-        const noteIndicator = item.note ? "edited" : "";
+        const noteHtml = item.note
+          ? `<span class="prep-note text-xs text-slate-500 truncate"> · ${escapeHtml(item.note)}</span>`
+          : "";
         row.innerHTML = `
-          <span class="prep-name font-semibold text-sm flex-1 min-w-0 truncate" title="${escapeHtml(item.name)}${item.note ? ' — ' + escapeHtml(item.note) : ''}">${escapeHtml(item.name)}</span>
-          <button type="button" class="item-focus-note shrink-0 w-7 h-7 text-amber-600 text-sm leading-none rounded-md hover:bg-amber-50 flex items-center justify-center ${noteIndicator}" title="הערה" aria-label="הערה">✏️</button>
+          <div class="prep-name-wrap flex-1 min-w-0 flex items-baseline gap-1 cursor-text overflow-hidden" title="לחץ לעריכת הערה">
+            <span class="prep-name font-semibold text-sm truncate">${escapeHtml(item.name)}</span>
+            ${noteHtml}
+          </div>
           <div class="quantity-controls rounded-lg border border-slate-200 bg-white shrink-0 flex items-center">
             <span class="quantity-btn w-7 h-7 flex items-center justify-center text-base" data-act="dec" role="button" aria-label="הפחת כמות">−</span>
             <span class="quantity-value text-sm w-6 text-center">${item.quantity}</span>
@@ -3841,33 +3845,27 @@
             ₪<input type="number" min="0" step="0.01" class="price-input text-xs w-14 h-7 text-center" value="${Number(item.price) || 0}" aria-label="מחיר" />
           </label>
           <button type="button" class="text-red-500 text-base shrink-0 w-7 h-7 flex items-center justify-center rounded-md hover:bg-red-50 delete-item" aria-label="מחק פריט">×</button>
-          <input type="text" class="item-note-input hidden w-full mt-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" dir="rtl" placeholder="הערה (מותג, גודל)" aria-label="הערה למוצר" />
+          <input type="text" class="item-note-input hidden w-full basis-full mt-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/30" dir="rtl" placeholder="הערה (מותג, גודל)" aria-label="הערה למוצר" />
         `;
         const noteInput = row.querySelector(".item-note-input");
+        const nameWrap = row.querySelector(".prep-name-wrap");
         if (noteInput) {
           noteInput.value = item.note || "";
           noteInput.addEventListener("input", () => {
             item.note = noteInput.value;
-            const focusBtn = row.querySelector(".item-focus-note");
-            if (focusBtn) focusBtn.classList.toggle("edited", !!item.note);
             saveState();
           });
-        }
-        const focusNote = row.querySelector(".item-focus-note");
-        if (focusNote && noteInput) {
-          focusNote.addEventListener("click", (ev) => {
-            ev.preventDefault();
-            const isHidden = noteInput.classList.contains("hidden");
-            if (isHidden) {
-              noteInput.classList.remove("hidden");
-              row.classList.add("flex-wrap");
-              noteInput.focus();
-            } else {
-              noteInput.classList.add("hidden");
-              row.classList.remove("flex-wrap");
-            }
+          noteInput.addEventListener("blur", () => {
+            renderPrepCategories();
           });
-          if (item.note) noteInput.classList.remove("hidden");
+        }
+        if (nameWrap && noteInput) {
+          nameWrap.addEventListener("click", () => {
+            row.classList.add("flex-wrap");
+            noteInput.classList.remove("hidden");
+            noteInput.focus();
+            noteInput.setSelectionRange(noteInput.value.length, noteInput.value.length);
+          });
         }
 
         row.querySelector('[data-act="dec"]').addEventListener("click", () => {
@@ -4776,15 +4774,13 @@
           div.innerHTML =
             '<button type="button" class="shop-check" aria-label="סמן כנקנה"></button>' +
             '<div class="shop-item-body">' +
-            '<div class="shop-item-name">' +
+            '<span class="shop-item-name">' +
             escapeHtml(it.name) +
-            "</div>" +
-            '<div class="shop-item-meta">כמות ' +
+            "</span>" +
+            '<span class="shop-item-meta">×' +
             it.quantity +
             notePart +
-            " · " +
-            escapeHtml(catLabel) +
-            "</div></div>" +
+            "</span></div>" +
             '<div class="shop-item-actions">' +
             '<button type="button" class="icon-btn shop-miss-btn shop-miss" aria-label="חסר">!</button>' +
             '<button type="button" class="icon-btn shop-remove" aria-label="מחק">×</button>' +
