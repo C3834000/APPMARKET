@@ -112,13 +112,17 @@
     }
 
     .status-chip {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      padding: 0.35rem 0.65rem;
+      padding: 0.25rem 0.55rem;
       border-radius: 999px;
-      min-height: 32px;
+      min-height: 28px;
       display: inline-flex;
       align-items: center;
+      max-width: 92px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .header-summary {
@@ -127,6 +131,9 @@
       flex: 1;
       min-width: 0;
       text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-summary strong {
@@ -2138,19 +2145,19 @@
         if (!el) return;
         const user = hasSignedInUser();
         if (shareKey && supabaseClient && user) {
-          el.textContent = errMsg ? "שגיאת סנכron" : "מחובר";
+          el.textContent = errMsg ? "⚠ שגיאה" : "☁ מחובר";
           el.className = errMsg
-            ? "status-chip bg-red-100 text-red-800 shrink-0 max-w-[120px] truncate"
-            : "status-chip bg-emerald-100 text-emerald-800 shrink-0 max-w-[120px] truncate";
-          el.title = errMsg || "";
+            ? "status-chip bg-red-100 text-red-800 shrink-0"
+            : "status-chip bg-emerald-100 text-emerald-800 shrink-0";
+          el.title = errMsg || "מחובר לסנכרון בענן";
         } else if (user && !shareKey) {
-          el.textContent = "ללא רשימה";
-          el.className = "status-chip bg-amber-100 text-amber-900 shrink-0 max-w-[120px] truncate";
-          el.title = "";
+          el.textContent = "ללא";
+          el.className = "status-chip bg-amber-100 text-amber-900 shrink-0";
+          el.title = "אין רשימה פעילה";
         } else {
           el.textContent = "מקומי";
-          el.className = "status-chip bg-slate-100 text-slate-600 shrink-0 max-w-[120px] truncate";
-          el.title = "";
+          el.className = "status-chip bg-slate-100 text-slate-600 shrink-0";
+          el.title = "ללא חיבור לענן";
         }
       }
 
@@ -3469,11 +3476,11 @@
           });
         });
 
-        if (els.totalItems) els.totalItems.textContent = count + " פריטים";
+        if (els.totalItems) els.totalItems.textContent = count;
         if (els.itemsStatus) {
           els.itemsStatus.textContent = shopVisible
-            ? marked + " נקנו"
-            : unitSum + " יחידות";
+            ? marked + "✓"
+            : unitSum + " יח׳";
         }
         if (els.totalPrice) els.totalPrice.textContent = "₪" + sum.toFixed(2);
         if (shopVisible) {
