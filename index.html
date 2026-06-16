@@ -1041,6 +1041,28 @@
 
     /* אופטימיזציה למסכים קטנים — אנדרואיד / מובייל */
     @media (max-width: 640px) {
+      /* קלף ההכנה/קניות הקומפקטי — פחות שטח, יותר מקום לקטגוריות */
+      .sticky-search {
+        padding: 0.5rem 0.6rem !important;
+      }
+      .sticky-search .field-label {
+        display: none !important;
+      }
+      .sticky-search .mb-3 {
+        margin-bottom: 0.4rem !important;
+      }
+      .sticky-search .ui-input,
+      .sticky-search .ui-select {
+        min-height: 38px !important;
+        padding: 0.4rem 0.65rem !important;
+        font-size: 14px !important;
+      }
+      .sticky-search .btn-primary {
+        min-height: 38px !important;
+        font-size: 14px !important;
+        padding: 0.4rem 0.85rem !important;
+      }
+      
       :root {
         --bottom-nav-h: 56px;
         --finish-bar-h: 56px;
@@ -1064,10 +1086,12 @@
       .header-summary {
         font-size: 12px;
       }
+      /* כותרת המסך מיותרת במובייל — תפריט תחתון מסמן מצב */
       .screen-title {
-        font-size: 1.1rem;
-        margin-bottom: 0.2rem;
-        line-height: 1.15;
+        display: none;
+      }
+      #authUserLabel {
+        display: none !important;
       }
       #googleSignInHeader {
         min-height: 34px !important;
@@ -1085,10 +1109,6 @@
       #authUserWrap img {
         width: 20px !important;
         height: 20px !important;
-      }
-      #authUserLabel {
-        font-size: 12px !important;
-        max-width: 60px !important;
       }
       #googleSignOutHeader {
         min-width: 28px !important;
