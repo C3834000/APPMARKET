@@ -654,6 +654,32 @@
       }
     }
 
+    /* שורת חיפוש+הוספה+קטגוריה+כפתור — שורה אחת */
+    .search-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.4rem;
+    }
+    .search-row-input {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .search-row-select {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: 130px;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    .search-row-btn {
+      flex: 0 0 auto;
+      width: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
     /* מתחת ל־sticky-header; הערך המדויק מגיע מ־--sticky-search-top (גובה הכותרת) */
     .sticky-search {
       position: sticky;
@@ -1260,29 +1286,27 @@
       <!-- Prep Mode -->
       <div id="prepModeContainer" class="prep-mode-container">
         <div class="ui-card sticky-search">
-          <label for="searchInput" class="field-label">חיפוש במאגר</label>
-          <div class="relative mb-3">
-            <input type="text" id="searchInput" placeholder="חפש מוצר..." class="ui-input" autocomplete="off" />
+          <div class="search-row relative">
+            <input type="text" id="searchInput" placeholder="חפש או הוסף מוצר…" class="ui-input search-row-input" autocomplete="off" />
+            <input type="hidden" id="addItemInput" />
+            <select id="categorySelect" class="ui-select search-row-select" aria-label="קטגוריה">
+              <option value="vegetables">🥬 ירקות</option>
+              <option value="meat">🍗 בשר ועוף</option>
+              <option value="bakery">🥐 מאפה</option>
+              <option value="baking">🧁 אפייה</option>
+              <option value="dairy">🥛 חלב</option>
+              <option value="canned">🥫 שימורים</option>
+              <option value="coffee">☕️ קפה</option>
+              <option value="cleaning">🧴 ניקוי</option>
+              <option value="snacks">🍿 חטיפים</option>
+              <option value="chocolate">🍫 שוקולד</option>
+              <option value="drinks">🥤 שתייה</option>
+              <option value="disposable">🍽 חד־פעמי</option>
+              <option value="new">➕ חדש...</option>
+            </select>
+            <button type="button" id="addItemBtn" class="btn-primary search-row-btn" aria-label="הוסף לרשימה">+</button>
             <div id="searchResults" class="search-results hidden"></div>
           </div>
-          <label for="addItemInput" class="field-label">הוספת מוצר</label>
-          <input type="text" id="addItemInput" placeholder="שם המוצר" class="ui-input mb-3" />
-          <label for="categorySelect" class="field-label">קטגוריה</label>
-          <select id="categorySelect" class="ui-select mb-3">
-            <option value="vegetables">🥬 ירקות</option>
-            <option value="bakery">🥐 מאפה</option>
-            <option value="baking">🧁 אפייה</option>
-            <option value="dairy">🥛 חלב</option>
-            <option value="canned">🥫 שימורים</option>
-            <option value="coffee">☕️ קפה</option>
-            <option value="cleaning">🧴 ניקוי</option>
-            <option value="snacks">🍿 חטיפים</option>
-            <option value="chocolate">🍫 שוקולד</option>
-            <option value="drinks">🥤 שתייה</option>
-            <option value="disposable">🍽 חד־פעמי</option>
-            <option value="new">➕ חדש...</option>
-          </select>
-          <button type="button" id="addItemBtn" class="btn-primary">+ הוסף לרשימה</button>
         </div>
         <p id="templateStatus" class="text-sm text-slate-600 mb-3 px-1 hidden"></p>
         <div id="prepEmptyState" class="empty-state hidden mb-4">
@@ -1299,16 +1323,13 @@
       <!-- Shop Mode -->
       <div id="shopModeContainer" class="shop-mode-container hidden">
         <div class="ui-card sticky-search">
-          <label for="shopSearchInput" class="field-label">חיפוש</label>
-          <div class="relative mb-3">
-            <input type="text" id="shopSearchInput" placeholder="חפש מוצר..." class="ui-input" autocomplete="off" />
+          <div class="search-row relative">
+            <input type="text" id="shopSearchInput" placeholder="חפש או הוסף מוצר…" class="ui-input search-row-input" autocomplete="off" />
+            <input type="hidden" id="shopAddItemInput" />
+            <select id="shopCategorySelect" class="ui-select search-row-select" aria-label="קטגוריה"></select>
+            <button type="button" id="shopAddItemBtn" class="btn-primary search-row-btn" aria-label="הוסף">+</button>
             <div id="shopSearchResults" class="search-results hidden"></div>
           </div>
-          <label for="shopAddItemInput" class="field-label">הוספה מהירה</label>
-          <input type="text" id="shopAddItemInput" placeholder="שם המוצר" class="ui-input mb-3" />
-          <label for="shopCategorySelect" class="field-label">קטגוריה</label>
-          <select id="shopCategorySelect" class="ui-select mb-3"></select>
-          <button type="button" id="shopAddItemBtn" class="btn-primary">+ הוסף</button>
         </div>
 
         <div class="sort-chips">
@@ -3054,10 +3075,10 @@
         });
       }
       var prepEmptyAddBtn = document.getElementById("prepEmptyAddBtn");
-      if (prepEmptyAddBtn && els.addItemInput) {
+      if (prepEmptyAddBtn && els.searchInput) {
         prepEmptyAddBtn.addEventListener("click", function () {
-          els.addItemInput.focus();
-          els.addItemInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          els.searchInput.focus();
+          els.searchInput.scrollIntoView({ behavior: "smooth", block: "center" });
         });
       }
       var prepEmptyTemplateBtn = document.getElementById("prepEmptyTemplateBtn");
@@ -3927,8 +3948,11 @@
           openModal("newCategoryModal");
           return;
         }
-        addItemByName(els.addItemInput.value, cat);
+        const text = (els.searchInput && els.searchInput.value) || els.addItemInput.value;
+        addItemByName(text, cat);
         els.addItemInput.value = "";
+        if (els.searchInput) els.searchInput.value = "";
+        if (els.searchResults) els.searchResults.classList.add("hidden");
       });
 
       els.categorySelect.addEventListener("change", () => {
@@ -4567,18 +4591,34 @@
       }
 
       attachSearch(els.searchInput, els.searchResults, (h) => {
-        els.addItemInput.value = h.name;
-        els.categorySelect.value = h.categoryId;
+        addItemByName(h.name, h.categoryId);
         els.searchInput.value = "";
         els.searchResults.classList.add("hidden");
       });
 
       attachSearch(els.shopSearchInput, els.shopSearchResults, (h) => {
-        els.shopAddItemInput.value = h.name;
-        els.shopCategorySelect.value = h.categoryId;
+        addItemByName(h.name, h.categoryId);
         els.shopSearchInput.value = "";
         els.shopSearchResults.classList.add("hidden");
+        setMode(true);
       });
+
+      if (els.searchInput) {
+        els.searchInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            els.addItemBtn.click();
+          }
+        });
+      }
+      if (els.shopSearchInput) {
+        els.shopSearchInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            els.shopAddItemBtn.click();
+          }
+        });
+      }
 
       if (els.shopSearchInput) {
         els.shopSearchInput.addEventListener("input", function () {
@@ -4587,8 +4627,11 @@
       }
 
       els.shopAddItemBtn.addEventListener("click", () => {
-        addItemByName(els.shopAddItemInput.value, els.shopCategorySelect.value);
+        const text = (els.shopSearchInput && els.shopSearchInput.value) || els.shopAddItemInput.value;
+        addItemByName(text, els.shopCategorySelect.value);
         els.shopAddItemInput.value = "";
+        if (els.shopSearchInput) els.shopSearchInput.value = "";
+        if (els.shopSearchResults) els.shopSearchResults.classList.add("hidden");
         setMode(true);
       });
 
