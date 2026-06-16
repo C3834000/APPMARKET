@@ -3495,11 +3495,19 @@
         const canUp = index > 0;
         const canDown = index < total - 1;
         const arrow = expanded ? "▼" : "◀";
+        const items = (state.items[cat.id] || []).filter((it) => (Number(it.quantity) || 0) > 0);
+        const itemCount = items.length;
+        const countBadge = itemCount > 0
+          ? `<span class="cat-count-badge inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-teal-500 text-white text-xs font-bold shrink-0" title="${itemCount} פריטים בקטגוריה">${itemCount}</span>`
+          : "";
         return `
           <div class="category-header flex justify-between items-center gap-2 rounded-xl px-3 py-3 min-h-[52px]">
             <span class="cat-drag-handle shrink-0 px-2 py-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing select-none touch-manipulation text-lg leading-none min-w-[44px] min-h-[44px] flex items-center justify-center"
               draggable="true" title="גרירה לסידור לפי מחלקות" aria-label="גרור לסידור">⠿</span>
-            <h2 class="text-lg font-bold flex-1 text-right min-w-0 cat-title-area cursor-pointer">${cat.emoji} ${escapeHtml(cat.name)}</h2>
+            <h2 class="text-lg font-bold flex-1 text-right min-w-0 cat-title-area cursor-pointer flex items-center gap-2 justify-end">
+              ${countBadge}
+              <span class="truncate">${cat.emoji} ${escapeHtml(cat.name)}</span>
+            </h2>
             <div class="flex items-center shrink-0 gap-1 flex-wrap justify-end">
               <button type="button" class="cat-move-up rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] text-lg leading-none shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-25" data-cat="${cat.id}" ${canUp ? "" : "disabled"} title="הזז למעלה" aria-label="הזז קטגוריה למעלה">↑</button>
               <button type="button" class="cat-move-down rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] text-lg leading-none shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-25" data-cat="${cat.id}" ${canDown ? "" : "disabled"} title="הזז למטה" aria-label="הזז קטגוריה למטה">↓</button>
@@ -3615,7 +3623,13 @@
       function renderPrepCategories() {
         els.categoriesList.innerHTML = "";
         const totalCats = state.categories.length;
-        const firstCatId = totalCats ? state.categories[0].id : "";
+        const categoriesWithItems = state.categories.filter((c) => {
+          const items = state.items[c.id] || [];
+          return items.some((it) => (Number(it.quantity) || 0) > 0);
+        });
+        const firstCatId = categoriesWithItems.length
+          ? categoriesWithItems[0].id
+          : (totalCats ? state.categories[0].id : "");
         const expandedStillValid =
           expandedPrepCategoryId &&
           state.categories.some((c) => c.id === expandedPrepCategoryId);
@@ -3623,7 +3637,8 @@
         state.categories.forEach((cat, index) => {
           ensureCategoryItems(cat.id);
           const isDefault = DEFAULT_META.some((d) => d.id === cat.id);
-          const expandedFirst = cat.id === activeExpandedId;
+          const hasItems = (state.items[cat.id] || []).some((it) => (Number(it.quantity) || 0) > 0);
+          const expandedFirst = cat.id === activeExpandedId || hasItems;
           const wrap = document.createElement("div");
           wrap.id = cat.id;
           wrap.className =
