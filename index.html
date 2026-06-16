@@ -3742,32 +3742,11 @@
           const listEl = wrap.querySelector(".category-content");
           const catalogResolved = getResolvedCatalog(cat.id);
           if (catalogResolved.length) {
-            const isOpen = openCatalogCategories.has(cat.id);
             const catalogWrap = document.createElement("div");
-            catalogWrap.className = "mb-3";
-
-            const toggleBtn = document.createElement("button");
-            toggleBtn.type = "button";
-            toggleBtn.className =
-              "catalog-toggle w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition min-h-[48px]";
-            const closedHtml = '<span>🛒</span><span>הוסף מהמאגר</span><span class="text-slate-400">▾</span>';
-            const openHtml = '<span>🛒</span><span>סגור מאגר</span><span class="text-slate-400">▴</span>';
-            toggleBtn.innerHTML = isOpen ? openHtml : closedHtml;
+            catalogWrap.className = "mb-2";
 
             const strip = document.createElement("div");
-            strip.className = "catalog-strip mt-2 p-2 bg-slate-50/80 border border-slate-200 rounded-lg" + (isOpen ? "" : " hidden");
-
-            toggleBtn.addEventListener("click", (ev) => {
-              ev.stopPropagation();
-              const isHidden = strip.classList.toggle("hidden");
-              if (isHidden) {
-                openCatalogCategories.delete(cat.id);
-                toggleBtn.innerHTML = closedHtml;
-              } else {
-                openCatalogCategories.add(cat.id);
-                toggleBtn.innerHTML = openHtml;
-              }
-            });
+            strip.className = "catalog-strip p-1.5 bg-slate-50/60 border border-slate-200 rounded-md";
 
             const chips = document.createElement("div");
             chips.className = "flex flex-wrap gap-1 items-center";
@@ -3795,7 +3774,6 @@
               chips.appendChild(mainBtn);
             });
             strip.appendChild(chips);
-            catalogWrap.appendChild(toggleBtn);
             catalogWrap.appendChild(strip);
             listEl.appendChild(catalogWrap);
           }
