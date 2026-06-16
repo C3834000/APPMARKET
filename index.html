@@ -3771,12 +3771,19 @@
 
             const chips = document.createElement("div");
             chips.className = "flex flex-wrap gap-1 items-center";
+            const inListNames = new Set(
+              (state.items[cat.id] || [])
+                .filter((it) => (Number(it.quantity) || 0) > 0)
+                .map((it) => (it.name || "").trim())
+            );
             catalogResolved.forEach((entry) => {
               const mainBtn = document.createElement("button");
               mainBtn.type = "button";
-              mainBtn.className =
-                "catalog-chip rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-700 transition hover:bg-teal-50 hover:border-teal-400 active:bg-teal-100 leading-tight";
-              mainBtn.textContent = entry.name;
+              const isInList = inListNames.has((entry.name || "").trim());
+              mainBtn.className = isInList
+                ? "catalog-chip catalog-chip-added rounded-md border border-emerald-400 bg-emerald-100 px-2 py-1 text-right text-xs text-emerald-800 font-semibold transition leading-tight"
+                : "catalog-chip rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-700 transition hover:bg-teal-50 hover:border-teal-400 active:bg-teal-100 leading-tight";
+              mainBtn.textContent = (isInList ? "✓ " : "") + entry.name;
               mainBtn.addEventListener("click", (ev) => {
                 ev.stopPropagation();
                 addItemFromCatalogEntry(cat.id, entry);
