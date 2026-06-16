@@ -1038,6 +1038,157 @@
         font-size: 14px;
       }
     }
+
+    /* אופטימיזציה למסכים קטנים — אנדרואיד / מובייל */
+    @media (max-width: 640px) {
+      :root {
+        --bottom-nav-h: 56px;
+        --finish-bar-h: 56px;
+      }
+      .app-shell {
+        padding-left: max(0.4rem, env(safe-area-inset-left, 0px));
+        padding-right: max(0.4rem, env(safe-area-inset-right, 0px));
+      }
+      .app-header {
+        padding: max(0.3rem, env(safe-area-inset-top, 0px)) 0.5rem 0.4rem;
+      }
+      .header-top {
+        margin-bottom: 0.25rem;
+        gap: 0.35rem;
+      }
+      .status-chip {
+        font-size: 11px;
+        padding: 0.2rem 0.5rem;
+        min-height: 26px;
+      }
+      .header-summary {
+        font-size: 12px;
+      }
+      .screen-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.2rem;
+        line-height: 1.15;
+      }
+      #googleSignInHeader {
+        min-height: 34px !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 12px !important;
+      }
+      #googleSignInHeader svg {
+        width: 14px !important;
+        height: 14px !important;
+      }
+      #authUserWrap {
+        min-height: 34px !important;
+        padding: 0.15rem 0.4rem !important;
+      }
+      #authUserWrap img {
+        width: 20px !important;
+        height: 20px !important;
+      }
+      #authUserLabel {
+        font-size: 12px !important;
+        max-width: 60px !important;
+      }
+      #googleSignOutHeader {
+        min-width: 28px !important;
+        min-height: 28px !important;
+        font-size: 18px !important;
+      }
+      .progress-label {
+        font-size: 11px;
+        margin-bottom: 0.2rem;
+      }
+      .progress-track {
+        height: 6px;
+      }
+      .bottom-nav {
+        padding: 0.25rem max(0.3rem, env(safe-area-inset-left, 0px)) max(0.3rem, env(safe-area-inset-bottom, 0px)) max(0.3rem, env(safe-area-inset-right, 0px));
+        gap: 0.15rem;
+      }
+      .bottom-nav-btn {
+        min-height: 42px;
+        padding: 0.2rem 0.1rem;
+        gap: 0.05rem;
+      }
+      .bottom-nav-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .bottom-nav-btn span {
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .finish-cta-bar {
+        padding: 0.3rem max(0.5rem, env(safe-area-inset-left, 0px)) 0.3rem max(0.5rem, env(safe-area-inset-right, 0px));
+      }
+      .btn-finish {
+        min-height: 44px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .ui-card {
+        padding: 0.7rem;
+        margin-bottom: 0.6rem;
+      }
+      .field-label {
+        font-size: 12px;
+        margin-bottom: 0.2rem;
+      }
+      .ui-input, .ui-select {
+        min-height: 40px;
+        padding: 0.5rem 0.7rem;
+        font-size: 15px;
+      }
+      .btn-primary, .btn-secondary {
+        min-height: 40px;
+        padding: 0.5rem 0.85rem;
+        font-size: 14px;
+      }
+      .chip-filter {
+        min-height: 36px;
+        padding: 0.35rem 0.75rem;
+        font-size: 13px;
+      }
+      .sort-chips {
+        gap: 0.35rem;
+        margin-bottom: 0.6rem;
+      }
+      main#mainContent {
+        padding-top: 0.35rem !important;
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
+      }
+      .fab-chat {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+      }
+    }
+
+    /* אופטימיזציה אגרסיבית עוד יותר למסכים מאוד קטנים */
+    @media (max-width: 380px), (max-height: 640px) {
+      :root {
+        --bottom-nav-h: 52px;
+        --finish-bar-h: 52px;
+      }
+      .header-summary {
+        font-size: 11px;
+      }
+      .screen-title {
+        font-size: 1rem;
+      }
+      .bottom-nav-btn {
+        min-height: 40px;
+      }
+      .bottom-nav-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .bottom-nav-btn span {
+        font-size: 9px;
+      }
+    }
   </style>
 </head>
 <body class="app-root min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-teal-50/30 to-amber-50/40">
