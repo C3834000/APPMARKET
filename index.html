@@ -2680,6 +2680,25 @@
         state = finalState;
         lastSerialized = incStr;
         saveStateLocalOnly();
+        // עדכון שם הרשימה ברישום אם הגיע מ-_meta
+        try {
+          var nameFromMeta =
+            (state._meta && state._meta.list_name) || "";
+          if (nameFromMeta) {
+            var activeId = getActiveListId();
+            var reg = loadListsRegistry();
+            if (
+              activeId &&
+              reg[activeId] &&
+              reg[activeId].name !== nameFromMeta
+            ) {
+              reg[activeId].name = nameFromMeta;
+              reg[activeId].updatedAt = new Date().toISOString();
+              saveListsRegistry(reg);
+              setActiveListLabel(nameFromMeta);
+            }
+          }
+        } catch (e) {}
         var shop = currentView === "shop";
         if (shop) {
           populateShopCategorySelect();
@@ -2970,6 +2989,9 @@
         updateChatHint();
       }
 
+      /** רושם הזמנה לרשימה משותפת — נטען בעת init לפני loadState */
+      var pendingSharedListInvite = null;
+
       function applyListQueryFromUrl() {
         try {
           var params = new URLSearchParams(window.location.search);
@@ -2979,6 +3001,57 @@
           if (!/^[a-zA-Z0-9_-]{6,80}$/.test(q)) return;
           localStorage.setItem(LS_SHARE, q);
           rememberRecentListId(q);
+
+          // האם הקישור הזה כבר רשום ברשימות שלי?
+          var reg = loadListsRegistry();
+          var existingId = null;
+          Object.keys(reg).forEach(function (id) {
+            if (reg[id].shareKey === q) existingId = id;
+          });
+
+          if (existingId) {
+            // יש לי כבר רשימה עם המפתח הזה — מעבר אליה
+            if (getActiveListId() !== existingId) {
+              try {
+                var prevId = getActiveListId();
+                if (prevId) {
+                  var s = localStorage.getItem(STORAGE_KEY);
+                  if (s) localStorage.setItem(LIST_STATE_PREFIX + prevId, s);
+                }
+                var targetState = localStorage.getItem(LIST_STATE_PREFIX + existingId);
+                if (targetState) {
+                  localStorage.setItem(STORAGE_KEY, targetState);
+                } else {
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(freshDefaultState()));
+                }
+                setActiveListId(existingId);
+              } catch (e) {}
+            }
+            pendingSharedListInvite = { id: existingId, shareKey: q, isNew: false };
+          } else {
+            // קישור חדש — יוצרים entry חדש ברשימות שלי ומעבר אליו
+            try {
+              var prevActive = getActiveListId();
+              if (prevActive) {
+                var prev = localStorage.getItem(STORAGE_KEY);
+                if (prev) localStorage.setItem(LIST_STATE_PREFIX + prevActive, prev);
+              }
+              var newId = generateListId();
+              reg[newId] = {
+                name: "רשימה משותפת",
+                shareKey: q,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                joinedFromInvite: true,
+              };
+              saveListsRegistry(reg);
+              setActiveListId(newId);
+              // מצב התחלתי ריק — יוחלף ב-payload שיגיע מהענן
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(freshDefaultState()));
+              localStorage.setItem(LIST_STATE_PREFIX + newId, JSON.stringify(freshDefaultState()));
+              pendingSharedListInvite = { id: newId, shareKey: q, isNew: true };
+            } catch (e) {}
+          }
           window.history.replaceState({}, "", window.location.pathname + window.location.hash);
         } catch (e) {}
       }
@@ -3165,13 +3238,34 @@
       function runCreateNewList() {
         showConfirm(
           "רשימה חדשה",
-          "נוצרת רשימה ריקה עם מזהה חדש. הרשימה הנוכחית במכשיר תוחלף (רשימות אחרות בענן לא משתנות). שותפים קודמים לא יראו את הרשימה החדשה אוטומטית — נציע לך להעתיק קישור לשיתוף. להמשיך?",
+          "נוצרת רשימה ריקה חדשה עם קישור שיתוף ייעודי. הרשימה הקודמת נשמרת תחת 'הרשימות שלי' ולא נמחקת. להמשיך?",
           function () {
             stopListeners();
+            // שמירה של המצב הקיים תחת הרשימה הפעילה
+            try {
+              if (typeof saveCurrentStateToActiveList === "function") {
+                saveCurrentStateToActiveList();
+              }
+            } catch (e) {}
             state = freshDefaultState();
             saveStateLocalOnly();
             lastSerialized = "";
             var newKey = "list_" + Math.random().toString(36).slice(2, 11);
+            // יצירת entry חדש ברישום הרשימות
+            try {
+              var reg = loadListsRegistry();
+              var newId = generateListId();
+              reg[newId] = {
+                name: "רשימה חדשה",
+                shareKey: newKey,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+              saveListsRegistry(reg);
+              setActiveListId(newId);
+              localStorage.setItem(LIST_STATE_PREFIX + newId, JSON.stringify(state));
+              setActiveListLabel("רשימה חדשה");
+            } catch (e) {}
             shareKey = newKey;
             localStorage.setItem(LS_SHARE, newKey);
             if (els.shareKeyInput) els.shareKeyInput.value = newKey;
@@ -4976,6 +5070,13 @@
 
         var shareBtn = document.getElementById("listEditShareBtn");
         if (shareBtn) shareBtn.addEventListener("click", function () {
+          if (!hasSignedInUser() || !supabaseClient) {
+            showToast(
+              "יש להתחבר עם Google כדי לשתף רשימה בענן",
+              "error"
+            );
+            return;
+          }
           var reg = loadListsRegistry();
           var info = reg[listEditCurrentId];
           if (!info) return;
@@ -4983,14 +5084,60 @@
           info.shareKey = key;
           info.updatedAt = new Date().toISOString();
           saveListsRegistry(reg);
-          // אם זו הרשימה הפעילה - עדכן גם
+          // קבלת המצב של הרשימה שהמשתמש משתף (פעילה או לא פעילה)
+          var listPayload = null;
           if (listEditCurrentId === getActiveListId()) {
+            listPayload = state;
             localStorage.setItem(LS_SHARE, key);
             shareKey = key;
-            if (typeof syncCloudIfPossible === "function") syncCloudIfPossible();
+          } else {
+            try {
+              var raw = localStorage.getItem(LIST_STATE_PREFIX + listEditCurrentId);
+              listPayload = raw ? JSON.parse(raw) : freshDefaultState();
+              if (!listPayload || typeof listPayload !== "object") {
+                listPayload = freshDefaultState();
+              }
+            } catch (e) {
+              listPayload = freshDefaultState();
+            }
           }
-          updateListEditShareUI();
-          renderMyLists();
+          // הוספת שם הרשימה ל-meta כדי שמקבלי הקישור יראו את השם
+          if (!listPayload._meta) listPayload._meta = {};
+          listPayload._meta.list_name = info.name;
+          // העלאה מיידית לענן — קריטי כדי שמשתתפים יקבלו את הנתונים בקישור
+          showToast("מעלה את הרשימה לענן...", "success");
+          supabaseClient
+            .from("family_lists")
+            .upsert(
+              {
+                list_id: key,
+                payload: listPayload,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "list_id" }
+            )
+            .then(function (res) {
+              if (res.error) {
+                showToast(
+                  "שגיאה בהעלאת הרשימה לענן: " + res.error.message,
+                  "error"
+                );
+                return;
+              }
+              // אם זו הרשימה הפעילה — סנכרון ערוץ ה-realtime
+              if (listEditCurrentId === getActiveListId()) {
+                if (!state._meta) state._meta = {};
+                state._meta.list_name = info.name;
+                saveStateLocalOnly();
+                lastSerialized = JSON.stringify(state);
+                if (typeof syncCloudIfPossible === "function") {
+                  syncCloudIfPossible();
+                }
+              }
+              updateListEditShareUI();
+              renderMyLists();
+              showToast("הרשימה הועלתה — מוכנה לשיתוף", "success");
+            });
         });
 
         var unshareBtn = document.getElementById("listEditUnshareBtn");
@@ -5374,6 +5521,26 @@
       setActiveListLabel(getCurrentListName());
       setAppView("prep");
       initAuthAndCloud();
+      // הודעה ידידותית למי שנכנס דרך קישור שיתוף
+      if (pendingSharedListInvite) {
+        setTimeout(function () {
+          if (pendingSharedListInvite.isNew) {
+            if (!hasSignedInUser()) {
+              showToast(
+                "📨 התקבלה הזמנה לרשימה משותפת — התחברו עם Google כדי לטעון אותה",
+                "success"
+              );
+            } else {
+              showToast(
+                "📨 טוען רשימה משותפת מהענן...",
+                "success"
+              );
+            }
+          } else {
+            showToast("📨 חזרה לרשימה המשותפת", "success");
+          }
+        }, 400);
+      }
       maybeShowOnboarding();
       updateStickySearchTop();
       window.addEventListener("resize", updateStickySearchTop);
