@@ -1762,22 +1762,28 @@
       <div id="listEditShareSection" class="mb-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3">
         <p class="mb-2 text-sm font-semibold text-sky-900">🔗 שיתוף בענן</p>
         <p id="listEditShareStatus" class="mb-2 text-xs text-sky-800">רשימה מקומית — לא משותפת.</p>
+        <p id="listEditShareHint" class="mb-2 text-[11px] text-sky-700/80 leading-snug">לחץ על הכפתור — הרשימה תועלה לענן והקישור יועתק. שלח את הקישור (וואטסאפ/SMS) למי שאתה רוצה לשתף.</p>
+        <div id="listEditShareLinkBox" class="hidden mb-2 rounded-lg border border-emerald-300 bg-white p-2">
+          <p class="mb-1 text-[11px] font-semibold text-emerald-900">📎 קישור השיתוף:</p>
+          <p id="listEditShareLinkText" class="break-all text-[11px] font-mono text-emerald-800 leading-tight" dir="ltr"></p>
+        </div>
         <div class="flex flex-wrap gap-2">
-          <button type="button" id="listEditShareBtn" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">שתף בענן</button>
-          <button type="button" id="listEditCopyLinkBtn" class="hidden rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-50">העתק קישור</button>
+          <button type="button" id="listEditShareBtn" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">📤 שתף — העלה והעתק קישור</button>
+          <button type="button" id="listEditCopyLinkBtn" class="hidden rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-50">📋 העתק קישור שוב</button>
+          <button type="button" id="listEditNativeShareBtn" class="hidden rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100">📲 שלח</button>
           <button type="button" id="listEditUnshareBtn" class="hidden rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-900 shadow-sm hover:bg-rose-50">בטל שיתוף</button>
         </div>
       </div>
 
-      <div id="listEditEmailsSection" class="mb-3 hidden rounded-xl border border-amber-200 bg-amber-50/70 p-3">
-        <p class="mb-2 text-sm font-semibold text-amber-900">🔒 הגבלת גישה למיילים</p>
-        <p class="mb-2 text-xs text-amber-800">הוסף מיילים שיכולים לגשת. ריק = פתוח לכל מי שיש לו את הקישור.</p>
+      <details id="listEditEmailsSection" class="mb-3 hidden rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+        <summary class="cursor-pointer text-sm font-semibold text-amber-900">🔒 הגבלת גישה למיילים (אופציונלי)</summary>
+        <p class="mt-2 mb-2 text-xs text-amber-800">לרוב <b>אין צורך</b> בהגבלה זו. השתמש רק אם רוצים שהקישור לא יספיק — וגם המייל ייבדק. ריק = כל מי שיש לו את הקישור יוכל לראות.</p>
         <div class="mb-2 flex gap-2">
           <input type="email" id="listEditEmailInput" class="flex-1 rounded-lg border border-amber-200 bg-white p-1.5 text-xs shadow-sm" placeholder="user@example.com" dir="ltr" />
           <button type="button" id="listEditAddEmailBtn" class="rounded-lg bg-amber-500 px-2 py-1.5 text-xs font-semibold text-white">הוסף</button>
         </div>
         <div id="listEditEmailsChips" class="flex flex-wrap gap-1.5"></div>
-      </div>
+      </details>
 
       <div class="flex justify-end gap-2">
         <button type="button" class="close-modal rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-300" data-close="listEditModal">סגור</button>
@@ -4945,21 +4951,47 @@
         var info = reg[listEditCurrentId];
         if (!info) return;
         var status = document.getElementById("listEditShareStatus");
+        var hint = document.getElementById("listEditShareHint");
+        var linkBox = document.getElementById("listEditShareLinkBox");
+        var linkText = document.getElementById("listEditShareLinkText");
         var shareBtn = document.getElementById("listEditShareBtn");
         var copyBtn = document.getElementById("listEditCopyLinkBtn");
+        var nativeShareBtn = document.getElementById("listEditNativeShareBtn");
         var unshareBtn = document.getElementById("listEditUnshareBtn");
         var emailsSection = document.getElementById("listEditEmailsSection");
 
         if (info.shareKey) {
-          status.textContent = "☁ משותף בענן. מזהה: " + info.shareKey;
+          var url =
+            window.location.origin +
+            window.location.pathname +
+            "?list=" +
+            encodeURIComponent(info.shareKey);
+          status.innerHTML =
+            '✅ <b>הרשימה משותפת בענן.</b>';
+          if (hint) {
+            hint.innerHTML =
+              "שלח את הקישור הזה (וואטסאפ/SMS) למי שאתה רוצה לשתף איתו. <b>בלי הקישור — אף אחד לא יראה את הרשימה.</b>";
+          }
+          if (linkBox) linkBox.classList.remove("hidden");
+          if (linkText) linkText.textContent = url;
           shareBtn.classList.add("hidden");
           copyBtn.classList.remove("hidden");
+          if (nativeShareBtn) {
+            if (navigator.share) nativeShareBtn.classList.remove("hidden");
+            else nativeShareBtn.classList.add("hidden");
+          }
           unshareBtn.classList.remove("hidden");
           emailsSection.classList.remove("hidden");
         } else {
           status.textContent = "💾 רשימה מקומית — לא משותפת.";
+          if (hint) {
+            hint.textContent =
+              "לחץ על הכפתור — הרשימה תועלה לענן והקישור יועתק. שלח את הקישור (וואטסאפ/SMS) למי שאתה רוצה לשתף.";
+          }
+          if (linkBox) linkBox.classList.add("hidden");
           shareBtn.classList.remove("hidden");
           copyBtn.classList.add("hidden");
+          if (nativeShareBtn) nativeShareBtn.classList.add("hidden");
           unshareBtn.classList.add("hidden");
           emailsSection.classList.add("hidden");
         }
@@ -5136,7 +5168,33 @@
               }
               updateListEditShareUI();
               renderMyLists();
-              showToast("הרשימה הועלתה — מוכנה לשיתוף", "success");
+              // העתקה אוטומטית של הקישור ללוח, כדי שלא צריך 2 לחיצות
+              var shareUrl =
+                window.location.origin +
+                window.location.pathname +
+                "?list=" +
+                encodeURIComponent(key);
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareUrl).then(
+                  function () {
+                    showToast(
+                      "✅ הקישור הועתק! הדבק אותו בוואטסאפ/SMS למי שאתה רוצה לשתף",
+                      "success"
+                    );
+                  },
+                  function () {
+                    showToast(
+                      "הרשימה הועלתה. העתק את הקישור מתיבת הקישור למעלה",
+                      "success"
+                    );
+                  }
+                );
+              } else {
+                showToast(
+                  "הרשימה הועלתה. העתק את הקישור מתיבת הקישור למעלה",
+                  "success"
+                );
+              }
             });
         });
 
@@ -5160,6 +5218,27 @@
         var copyLinkBtn = document.getElementById("listEditCopyLinkBtn");
         if (copyLinkBtn) copyLinkBtn.addEventListener("click", function () {
           copyShareUrlForList(listEditCurrentId);
+        });
+
+        var nativeShareBtn = document.getElementById("listEditNativeShareBtn");
+        if (nativeShareBtn) nativeShareBtn.addEventListener("click", function () {
+          var reg = loadListsRegistry();
+          var info = reg[listEditCurrentId];
+          if (!info || !info.shareKey) return;
+          var url =
+            window.location.origin +
+            window.location.pathname +
+            "?list=" +
+            encodeURIComponent(info.shareKey);
+          var shareText =
+            "הצטרפו לרשימת הקניות: " + (info.name || "") + "\n" + url;
+          if (navigator.share) {
+            navigator
+              .share({ title: info.name || "רשימת קניות", text: shareText, url: url })
+              .catch(function () {});
+          } else {
+            copyShareUrlForList(listEditCurrentId);
+          }
         });
 
         var addEmailBtn = document.getElementById("listEditAddEmailBtn");
