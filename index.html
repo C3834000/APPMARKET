@@ -1409,7 +1409,7 @@
     <div class="app-header sticky-header" id="appHeader">
       <div class="header-top">
         <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">מקומי</span>
-        <span id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת"><span class="presence-dot"></span><span id="presenceCount">1</span></span>
+        <button type="button" id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת" aria-label="הצג משתתפים מחוברים"><span class="presence-dot"></span><span id="presenceCount">1</span></button>
         <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice" class="text-emerald-600">₪0.00</strong></p>
         <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="googleSignInHeader" class="btn-secondary text-sm min-h-[44px] px-3 py-2 inline-flex items-center gap-1">
@@ -1835,7 +1835,7 @@
         var n = 0;
         state.categories.forEach(function (cat) {
           ensureCategoryItems(cat.id);
-          state.items[cat.id].forEach(function (it) {
+          getActiveItems(cat.id).forEach(function (it) {
             if ((Number(it.quantity) || 0) > 0) n++;
           });
         });
@@ -2099,7 +2099,15 @@
         ensureCategoryItems(catId);
         const existing = state.items[catId].find((x) => x.name.trim() === n);
         if (existing) {
-          existing.quantity = (Number(existing.quantity) || 0) + 1;
+          // אם הפריט נמחק (tombstone) — מבטל את המחיקה במקום ליצור חדש
+          if (existing.deleted) {
+            existing.deleted = false;
+            existing.quantity = 1;
+            existing.sessionPurchased = false;
+            existing.sessionMissing = false;
+          } else {
+            existing.quantity = (Number(existing.quantity) || 0) + 1;
+          }
           touchItem(existing);
         } else {
           var newItem = {
@@ -2173,7 +2181,58 @@
 
       /** מסמן פריט כששונה — מאפשר merge נכון בין משתתפים */
       function touchItem(item) {
-        if (item) item.mtime = Date.now();
+        if (item) {
+          item.mtime = Date.now();
+          var label = currentUserLabel();
+          if (label) item.modifiedBy = label;
+        }
+      }
+
+      function currentUserLabel() {
+        try {
+          if (authUser) {
+            var meta = authUser.user_metadata || {};
+            return (
+              meta.full_name ||
+              meta.name ||
+              authUser.email ||
+              ""
+            );
+          }
+        } catch (e) {}
+        return "";
+      }
+
+      /** מחזיר רק פריטים פעילים (לא מסומנים כמחוקים) — לשימוש ברנדור */
+      function getActiveItems(catId) {
+        var arr = (state.items && state.items[catId]) || [];
+        return arr.filter(function (x) { return x && !x.deleted; });
+      }
+
+      /** מחיקה לוגית: מסמנת tombstone במקום להסיר. שומר merge נכון בין משתתפים. */
+      function markItemDeleted(catId, itemId) {
+        var arr = (state.items && state.items[catId]) || [];
+        var found = arr.find(function (x) { return x && x.id === itemId; });
+        if (!found) return false;
+        found.deleted = true;
+        found.sessionPurchased = false;
+        found.sessionMissing = false;
+        touchItem(found);
+        return true;
+      }
+
+      /** מנקה tombstones ישנים יותר מ-7 ימים — שומר על משקל סביר ל-payload */
+      function cleanupOldTombstones() {
+        var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        var changed = false;
+        Object.keys(state.items || {}).forEach(function (catId) {
+          var before = (state.items[catId] || []).length;
+          state.items[catId] = (state.items[catId] || []).filter(function (it) {
+            return !(it && it.deleted && (it.mtime || 0) < cutoff);
+          });
+          if (state.items[catId].length !== before) changed = true;
+        });
+        return changed;
       }
 
       /** מיזוג שני מצבים — שומר תוספות משני הצדדים, ופותר התנגשויות לפי mtime */
@@ -2536,6 +2595,47 @@
           });
       }
 
+      /** מסכם הבדלים בין מצב מקומי למרוחק לצורך toast נקי למשתמש */
+      function summarizeRemoteDiff(localState, remoteState) {
+        var added = 0, removed = 0, updated = 0;
+        var lastModifier = "";
+        var allCats = new Set([
+          ...Object.keys(localState.items || {}),
+          ...Object.keys(remoteState.items || {}),
+        ]);
+        allCats.forEach(function (catId) {
+          var lItems = (localState.items || {})[catId] || [];
+          var rItems = (remoteState.items || {})[catId] || [];
+          var lMap = new Map(lItems.map(function (it) { return [it.id, it]; }));
+          var rMap = new Map(rItems.map(function (it) { return [it.id, it]; }));
+          rMap.forEach(function (rit, id) {
+            var lit = lMap.get(id);
+            if (!lit) {
+              if (!rit.deleted) {
+                added++;
+                if (rit.modifiedBy) lastModifier = rit.modifiedBy;
+              }
+              return;
+            }
+            if (!lit.deleted && rit.deleted) {
+              removed++;
+              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
+              return;
+            }
+            if (lit.deleted && !rit.deleted) {
+              added++;
+              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
+              return;
+            }
+            if ((rit.mtime || 0) > (lit.mtime || 0) && !rit.deleted) {
+              updated++;
+              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
+            }
+          });
+        });
+        return { added: added, removed: removed, updated: updated, modifier: lastModifier };
+      }
+
       function applyRemotePayload(payloadObj) {
         if (payloadObj == null || typeof payloadObj !== "object") return;
         if (isPayloadEffectivelyEmpty(payloadObj)) {
@@ -2574,6 +2674,8 @@
         } else {
           finalState = normalized;
         }
+        // סיכום ההבדלים להודעה ידידותית
+        var diff = summarizeRemoteDiff(state, normalized);
         applyingRemote = true;
         state = finalState;
         lastSerialized = incStr;
@@ -2589,6 +2691,23 @@
         refreshChatCategories();
         applyingRemote = false;
         updateSyncDot(true);
+        // הצגת התראה שקטה למשתמש
+        try {
+          if (pushMergedAfter) {
+            showToast(
+              "🔀 שינויים בו-זמניים שולבו" +
+                (diff.modifier ? " עם " + diff.modifier : ""),
+              "success"
+            );
+          } else if (diff.added || diff.removed || diff.updated) {
+            var parts = [];
+            if (diff.added) parts.push(diff.added + " נוסף");
+            if (diff.updated) parts.push(diff.updated + " עודכן");
+            if (diff.removed) parts.push(diff.removed + " הוסר");
+            var who = diff.modifier ? " ע״י " + diff.modifier : "";
+            showToast("🔄 עדכון מהענן: " + parts.join(", ") + who, "success");
+          }
+        } catch (e) {}
         if (pushMergedAfter) {
           // הרצת push דחויה כדי לשדר את המצב הממוזג חזרה לכל המשתתפים
           if (cloudPushTimer) clearTimeout(cloudPushTimer);
@@ -2618,10 +2737,13 @@
           });
       }
 
-      function updatePresenceUI(count) {
+      var currentPresenceUsers = [];
+
+      function updatePresenceUI(count, names) {
         var chip = document.getElementById("presenceChip");
         var num = document.getElementById("presenceCount");
         if (!chip || !num) return;
+        currentPresenceUsers = Array.isArray(names) ? names : [];
         if (!count || count <= 1) {
           chip.classList.add("hidden");
           chip.title = "אין משתתפים נוספים מחוברים כעת";
@@ -2630,7 +2752,19 @@
         }
         chip.classList.remove("hidden");
         num.textContent = String(count);
-        chip.title = count + " משתתפים מחוברים כעת";
+        var tooltip = count + " מחוברים: " + currentPresenceUsers.join(", ");
+        chip.title = tooltip;
+      }
+
+      function showPresenceParticipants() {
+        if (!currentPresenceUsers.length) {
+          showToast("אין משתתפים נוספים מחוברים כעת", "info");
+          return;
+        }
+        showToast(
+          "👥 מחוברים כעת: " + currentPresenceUsers.join(" · "),
+          "info"
+        );
       }
 
       function attachListListener() {
@@ -2669,11 +2803,19 @@
           )
           .on("presence", { event: "sync" }, function () {
             try {
-              var st = listCh.presenceState();
-              var keys = Object.keys(st || {});
-              updatePresenceUI(keys.length);
+              var st = listCh.presenceState() || {};
+              var keys = Object.keys(st);
+              var names = [];
+              keys.forEach(function (k) {
+                var entries = st[k] || [];
+                if (entries.length) {
+                  var u = entries[0].user || k;
+                  names.push(u);
+                }
+              });
+              updatePresenceUI(keys.length, names);
             } catch (e) {
-              updatePresenceUI(0);
+              updatePresenceUI(0, []);
             }
           })
           .subscribe(function (status) {
@@ -3127,6 +3269,7 @@
         saveStateLocalOnly();
       } else {
         state = normalizeState(state);
+        cleanupOldTombstones();
         saveStateLocalOnly();
       }
 
@@ -3614,6 +3757,10 @@
       if (els.copyShareLinkBtn) {
         els.copyShareLinkBtn.addEventListener("click", () => copyShareLinkToClipboard());
       }
+      var presenceChipEl = document.getElementById("presenceChip");
+      if (presenceChipEl) {
+        presenceChipEl.addEventListener("click", () => showPresenceParticipants());
+      }
       if (els.syncSaveBtn) {
         els.syncSaveBtn.addEventListener("click", () => {
           if (els.syncError) els.syncError.classList.add("hidden");
@@ -3766,7 +3913,7 @@
         const out = [];
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
-          state.items[cat.id].forEach((it) => {
+          getActiveItems(cat.id).forEach((it) => {
             out.push({ ...it, categoryId: cat.id });
           });
         });
@@ -3785,7 +3932,7 @@
 
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
-          state.items[cat.id].forEach((it) => {
+          getActiveItems(cat.id).forEach((it) => {
             const q = Math.max(0, Number(it.quantity) || 0);
             const p = parseFloat(it.price) || 0;
             if (q > 0) {
@@ -3826,7 +3973,7 @@
         const canUp = index > 0;
         const canDown = index < total - 1;
         const arrow = expanded ? "▼" : "◀";
-        const items = (state.items[cat.id] || []).filter((it) => (Number(it.quantity) || 0) > 0);
+        const items = getActiveItems(cat.id).filter((it) => (Number(it.quantity) || 0) > 0);
         const itemCount = items.length;
         const countBadge = itemCount > 0
           ? `<span class="cat-count-badge inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-teal-500 text-white text-xs font-bold shrink-0" title="${itemCount} פריטים בקטגוריה">${itemCount}</span>`
@@ -3955,7 +4102,7 @@
         els.categoriesList.innerHTML = "";
         const totalCats = state.categories.length;
         const categoriesWithItems = state.categories.filter((c) => {
-          const items = state.items[c.id] || [];
+          const items = getActiveItems(c.id);
           return items.some((it) => (Number(it.quantity) || 0) > 0);
         });
         const firstCatId = categoriesWithItems.length
@@ -3968,7 +4115,7 @@
         state.categories.forEach((cat, index) => {
           ensureCategoryItems(cat.id);
           const isDefault = DEFAULT_META.some((d) => d.id === cat.id);
-          const hasItems = (state.items[cat.id] || []).some((it) => (Number(it.quantity) || 0) > 0);
+          const hasItems = getActiveItems(cat.id).some((it) => (Number(it.quantity) || 0) > 0);
           const expandedFirst = cat.id === activeExpandedId || hasItems;
           const wrap = document.createElement("div");
           wrap.id = cat.id;
@@ -4043,7 +4190,7 @@
             const chips = document.createElement("div");
             chips.className = "flex flex-wrap gap-1 items-center";
             const inListNames = new Set(
-              (state.items[cat.id] || [])
+              getActiveItems(cat.id)
                 .filter((it) => (Number(it.quantity) || 0) > 0)
                 .map((it) => (it.name || "").trim())
             );
@@ -4069,7 +4216,7 @@
             catalogWrap.appendChild(strip);
             listEl.appendChild(catalogWrap);
           }
-          state.items[cat.id].forEach((item) => {
+          getActiveItems(cat.id).forEach((item) => {
             listEl.appendChild(renderPrepItemRow(cat.id, item));
           });
 
@@ -4089,8 +4236,28 @@
         const noteHtml = item.note
           ? `<span class="prep-note text-xs text-slate-500 truncate"> · ${escapeHtml(item.note)}</span>`
           : "";
+        // tooltip: מי שינה לאחרונה ומתי
+        var modifierTip = "";
+        if (item.modifiedBy || item.mtime) {
+          var when = "";
+          if (item.mtime) {
+            try {
+              when = new Date(item.mtime).toLocaleString("he-IL", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+              });
+            } catch (e) {}
+          }
+          modifierTip =
+            "עודכן" +
+            (item.modifiedBy ? " ע״י " + item.modifiedBy : "") +
+            (when ? " · " + when : "");
+        }
+        var nameTitle = modifierTip || "לחץ לעריכת שם והערה";
         row.innerHTML = `
-          <div class="prep-name-wrap flex-1 min-w-0 flex items-baseline gap-1 cursor-pointer overflow-hidden" title="לחץ לעריכת שם והערה">
+          <div class="prep-name-wrap flex-1 min-w-0 flex items-baseline gap-1 cursor-pointer overflow-hidden" title="${escapeHtml(nameTitle)}">
             <span class="prep-name font-semibold text-sm truncate">${escapeHtml(item.name)}</span>
             ${noteHtml}
           </div>
@@ -4200,7 +4367,7 @@
           updateSummary();
         });
         row.querySelector(".delete-item").addEventListener("click", () => {
-          state.items[catId] = state.items[catId].filter((x) => x.id !== item.id);
+          markItemDeleted(catId, item.id);
           saveState();
           row.remove();
           updateSummary();
@@ -4257,7 +4424,14 @@
         ensureCategoryItems(catId);
         const existing = state.items[catId].find((x) => x.name.trim() === n);
         if (existing) {
-          existing.quantity = (Number(existing.quantity) || 0) + 1;
+          if (existing.deleted) {
+            existing.deleted = false;
+            existing.quantity = 1;
+            existing.sessionPurchased = false;
+            existing.sessionMissing = false;
+          } else {
+            existing.quantity = (Number(existing.quantity) || 0) + 1;
+          }
           touchItem(existing);
         } else {
           state.items[catId].push({
@@ -4974,7 +5148,7 @@
 
       function removeItemFromListEverywhere(categoryId, itemId) {
         ensureCategoryItems(categoryId);
-        state.items[categoryId] = (state.items[categoryId] || []).filter((x) => x.id !== itemId);
+        markItemDeleted(categoryId, itemId);
         saveState();
         renderShopView();
         renderPrepCategories();
@@ -4990,7 +5164,7 @@
 
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
-          state.items[cat.id].forEach((it) => {
+          getActiveItems(cat.id).forEach((it) => {
             if ((Number(it.quantity) || 0) <= 0) return;
             const row = { ...it, categoryId: cat.id, cat };
             if (it.sessionPurchased) purchased.push(row);
@@ -5173,13 +5347,17 @@
         showConfirm("סיום קנייה", "להסיר מהרשימה את מה שנקנה, ולשמור את החסרים?", () => {
           state.categories.forEach((cat) => {
             ensureCategoryItems(cat.id);
-            state.items[cat.id] = state.items[cat.id].filter((it) => {
-              if (it.sessionPurchased) return false;
-              if (it.sessionMissing) {
+            (state.items[cat.id] || []).forEach((it) => {
+              if (it.sessionPurchased) {
+                it.deleted = true;
+                it.sessionPurchased = false;
+                it.sessionMissing = false;
+                touchItem(it);
+              } else if (it.sessionMissing) {
                 it.sessionMissing = false;
                 it.sessionPurchased = false;
+                touchItem(it);
               }
-              return true;
             });
           });
           saveState();
