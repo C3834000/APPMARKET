@@ -125,6 +125,52 @@
       text-overflow: ellipsis;
     }
 
+    .presence-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      border: 1px solid rgba(6, 95, 70, 0.18);
+      min-height: 26px;
+      cursor: default;
+    }
+
+    .presence-chip.hidden {
+      display: none;
+    }
+
+    .presence-chip .presence-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+      animation: presence-pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes presence-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+      50%      { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    }
+
+    @media (max-width: 640px) {
+      .presence-chip {
+        font-size: 10px;
+        padding: 0.1rem 0.35rem;
+        min-height: 20px;
+        gap: 3px;
+      }
+      .presence-chip .presence-dot {
+        width: 5px;
+        height: 5px;
+      }
+    }
+
     .header-summary {
       font-size: 14px;
       color: var(--color-muted);
@@ -1363,6 +1409,7 @@
     <div class="app-header sticky-header" id="appHeader">
       <div class="header-top">
         <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">מקומי</span>
+        <span id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת"><span class="presence-dot"></span><span id="presenceCount">1</span></span>
         <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice" class="text-emerald-600">₪0.00</strong></p>
         <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="googleSignInHeader" class="btn-secondary text-sm min-h-[44px] px-3 py-2 inline-flex items-center gap-1">
@@ -2053,8 +2100,9 @@
         const existing = state.items[catId].find((x) => x.name.trim() === n);
         if (existing) {
           existing.quantity = (Number(existing.quantity) || 0) + 1;
+          touchItem(existing);
         } else {
-          state.items[catId].push({
+          var newItem = {
             id: uid(),
             name: n,
             quantity: 1,
@@ -2062,7 +2110,9 @@
             note: note,
             sessionPurchased: false,
             sessionMissing: false,
-          });
+            mtime: Date.now(),
+          };
+          state.items[catId].push(newItem);
         }
         saveState();
         renderPrepCategories();
@@ -2119,6 +2169,60 @@
       function getCurrentUserEmail() {
         if (!authUser) return "";
         return String(authUser.email || "").trim().toLowerCase();
+      }
+
+      /** מסמן פריט כששונה — מאפשר merge נכון בין משתתפים */
+      function touchItem(item) {
+        if (item) item.mtime = Date.now();
+      }
+
+      /** מיזוג שני מצבים — שומר תוספות משני הצדדים, ופותר התנגשויות לפי mtime */
+      function mergeStates(localState, remoteState) {
+        var remoteCatIds = new Set();
+        var merged = {
+          categories: [],
+          items: {},
+          _meta: remoteState._meta ? Object.assign({}, remoteState._meta) : {},
+        };
+        (remoteState.categories || []).forEach(function (c) {
+          merged.categories.push(Object.assign({}, c));
+          remoteCatIds.add(c.id);
+        });
+        (localState.categories || []).forEach(function (c) {
+          if (!remoteCatIds.has(c.id)) {
+            merged.categories.push(Object.assign({}, c));
+          }
+        });
+        var allCats = new Set([
+          ...Object.keys(remoteState.items || {}),
+          ...Object.keys(localState.items || {}),
+        ]);
+        allCats.forEach(function (catId) {
+          var rItems = (remoteState.items || {})[catId] || [];
+          var lItems = (localState.items || {})[catId] || [];
+          var localById = new Map(lItems.map(function (it) { return [it.id, it]; }));
+          var remoteById = new Map(rItems.map(function (it) { return [it.id, it]; }));
+          var ordered = [];
+          var seen = new Set();
+          rItems.forEach(function (rit) {
+            var lit = localById.get(rit.id);
+            if (lit) {
+              var rTime = rit.mtime || 0;
+              var lTime = lit.mtime || 0;
+              ordered.push(lTime > rTime ? lit : rit);
+            } else {
+              ordered.push(rit);
+            }
+            seen.add(rit.id);
+          });
+          lItems.forEach(function (lit) {
+            if (!seen.has(lit.id)) {
+              ordered.push(lit);
+            }
+          });
+          merged.items[catId] = ordered;
+        });
+        return merged;
       }
 
       function isUserAuthorizedForList(stateObj) {
@@ -2459,8 +2563,19 @@
           lastSerialized = incStr;
           return;
         }
+        // אם יש שינויים מקומיים שלא נשלחו עדיין — מיזוג במקום דריסה
+        var localHasPendingChanges =
+          lastSerialized && curStr !== lastSerialized;
+        var finalState;
+        var pushMergedAfter = false;
+        if (localHasPendingChanges || cloudPushTimer) {
+          finalState = mergeStates(state, normalized);
+          pushMergedAfter = true;
+        } else {
+          finalState = normalized;
+        }
         applyingRemote = true;
-        state = normalized;
+        state = finalState;
         lastSerialized = incStr;
         saveStateLocalOnly();
         var shop = currentView === "shop";
@@ -2474,6 +2589,11 @@
         refreshChatCategories();
         applyingRemote = false;
         updateSyncDot(true);
+        if (pushMergedAfter) {
+          // הרצת push דחויה כדי לשדר את המצב הממוזג חזרה לכל המשתתפים
+          if (cloudPushTimer) clearTimeout(cloudPushTimer);
+          cloudPushTimer = setTimeout(pushStateToCloud, 200);
+        }
       }
 
       function fetchListRowOnce() {
@@ -2498,16 +2618,36 @@
           });
       }
 
+      function updatePresenceUI(count) {
+        var chip = document.getElementById("presenceChip");
+        var num = document.getElementById("presenceCount");
+        if (!chip || !num) return;
+        if (!count || count <= 1) {
+          chip.classList.add("hidden");
+          chip.title = "אין משתתפים נוספים מחוברים כעת";
+          num.textContent = "1";
+          return;
+        }
+        chip.classList.remove("hidden");
+        num.textContent = String(count);
+        chip.title = count + " משתתפים מחוברים כעת";
+      }
+
       function attachListListener() {
         if (listUnsub && supabaseClient) {
           supabaseClient.removeChannel(listUnsub);
           listUnsub = null;
         }
+        updatePresenceUI(0);
         if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
 
         fetchListRowOnce();
 
-        var listCh = supabaseClient.channel("family_list:" + shareKey);
+        var presenceKey =
+          (authUser && (authUser.id || authUser.email)) || getClientId();
+        var listCh = supabaseClient.channel("family_list:" + shareKey, {
+          config: { presence: { key: presenceKey } },
+        });
         listUnsub = listCh;
         listCh
           .on(
@@ -2527,8 +2667,28 @@
               fetchListRowOnce();
             }
           )
+          .on("presence", { event: "sync" }, function () {
+            try {
+              var st = listCh.presenceState();
+              var keys = Object.keys(st || {});
+              updatePresenceUI(keys.length);
+            } catch (e) {
+              updatePresenceUI(0);
+            }
+          })
           .subscribe(function (status) {
-            if (status === "SUBSCRIBED") updateSyncDot(true);
+            if (status === "SUBSCRIBED") {
+              updateSyncDot(true);
+              try {
+                var label =
+                  (authUser && (authUser.user_metadata?.full_name || authUser.email)) ||
+                  "אורח";
+                listCh.track({
+                  user: label,
+                  joined_at: new Date().toISOString(),
+                });
+              } catch (e) {}
+            }
           });
       }
 
@@ -2824,10 +2984,46 @@
         }
       }
 
+      function shareNewListLink(newKey) {
+        var url =
+          window.location.origin +
+          window.location.pathname +
+          "?list=" +
+          encodeURIComponent(newKey);
+        var shareText =
+          "הצטרפו לרשימת הקניות החדשה שלי:\n" + url;
+        function fallbackCopy() {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(
+              function () {
+                showToast(
+                  "הקישור לרשימה החדשה הועתק — שלחו לבני המשפחה כדי שיוכלו להצטרף",
+                  "success"
+                );
+              },
+              function () {
+                window.prompt("העתיקו את הקישור לשיתוף:", url);
+              }
+            );
+          } else {
+            window.prompt("העתיקו את הקישור לשיתוף:", url);
+          }
+        }
+        if (navigator.share) {
+          navigator
+            .share({ title: "רשימת קניות חדשה", text: shareText, url: url })
+            .catch(function () {
+              fallbackCopy();
+            });
+        } else {
+          fallbackCopy();
+        }
+      }
+
       function runCreateNewList() {
         showConfirm(
           "רשימה חדשה",
-          "נוצרת רשימה ריקה עם מזהה חדש. הרשימה הנוכחית במכשיר תוחלף (רשימות אחרות בענן לא משתנות). להמשיך?",
+          "נוצרת רשימה ריקה עם מזהה חדש. הרשימה הנוכחית במכשיר תוחלף (רשימות אחרות בענן לא משתנות). שותפים קודמים לא יראו את הרשימה החדשה אוטומטית — נציע לך להעתיק קישור לשיתוף. להמשיך?",
           function () {
             stopListeners();
             state = freshDefaultState();
@@ -2850,6 +3046,10 @@
             loadChatMessagesFromDb();
             updateSyncDot(true);
             updateChatHint();
+            // הצעה אוטומטית לשתף את הרשימה החדשה
+            setTimeout(function () {
+              shareNewListLink(newKey);
+            }, 300);
           }
         );
       }
@@ -3032,6 +3232,7 @@
         if (found) {
           found.sessionPurchased = true;
           found.sessionMissing = false;
+          touchItem(found);
           saveState();
           showToast("הפריט עבר לנקנו", "success");
           renderShopView();
@@ -3047,6 +3248,7 @@
         if (found) {
           found.sessionMissing = true;
           found.sessionPurchased = false;
+          touchItem(found);
           saveState();
           showToast("סומן כחסר", "success");
           renderShopView();
@@ -3941,6 +4143,7 @@
           }
           item.name = newName;
           item.note = newNote;
+          touchItem(item);
           saveState();
           closeEditor();
           renderPrepCategories();
@@ -3976,6 +4179,7 @@
 
         row.querySelector('[data-act="dec"]').addEventListener("click", () => {
           item.quantity = Math.max(0, (Number(item.quantity) || 0) - 1);
+          touchItem(item);
           row.querySelector(".quantity-value").textContent = item.quantity;
           saveState();
           updateSummary();
@@ -3983,6 +4187,7 @@
         });
         row.querySelector('[data-act="inc"]').addEventListener("click", () => {
           item.quantity = (Number(item.quantity) || 0) + 1;
+          touchItem(item);
           row.querySelector(".quantity-value").textContent = item.quantity;
           saveState();
           updateSummary();
@@ -3990,6 +4195,7 @@
         });
         row.querySelector(".price-input").addEventListener("change", (e) => {
           item.price = parseFloat(e.target.value) || 0;
+          touchItem(item);
           saveState();
           updateSummary();
         });
@@ -4052,6 +4258,7 @@
         const existing = state.items[catId].find((x) => x.name.trim() === n);
         if (existing) {
           existing.quantity = (Number(existing.quantity) || 0) + 1;
+          touchItem(existing);
         } else {
           state.items[catId].push({
             id: uid(),
@@ -4061,6 +4268,7 @@
             note: defaultNote,
             sessionPurchased: false,
             sessionMissing: false,
+            mtime: Date.now(),
           });
         }
         saveState();
@@ -4933,6 +5141,7 @@
             if (found) {
               found.sessionPurchased = false;
               found.sessionMissing = false;
+              touchItem(found);
             }
             saveState();
             renderShopView();
