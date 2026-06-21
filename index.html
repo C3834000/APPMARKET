@@ -140,6 +140,49 @@
       cursor: default;
     }
 
+    .quick-share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      color: white;
+      border: 1px solid rgba(13, 148, 136, 0.4);
+      min-height: 36px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .quick-share-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 9px rgba(13, 148, 136, 0.35);
+    }
+    .quick-share-btn:active {
+      transform: translateY(0);
+    }
+    .quick-share-btn.shared {
+      background: linear-gradient(135deg, #34d399, #059669);
+      animation: qsb-pulse 2s ease-in-out infinite;
+    }
+    @keyframes qsb-pulse {
+      0%, 100% { box-shadow: 0 2px 6px rgba(5, 150, 105, 0.4); }
+      50%      { box-shadow: 0 4px 14px rgba(5, 150, 105, 0.6); }
+    }
+    @media (max-width: 640px) {
+      .quick-share-btn {
+        font-size: 11px;
+        padding: 0.25rem 0.55rem;
+        min-height: 28px;
+        gap: 2px;
+      }
+      .quick-share-btn .qsb-text {
+        display: none;
+      }
+    }
+
     .presence-chip.hidden {
       display: none;
     }
@@ -1411,6 +1454,7 @@
         <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">מקומי</span>
         <button type="button" id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת" aria-label="הצג משתתפים מחוברים"><span class="presence-dot"></span><span id="presenceCount">1</span></button>
         <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice" class="text-emerald-600">₪0.00</strong></p>
+        <button type="button" id="quickShareBtn" class="quick-share-btn shrink-0" title="שתף את הרשימה הזו" aria-label="שתף רשימה">📤 <span class="qsb-text">שתף</span></button>
         <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="googleSignInHeader" class="btn-secondary text-sm min-h-[44px] px-3 py-2 inline-flex items-center gap-1">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -3861,6 +3905,130 @@
       if (presenceChipEl) {
         presenceChipEl.addEventListener("click", () => showPresenceParticipants());
       }
+
+      /** כפתור "שתף" אחד שעושה הכל: יוצר shareKey, מעלה לענן, מעתיק/שולח קישור */
+      async function quickShareList() {
+        if (!hasSignedInUser() || !supabaseClient) {
+          showToast(
+            "התחבר עם Google כדי לשתף את הרשימה",
+            "error"
+          );
+          return;
+        }
+        try {
+          var activeId = getActiveListId();
+          var reg = loadListsRegistry();
+          var info = reg[activeId];
+          // אם אין רשימה ברישום — יוצרים entry חדש
+          if (!info) {
+            if (!activeId) {
+              activeId = generateListId();
+              setActiveListId(activeId);
+            }
+            info = {
+              name: "רשימת קניות",
+              shareKey: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            reg[activeId] = info;
+            saveListsRegistry(reg);
+          }
+          // אם הרשימה לא משותפת עדיין — צרו shareKey, העלו לענן
+          if (!info.shareKey) {
+            showToast("מעלה את הרשימה לענן...", "success");
+            var newKey = "list_" + Math.random().toString(36).slice(2, 11);
+            info.shareKey = newKey;
+            info.updatedAt = new Date().toISOString();
+            saveListsRegistry(reg);
+            if (!state._meta) state._meta = {};
+            state._meta.list_name = info.name;
+            saveStateLocalOnly();
+            localStorage.setItem(LS_SHARE, newKey);
+            shareKey = newKey;
+            var res = await supabaseClient
+              .from("family_lists")
+              .upsert(
+                {
+                  list_id: newKey,
+                  payload: state,
+                  updated_at: new Date().toISOString(),
+                },
+                { onConflict: "list_id" }
+              );
+            if (res.error) {
+              showToast(
+                "שגיאה בהעלאת הרשימה: " + res.error.message,
+                "error"
+              );
+              return;
+            }
+            lastSerialized = JSON.stringify(state);
+            if (typeof syncCloudIfPossible === "function") {
+              syncCloudIfPossible();
+            }
+            updateQuickShareUI();
+          }
+          // שליחה / העתקה של הקישור
+          var url =
+            window.location.origin +
+            window.location.pathname +
+            "?list=" +
+            encodeURIComponent(info.shareKey);
+          var listName = info.name || "רשימת קניות";
+          var shareText = "הצטרפו לרשימת הקניות שלי: " + listName + "\n" + url;
+          if (navigator.share) {
+            try {
+              await navigator.share({
+                title: listName,
+                text: shareText,
+                url: url,
+              });
+              showToast("הקישור נשלח", "success");
+              return;
+            } catch (e) {
+              // המשתמש סגר את הדיאלוג — נחזור להעתקה
+            }
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            showToast(
+              "✅ הקישור הועתק! הדבק בוואטסאפ/SMS למי שאתה רוצה לשתף",
+              "success"
+            );
+          } else {
+            window.prompt("העתק את הקישור:", url);
+          }
+        } catch (err) {
+          showToast("שגיאה: " + (err.message || String(err)), "error");
+        }
+      }
+
+      /** מעדכן את הסטייל של כפתור השיתוף לפי מצב הרשימה */
+      function updateQuickShareUI() {
+        var btn = document.getElementById("quickShareBtn");
+        if (!btn) return;
+        var activeId = getActiveListId();
+        var reg = loadListsRegistry();
+        var info = reg[activeId];
+        if (info && info.shareKey) {
+          btn.classList.add("shared");
+          btn.title = "הרשימה משותפת — לחץ לשליחה/העתקה של הקישור";
+          var txt = btn.querySelector(".qsb-text");
+          if (txt) txt.textContent = "שלח שוב";
+        } else {
+          btn.classList.remove("shared");
+          btn.title = "שתף את הרשימה הזו";
+          var txt2 = btn.querySelector(".qsb-text");
+          if (txt2) txt2.textContent = "שתף";
+        }
+      }
+
+      var quickShareBtnEl = document.getElementById("quickShareBtn");
+      if (quickShareBtnEl) {
+        quickShareBtnEl.addEventListener("click", quickShareList);
+      }
+      updateQuickShareUI();
       if (els.syncSaveBtn) {
         els.syncSaveBtn.addEventListener("click", () => {
           if (els.syncError) els.syncError.classList.add("hidden");
@@ -4697,6 +4865,7 @@
       function setActiveListLabel(name) {
         var lbl = document.getElementById("listsTabLabel");
         if (lbl) lbl.textContent = name || "רשימות";
+        if (typeof updateQuickShareUI === "function") updateQuickShareUI();
       }
 
       function openListManager() {
