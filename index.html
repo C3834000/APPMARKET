@@ -2359,6 +2359,7 @@
       let cloudPushTimer = null;
       let listUnsub = null;
       let chatUnsub = null;
+      let cloudPollTimer = null;
       let supabaseClient = null;
       let authUser = null;
       let shareKey = "";
@@ -2845,6 +2846,7 @@
         if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
 
         fetchListRowOnce();
+        startCloudPolling();
 
         var presenceKey =
           (authUser && (authUser.id || authUser.email)) || getClientId();
@@ -3027,6 +3029,26 @@
         if (chatUnsub && supabaseClient) {
           supabaseClient.removeChannel(chatUnsub);
           chatUnsub = null;
+        }
+        stopCloudPolling();
+      }
+
+      /** גיבוי ל-Realtime: משיכה תקופתית של הרשימה מהענן, כך שסנכרון יעבוד גם אם
+          ה-Realtime publication לא הופעל ב-Supabase. רץ רק כשהטאב גלוי. */
+      function startCloudPolling() {
+        stopCloudPolling();
+        cloudPollTimer = setInterval(function () {
+          if (document.hidden) return;
+          if (!shareKey || !supabaseClient || !hasSignedInUser()) return;
+          if (applyingRemote || cloudPushTimer) return;
+          fetchListRowOnce();
+        }, 12000);
+      }
+
+      function stopCloudPolling() {
+        if (cloudPollTimer) {
+          clearInterval(cloudPollTimer);
+          cloudPollTimer = null;
         }
       }
 
@@ -4028,6 +4050,20 @@
       if (quickShareBtnEl) {
         quickShareBtnEl.addEventListener("click", quickShareList);
       }
+
+      // כשחוזרים לטאב — משיכה מיידית של הרשימה העדכנית מהענן
+      document.addEventListener("visibilitychange", function () {
+        if (
+          !document.hidden &&
+          shareKey &&
+          supabaseClient &&
+          hasSignedInUser() &&
+          !applyingRemote &&
+          !cloudPushTimer
+        ) {
+          fetchListRowOnce();
+        }
+      });
       if (els.syncSaveBtn) {
         els.syncSaveBtn.addEventListener("click", () => {
           if (els.syncError) els.syncError.classList.add("hidden");
