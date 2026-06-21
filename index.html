@@ -1454,7 +1454,7 @@
         <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">מקומי</span>
         <button type="button" id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת" aria-label="הצג משתתפים מחוברים"><span class="presence-dot"></span><span id="presenceCount">1</span></button>
         <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice" class="text-emerald-600">₪0.00</strong></p>
-        <button type="button" id="quickShareBtn" class="quick-share-btn shrink-0" title="שתף את הרשימה הזו" aria-label="שתף רשימה">📤 <span class="qsb-text">שתף</span></button>
+        <button type="button" id="quickShareBtn" class="quick-share-btn shrink-0" title="שתף את הרשימה הזו לפי מייל" aria-label="שתף רשימה">📤 <span class="qsb-text">שתף למייל</span></button>
         <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="googleSignInHeader" class="btn-secondary text-sm min-h-[44px] px-3 py-2 inline-flex items-center gap-1">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -1806,13 +1806,13 @@
       <div id="listEditShareSection" class="mb-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3">
         <p class="mb-2 text-sm font-semibold text-sky-900">🔗 שיתוף בענן</p>
         <p id="listEditShareStatus" class="mb-2 text-xs text-sky-800">רשימה מקומית — לא משותפת.</p>
-        <p id="listEditShareHint" class="mb-2 text-[11px] text-sky-700/80 leading-snug">לחץ על הכפתור — הרשימה תועלה לענן והקישור יועתק. שלח את הקישור (וואטסאפ/SMS) למי שאתה רוצה לשתף.</p>
+        <p id="listEditShareHint" class="mb-2 text-[11px] text-sky-700/80 leading-snug">לחץ על הכפתור, הזן מייל של משתתף — והוא יקבל את הרשימה אוטומטית אחרי התחברות.</p>
         <div id="listEditShareLinkBox" class="hidden mb-2 rounded-lg border border-emerald-300 bg-white p-2">
           <p class="mb-1 text-[11px] font-semibold text-emerald-900">📎 קישור השיתוף:</p>
           <p id="listEditShareLinkText" class="break-all text-[11px] font-mono text-emerald-800 leading-tight" dir="ltr"></p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <button type="button" id="listEditShareBtn" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">📤 שתף — העלה והעתק קישור</button>
+          <button type="button" id="listEditShareBtn" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">📤 שתף לפי מייל</button>
           <button type="button" id="listEditCopyLinkBtn" class="hidden rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-50">📋 העתק קישור שוב</button>
           <button type="button" id="listEditNativeShareBtn" class="hidden rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100">📲 שלח</button>
           <button type="button" id="listEditUnshareBtn" class="hidden rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-900 shadow-sm hover:bg-rose-50">בטל שיתוף</button>
@@ -1820,8 +1820,8 @@
       </div>
 
       <details id="listEditEmailsSection" class="mb-3 hidden rounded-xl border border-amber-200 bg-amber-50/70 p-3">
-        <summary class="cursor-pointer text-sm font-semibold text-amber-900">🔒 הגבלת גישה למיילים (אופציונלי)</summary>
-        <p class="mt-2 mb-2 text-xs text-amber-800">לרוב <b>אין צורך</b> בהגבלה זו. השתמש רק אם רוצים שהקישור לא יספיק — וגם המייל ייבדק. ריק = כל מי שיש לו את הקישור יוכל לראות.</p>
+        <summary class="cursor-pointer text-sm font-semibold text-amber-900">👥 משתתפים נוספים לפי מייל</summary>
+        <p class="mt-2 mb-2 text-xs text-amber-800">הוסף כאן עוד מיילים שיקבלו גישה לרשימה הזו. לאחר התחברות הם יראו אותה אוטומטית.</p>
         <div class="mb-2 flex gap-2">
           <input type="email" id="listEditEmailInput" class="flex-1 rounded-lg border border-amber-200 bg-white p-1.5 text-xs shadow-sm" placeholder="user@example.com" dir="ltr" />
           <button type="button" id="listEditAddEmailBtn" class="rounded-lg bg-amber-500 px-2 py-1.5 text-xs font-semibold text-white">הוסף</button>
@@ -2229,6 +2229,10 @@
         return String(authUser.email || "").trim().toLowerCase();
       }
 
+      function normalizeEmail(raw) {
+        return String(raw || "").trim().toLowerCase();
+      }
+
       /** מסמן פריט כששונה — מאפשר merge נכון בין משתתפים */
       function touchItem(item) {
         if (item) {
@@ -2360,6 +2364,7 @@
       let listUnsub = null;
       let chatUnsub = null;
       let cloudPollTimer = null;
+      let membershipPollTimer = null;
       let supabaseClient = null;
       let authUser = null;
       let shareKey = "";
@@ -3410,6 +3415,10 @@
       function initAuthAndCloud() {
         if (!tryInitSupabase()) {
           authUser = null;
+          if (membershipPollTimer) {
+            clearInterval(membershipPollTimer);
+            membershipPollTimer = null;
+          }
           updateSyncDot();
           updateChatHint();
           updateAuthUI();
@@ -3420,11 +3429,25 @@
           authUser = res.data && res.data.session ? res.data.session.user : null;
           updateAuthUI();
           syncCloudIfPossible();
+          syncAssignedListsFromCloud();
+          if (membershipPollTimer) clearInterval(membershipPollTimer);
+          membershipPollTimer = setInterval(function () {
+            if (!document.hidden) syncAssignedListsFromCloud();
+          }, 15000);
         });
         supabaseClient.auth.onAuthStateChange(function (_evt, session) {
           authUser = session ? session.user : null;
           updateAuthUI();
           syncCloudIfPossible();
+          syncAssignedListsFromCloud();
+          if (membershipPollTimer) clearInterval(membershipPollTimer);
+          if (authUser) {
+            membershipPollTimer = setInterval(function () {
+              if (!document.hidden) syncAssignedListsFromCloud();
+            }, 15000);
+          } else {
+            membershipPollTimer = null;
+          }
         });
       }
 
@@ -3928,20 +3951,23 @@
         presenceChipEl.addEventListener("click", () => showPresenceParticipants());
       }
 
-      /** כפתור "שתף" אחד שעושה הכל: יוצר shareKey, מעלה לענן, מעתיק/שולח קישור */
+      /** כפתור שיתוף פשוט: מזינים מייל -> הרשימה משותפת לו אוטומטית (בלי קישור) */
       async function quickShareList() {
         if (!hasSignedInUser() || !supabaseClient) {
-          showToast(
-            "התחבר עם Google כדי לשתף את הרשימה",
-            "error"
-          );
+          showToast("התחבר עם Google כדי לשתף את הרשימה", "error");
+          return;
+        }
+        var targetEmail = normalizeEmail(window.prompt("לאיזה מייל לשתף את הרשימה?"));
+        if (!targetEmail) return;
+        if (!/@/.test(targetEmail)) {
+          showToast("כתובת המייל לא תקינה", "error");
           return;
         }
         try {
+          var ownerEmail = getCurrentUserEmail();
           var activeId = getActiveListId();
           var reg = loadListsRegistry();
           var info = reg[activeId];
-          // אם אין רשימה ברישום — יוצרים entry חדש
           if (!info) {
             if (!activeId) {
               activeId = generateListId();
@@ -3954,73 +3980,66 @@
               updatedAt: new Date().toISOString(),
             };
             reg[activeId] = info;
-            saveListsRegistry(reg);
           }
-          // אם הרשימה לא משותפת עדיין — צרו shareKey, העלו לענן
+          // ודא שיש list_id קבוע לענן
           if (!info.shareKey) {
-            showToast("מעלה את הרשימה לענן...", "success");
-            var newKey = "list_" + Math.random().toString(36).slice(2, 11);
-            info.shareKey = newKey;
-            info.updatedAt = new Date().toISOString();
-            saveListsRegistry(reg);
-            if (!state._meta) state._meta = {};
-            state._meta.list_name = info.name;
-            saveStateLocalOnly();
-            localStorage.setItem(LS_SHARE, newKey);
-            shareKey = newKey;
-            var res = await supabaseClient
-              .from("family_lists")
-              .upsert(
-                {
-                  list_id: newKey,
-                  payload: state,
-                  updated_at: new Date().toISOString(),
-                },
-                { onConflict: "list_id" }
-              );
-            if (res.error) {
-              showToast(
-                "שגיאה בהעלאת הרשימה: " + res.error.message,
-                "error"
-              );
-              return;
-            }
-            lastSerialized = JSON.stringify(state);
-            if (typeof syncCloudIfPossible === "function") {
-              syncCloudIfPossible();
-            }
-            updateQuickShareUI();
+            info.shareKey = "list_" + Math.random().toString(36).slice(2, 11);
           }
-          // שליחה / העתקה של הקישור
-          var url =
-            window.location.origin +
-            window.location.pathname +
-            "?list=" +
-            encodeURIComponent(info.shareKey);
-          var listName = info.name || "רשימת קניות";
-          var shareText = "הצטרפו לרשימת הקניות שלי: " + listName + "\n" + url;
-          if (navigator.share) {
-            try {
-              await navigator.share({
-                title: listName,
-                text: shareText,
-                url: url,
-              });
-              showToast("הקישור נשלח", "success");
-              return;
-            } catch (e) {
-              // המשתמש סגר את הדיאלוג — נחזור להעתקה
-            }
-          }
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(url);
-            showToast(
-              "✅ הקישור הועתק! הדבק בוואטסאפ/SMS למי שאתה רוצה לשתף",
-              "success"
+          info.updatedAt = new Date().toISOString();
+          saveListsRegistry(reg);
+          // שמור payload עם מטא-נתוני הרשאה ושם רשימה
+          if (!state._meta) state._meta = {};
+          state._meta.list_name = info.name || "רשימת קניות";
+          var allow = Array.isArray(state._meta.authorized_emails)
+            ? state._meta.authorized_emails.slice()
+            : [];
+          if (ownerEmail && allow.indexOf(ownerEmail) === -1) allow.push(ownerEmail);
+          if (allow.indexOf(targetEmail) === -1) allow.push(targetEmail);
+          state._meta.authorized_emails = allow;
+          saveStateLocalOnly();
+          localStorage.setItem(LS_SHARE, info.shareKey);
+          shareKey = info.shareKey;
+          showToast("משתף רשימה...", "success");
+          var upsertList = await supabaseClient
+            .from("family_lists")
+            .upsert(
+              {
+                list_id: info.shareKey,
+                payload: state,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "list_id" }
             );
-          } else {
-            window.prompt("העתק את הקישור:", url);
+          if (upsertList.error) {
+            showToast("שגיאה בשיתוף: " + upsertList.error.message, "error");
+            return;
           }
+          // רשום משתתפים בטבלת חברות (owner + invited)
+          var membersRows = [];
+          if (ownerEmail) {
+            membersRows.push({
+              list_id: info.shareKey,
+              participant_email: ownerEmail,
+              added_by_email: ownerEmail,
+            });
+          }
+          membersRows.push({
+            list_id: info.shareKey,
+            participant_email: targetEmail,
+            added_by_email: ownerEmail || targetEmail,
+          });
+          var upsertMembers = await supabaseClient
+            .from("list_participants")
+            .upsert(membersRows, { onConflict: "list_id,participant_email" });
+          if (upsertMembers.error) {
+            showToast("הרשימה נשמרה, אבל ההזמנה נכשלה: " + upsertMembers.error.message, "error");
+            return;
+          }
+          lastSerialized = JSON.stringify(state);
+          if (typeof syncCloudIfPossible === "function") syncCloudIfPossible();
+          if (typeof syncAssignedListsFromCloud === "function") syncAssignedListsFromCloud();
+          updateQuickShareUI();
+          showToast("הרשימה שותפה עם " + targetEmail, "success");
         } catch (err) {
           showToast("שגיאה: " + (err.message || String(err)), "error");
         }
@@ -4035,14 +4054,14 @@
         var info = reg[activeId];
         if (info && info.shareKey) {
           btn.classList.add("shared");
-          btn.title = "הרשימה משותפת — לחץ לשליחה/העתקה של הקישור";
+          btn.title = "הרשימה משותפת — לחץ כדי לשתף לפי מייל נוסף";
           var txt = btn.querySelector(".qsb-text");
-          if (txt) txt.textContent = "שלח שוב";
+          if (txt) txt.textContent = "שתף למייל נוסף";
         } else {
           btn.classList.remove("shared");
-          btn.title = "שתף את הרשימה הזו";
+          btn.title = "שתף את הרשימה הזו לפי מייל";
           var txt2 = btn.querySelector(".qsb-text");
-          if (txt2) txt2.textContent = "שתף";
+          if (txt2) txt2.textContent = "שתף למייל";
         }
       }
 
@@ -4062,6 +4081,9 @@
           !cloudPushTimer
         ) {
           fetchListRowOnce();
+        }
+        if (!document.hidden && supabaseClient && hasSignedInUser()) {
+          syncAssignedListsFromCloud();
         }
       });
       if (els.syncSaveBtn) {
@@ -5015,6 +5037,101 @@
         location.reload();
       }
 
+      function findLocalListIdByShareKey(reg, shareKeyValue) {
+        var out = "";
+        Object.keys(reg || {}).forEach(function (id) {
+          if (reg[id] && reg[id].shareKey === shareKeyValue) out = id;
+        });
+        return out;
+      }
+
+      /**
+       * טוען מהענן רשימות ששויכו למייל המחובר (שיתוף לפי מייל),
+       * מוסיף אותן ל"רשימות שלי", ומציג אותן אוטומטית.
+       */
+      async function syncAssignedListsFromCloud() {
+        if (!supabaseClient || !hasSignedInUser()) return;
+        var myEmail = getCurrentUserEmail();
+        if (!myEmail) return;
+        try {
+          var linksRes = await supabaseClient
+            .from("list_participants")
+            .select("list_id")
+            .eq("participant_email", myEmail);
+          if (linksRes.error) {
+            console.error(linksRes.error);
+            return;
+          }
+          var listIds = (linksRes.data || [])
+            .map(function (r) { return String(r.list_id || "").trim(); })
+            .filter(function (x) { return !!x; });
+          if (!listIds.length) return;
+          var reg = loadListsRegistry();
+          var newLocalIds = [];
+          for (var i = 0; i < listIds.length; i++) {
+            var cloudListId = listIds[i];
+            var row = await supabaseClient
+              .from("family_lists")
+              .select("payload")
+              .eq("list_id", cloudListId)
+              .maybeSingle();
+            if (row.error || !row.data || row.data.payload == null) continue;
+            var normalized = normalizeState(row.data.payload);
+            // הרשאה משלימה: וודא שהמייל הנוכחי מופיע גם במטא כדי לא להיחסם בלקוח
+            if (!normalized._meta) normalized._meta = {};
+            if (!Array.isArray(normalized._meta.authorized_emails)) normalized._meta.authorized_emails = [];
+            if (normalized._meta.authorized_emails.indexOf(myEmail) === -1) {
+              normalized._meta.authorized_emails.push(myEmail);
+            }
+            var localId = findLocalListIdByShareKey(reg, cloudListId);
+            var isNew = false;
+            if (!localId) {
+              localId = generateListId();
+              isNew = true;
+            }
+            var listName =
+              (normalized._meta && normalized._meta.list_name) ||
+              (reg[localId] && reg[localId].name) ||
+              "רשימה משותפת";
+            var nowIso = new Date().toISOString();
+            reg[localId] = {
+              name: listName,
+              shareKey: cloudListId,
+              createdAt: (reg[localId] && reg[localId].createdAt) || nowIso,
+              updatedAt: nowIso,
+            };
+            localStorage.setItem(LIST_STATE_PREFIX + localId, JSON.stringify(normalized));
+            if (isNew) newLocalIds.push(localId);
+          }
+          saveListsRegistry(reg);
+          if (newLocalIds.length) {
+            // עבור אוטומטית לרשימה שהתווספה כדי שהמשתמש יראה מיד את התוכן
+            var targetId = newLocalIds[0];
+            var targetState = localStorage.getItem(LIST_STATE_PREFIX + targetId);
+            if (targetState) {
+              // שמור מצב נוכחי לפני מעבר
+              saveCurrentStateToActiveList();
+              localStorage.setItem(STORAGE_KEY, targetState);
+              setActiveListId(targetId);
+              localStorage.setItem(LS_SHARE, reg[targetId].shareKey || "");
+              shareKey = reg[targetId].shareKey || "";
+              state = normalizeState(JSON.parse(targetState));
+              if (typeof syncCloudIfPossible === "function") syncCloudIfPossible();
+              renderPrepCategories();
+              renderShopView();
+              updateSummary();
+              setActiveListLabel(reg[targetId].name || "רשימה משותפת");
+              refreshListsPanelData();
+              showToast("נוספה רשימה משותפת חדשה", "success");
+            }
+          } else {
+            refreshListsPanelData();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
       function createNewListPrompt() {
         var inp = document.getElementById("newListNameInput");
         var name = (inp && inp.value || "").trim();
@@ -5165,32 +5282,23 @@
         var emailsSection = document.getElementById("listEditEmailsSection");
 
         if (info.shareKey) {
-          var url =
-            window.location.origin +
-            window.location.pathname +
-            "?list=" +
-            encodeURIComponent(info.shareKey);
-          status.innerHTML =
-            '✅ <b>הרשימה משותפת בענן.</b>';
+          status.innerHTML = '✅ <b>הרשימה משותפת בענן.</b>';
           if (hint) {
             hint.innerHTML =
-              "שלח את הקישור הזה (וואטסאפ/SMS) למי שאתה רוצה לשתף איתו. <b>בלי הקישור — אף אחד לא יראה את הרשימה.</b>";
+              "לחץ על כפתור השיתוף והזן מייל — המשתמש יראה את הרשימה אוטומטית אחרי התחברות.";
           }
-          if (linkBox) linkBox.classList.remove("hidden");
-          if (linkText) linkText.textContent = url;
-          shareBtn.classList.add("hidden");
-          copyBtn.classList.remove("hidden");
-          if (nativeShareBtn) {
-            if (navigator.share) nativeShareBtn.classList.remove("hidden");
-            else nativeShareBtn.classList.add("hidden");
-          }
+          if (linkBox) linkBox.classList.add("hidden");
+          if (linkText) linkText.textContent = "";
+          shareBtn.classList.remove("hidden");
+          copyBtn.classList.add("hidden");
+          if (nativeShareBtn) nativeShareBtn.classList.add("hidden");
           unshareBtn.classList.remove("hidden");
           emailsSection.classList.remove("hidden");
         } else {
           status.textContent = "💾 רשימה מקומית — לא משותפת.";
           if (hint) {
             hint.textContent =
-              "לחץ על הכפתור — הרשימה תועלה לענן והקישור יועתק. שלח את הקישור (וואטסאפ/SMS) למי שאתה רוצה לשתף.";
+              "לחץ על הכפתור והזן מייל של המשתתף. הרשימה תועלה לענן ותסונכרן אוטומטית.";
           }
           if (linkBox) linkBox.classList.add("hidden");
           shareBtn.classList.remove("hidden");
@@ -5313,10 +5421,17 @@
             );
             return;
           }
+          var targetEmail = normalizeEmail(window.prompt("לאיזה מייל לשתף את הרשימה?"));
+          if (!targetEmail) return;
+          if (!/@/.test(targetEmail)) {
+            showToast("כתובת המייל לא תקינה", "error");
+            return;
+          }
+          var ownerEmail = getCurrentUserEmail();
           var reg = loadListsRegistry();
           var info = reg[listEditCurrentId];
           if (!info) return;
-          var key = "list_" + Math.random().toString(36).slice(2, 11);
+          var key = info.shareKey || ("list_" + Math.random().toString(36).slice(2, 11));
           info.shareKey = key;
           info.updatedAt = new Date().toISOString();
           saveListsRegistry(reg);
@@ -5337,11 +5452,16 @@
               listPayload = freshDefaultState();
             }
           }
-          // הוספת שם הרשימה ל-meta כדי שמקבלי הקישור יראו את השם
+          // מטא לרשימה: שם + הרשאות מייל
           if (!listPayload._meta) listPayload._meta = {};
           listPayload._meta.list_name = info.name;
-          // העלאה מיידית לענן — קריטי כדי שמשתתפים יקבלו את הנתונים בקישור
-          showToast("מעלה את הרשימה לענן...", "success");
+          var allow = Array.isArray(listPayload._meta.authorized_emails)
+            ? listPayload._meta.authorized_emails.slice()
+            : [];
+          if (ownerEmail && allow.indexOf(ownerEmail) === -1) allow.push(ownerEmail);
+          if (allow.indexOf(targetEmail) === -1) allow.push(targetEmail);
+          listPayload._meta.authorized_emails = allow;
+          showToast("משתף רשימה...", "success");
           supabaseClient
             .from("family_lists")
             .upsert(
@@ -5370,35 +5490,35 @@
                   syncCloudIfPossible();
                 }
               }
-              updateListEditShareUI();
-              renderMyLists();
-              // העתקה אוטומטית של הקישור ללוח, כדי שלא צריך 2 לחיצות
-              var shareUrl =
-                window.location.origin +
-                window.location.pathname +
-                "?list=" +
-                encodeURIComponent(key);
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(shareUrl).then(
-                  function () {
-                    showToast(
-                      "✅ הקישור הועתק! הדבק אותו בוואטסאפ/SMS למי שאתה רוצה לשתף",
-                      "success"
-                    );
-                  },
-                  function () {
-                    showToast(
-                      "הרשימה הועלתה. העתק את הקישור מתיבת הקישור למעלה",
-                      "success"
-                    );
-                  }
-                );
-              } else {
-                showToast(
-                  "הרשימה הועלתה. העתק את הקישור מתיבת הקישור למעלה",
-                  "success"
-                );
+              // שמירה מקומית של הרשימה עם המטא המעודכן
+              localStorage.setItem(LIST_STATE_PREFIX + listEditCurrentId, JSON.stringify(listPayload));
+              // רישום המשתתפים בענן (owner + invited)
+              var rows = [];
+              if (ownerEmail) {
+                rows.push({
+                  list_id: key,
+                  participant_email: ownerEmail,
+                  added_by_email: ownerEmail,
+                });
               }
+              rows.push({
+                list_id: key,
+                participant_email: targetEmail,
+                added_by_email: ownerEmail || targetEmail,
+              });
+              supabaseClient
+                .from("list_participants")
+                .upsert(rows, { onConflict: "list_id,participant_email" })
+                .then(function (membersRes) {
+                  if (membersRes.error) {
+                    showToast("הרשימה נשמרה, אבל ההזמנה נכשלה: " + membersRes.error.message, "error");
+                    return;
+                  }
+                  if (typeof syncAssignedListsFromCloud === "function") syncAssignedListsFromCloud();
+                  updateListEditShareUI();
+                  renderMyLists();
+                  showToast("הרשימה שותפה עם " + targetEmail, "success");
+                });
             });
         });
 
@@ -5448,12 +5568,44 @@
         var addEmailBtn = document.getElementById("listEditAddEmailBtn");
         var emailInp = document.getElementById("listEditEmailInput");
         if (addEmailBtn && emailInp) {
-          var addEmailFn = function () {
-            var v = (emailInp.value || "").trim().toLowerCase();
+          var addEmailFn = async function () {
+            var v = normalizeEmail(emailInp.value);
             if (!v || v.indexOf("@") === -1) { showToast("מייל לא תקין", "error"); return; }
+            if (!hasSignedInUser() || !supabaseClient) {
+              showToast("צריך להתחבר עם Google כדי לשתף לפי מייל", "error");
+              return;
+            }
+            var reg = loadListsRegistry();
+            var info = reg[listEditCurrentId];
+            if (!info) return;
+            if (!info.shareKey) {
+              showToast("הרשימה עדיין לא בענן — לחץ קודם על 'שתף לפי מייל'", "error");
+              return;
+            }
             var arr = getListEmails(listEditCurrentId);
             if (arr.indexOf(v) === -1) arr.push(v);
             setListEmails(listEditCurrentId, arr);
+            try {
+              var ownerEmail = getCurrentUserEmail();
+              var mRes = await supabaseClient
+                .from("list_participants")
+                .upsert(
+                  [{
+                    list_id: info.shareKey,
+                    participant_email: v,
+                    added_by_email: ownerEmail || v,
+                  }],
+                  { onConflict: "list_id,participant_email" }
+                );
+              if (mRes.error) {
+                showToast("הרשאה נשמרה מקומית, אבל ההזמנה נכשלה: " + mRes.error.message, "error");
+              } else {
+                showToast("המייל נוסף לשותפים", "success");
+                syncAssignedListsFromCloud();
+              }
+            } catch (e) {
+              showToast("שגיאה בהוספת מייל", "error");
+            }
             emailInp.value = "";
             renderListEditEmails();
           };
