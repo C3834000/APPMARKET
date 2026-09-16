@@ -238,6 +238,31 @@
       font-weight: 600;
     }
 
+    .header-list-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.15rem;
+    }
+
+    .header-dot-sep {
+      color: var(--color-muted);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .header-new-list {
+      background: none;
+      border: none;
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 700;
+      min-height: 32px;
+      padding: 0;
+      cursor: pointer;
+    }
+
     .screen-title {
       font-size: 1.15rem;
       font-weight: 700;
@@ -731,6 +756,81 @@
       cursor: pointer;
     }
 
+    .lm-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid var(--color-line);
+      border-radius: 14px;
+      background: var(--color-card);
+      padding: 0.2rem 0.3rem 0.2rem 0.25rem;
+    }
+    .lm-row.is-open {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+    .lm-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      min-height: 48px;
+      padding: 0 0.75rem;
+      background: none;
+      border: none;
+      text-align: right;
+      cursor: pointer;
+    }
+    .lm-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--color-text);
+    }
+    .lm-now {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .lm-row .lm-delete {
+      min-height: 40px;
+      padding: 0.4rem 0.7rem;
+      border: none;
+      background: none;
+      color: var(--color-muted);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .lists-block {
+      margin-bottom: 1.1rem;
+    }
+    .lists-block-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0 0 0.45rem;
+      color: var(--color-text);
+    }
+    .tpl-save-line {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .tpl-save-line .ui-input {
+      flex: 1;
+      margin: 0;
+    }
+    #saveTemplateBtn {
+      min-height: 44px;
+      padding: 0 1rem;
+      border-radius: 12px;
+      border: none;
+      background: var(--color-primary);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
     .more-btn-row .btn-danger {
       color: var(--color-danger);
       border-color: rgba(244, 63, 94, 0.3);
@@ -746,46 +846,49 @@
 
     .template-row {
       display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      padding: 0.7rem 0.8rem;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.15rem 0.2rem 0.15rem 0.5rem;
       border: 1px solid rgba(226, 232, 240, 0.95);
       border-radius: var(--radius-sm);
       background: var(--color-card);
     }
 
-    .template-row-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 0.5rem;
+    .template-row [data-act="use"] {
+      flex: 1;
+      text-align: right;
+      background: none;
+      border: none;
+      font-size: 16px;
+      font-weight: 800;
+      min-height: 44px;
+      cursor: pointer;
+      color: var(--color-text);
     }
-
-    .template-row-name {
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .template-row-meta {
-      font-size: 12px;
-      color: var(--color-muted);
-    }
-
-    .template-row-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-
-    .template-row-actions button {
+    .template-row [data-act="open"] {
       min-height: 40px;
-      padding: 0.4rem 0.7rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 12px;
+      border: none;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .template-row [data-act="delete"] {
+      min-height: 40px;
+      padding: 0.4rem 0.75rem;
       border-radius: 10px;
       border: 1px solid rgba(203, 213, 225, 0.95);
       background: white;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
+      color: var(--color-muted);
     }
 
     .template-name-chips {
@@ -797,26 +900,24 @@
 
     #toastContainer {
       position: fixed;
-      top: max(1rem, env(safe-area-inset-top, 0px));
+      top: max(0.6rem, env(safe-area-inset-top, 0px));
       left: 50%;
       transform: translateX(-50%);
       z-index: 300;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      width: min(92vw, 400px);
+      width: min(88vw, 280px);
       pointer-events: none;
     }
 
     .toast {
-      padding: 0.85rem 1rem;
-      border-radius: var(--radius-sm);
-      background: rgba(15, 23, 42, 0.92);
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.88);
       color: white;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
-      box-shadow: var(--app-shadow-lg);
-      animation: toastIn 0.25s ease;
+      text-align: center;
+      box-shadow: none;
+      animation: toastIn 0.2s ease;
     }
 
     .toast-success { background: rgba(6, 95, 70, 0.95); }
@@ -1586,6 +1687,11 @@
         </div>
       </div>
       <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice">₪0.00</strong></p>
+      <div class="header-list-row">
+        <button type="button" id="newEmptyListBtn" class="header-new-list">רשימה חדשה</button>
+        <span class="header-dot-sep" aria-hidden="true">·</span>
+        <button type="button" id="headerSaveTplBtn" class="header-new-list hidden">שמור כתבנית</button>
+      </div>
       <div id="shopProgressWrap" class="progress-wrap hidden">
         <div class="progress-label">
           <span id="shopProgressText">0/0 נקנו</span>
@@ -1631,10 +1737,9 @@
         <p id="templateStatus" class="text-sm text-slate-600 mb-3 px-1 hidden" role="status"></p>
         <div id="prepEmptyState" class="empty-state hidden mb-4">
           <h4>הרשימה ריקה</h4>
-          <p>הוסיפו מוצר או התחילו מתבנית</p>
+          <p>הוסיפו מוצר</p>
           <div class="flex flex-col gap-2 max-w-xs mx-auto">
             <button type="button" id="prepEmptyAddBtn" class="btn-primary">+ הוסף מוצר</button>
-            <button type="button" id="prepEmptyTemplateBtn" class="btn-secondary">התחל מתבנית</button>
           </div>
         </div>
         <div id="categoriesList" class="space-y-4"></div>
@@ -1660,10 +1765,9 @@
         <div id="shoppingList" class="shopping-list space-y-1"></div>
         <div id="shoppingListEmpty" class="empty-state hidden">
           <h4>הרשימה ריקה</h4>
-          <p>הוסיפו מוצר, התחילו מתבנית, או עברו להכנה</p>
+          <p>הוסיפו מוצר, או עברו להכנה</p>
           <div class="flex flex-col gap-2 max-w-xs mx-auto">
             <button type="button" id="emptyGoPrepBtn" class="btn-primary">עבור להכנה</button>
-            <button type="button" id="emptyLoadTemplateBtn" class="btn-secondary">התחל מתבנית</button>
           </div>
         </div>
 
@@ -1697,21 +1801,6 @@
             <button type="button" id="moreDarkBtn">מצב כהה</button>
             <button type="button" id="moreLargeTextBtn">טקסט גדול</button>
           </div>
-        </div>
-        <div class="ui-card">
-          <p class="more-section-title">תבניות</p>
-          <p id="moreTemplateStatus" class="text-sm text-slate-600 mb-3"></p>
-          <label class="field-label" for="templateNameInput">שם התבנית</label>
-          <input type="text" id="templateNameInput" class="ui-input mb-2" placeholder="לדוגמה: שבת" maxlength="32" />
-          <div class="template-name-chips">
-            <button type="button" class="chip-filter" data-tpl-suggest="שבת">שבת</button>
-            <button type="button" class="chip-filter" data-tpl-suggest="חול">חול</button>
-            <button type="button" class="chip-filter" data-tpl-suggest="חג">חג</button>
-          </div>
-          <div class="more-btn-row">
-            <button type="button" id="saveTemplateBtn">שמור כתבנית</button>
-          </div>
-          <div id="templatesList" class="mt-3 space-y-2"></div>
         </div>
         <div class="ui-card">
           <div class="more-btn-row">
@@ -1802,8 +1891,8 @@
           <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
         </div>
         <div class="mb-3">
-          <button type="button" id="createNewListBtn" class="w-full rounded-xl border border-emerald-300 bg-white py-2.5 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-50">
-            רשימה חדשה
+          <button type="button" id="createNewListBtn" class="w-full rounded-xl border bg-white py-2.5 text-sm font-semibold shadow-sm" style="border-color: var(--color-line); color: var(--color-text)">
+            רשימה ריקה חדשה
           </button>
         </div>
         <label class="mb-1 block text-sm font-semibold text-slate-800">קוד הרשימה</label>
@@ -1919,21 +2008,26 @@
     <div class="modal-content max-w-lg max-h-[88vh] overflow-y-auto">
       <span class="close-modal" data-close="listManagerModal">&times;</span>
       <h2 class="mb-3 text-xl font-extrabold text-slate-900">הרשימות שלי</h2>
+      <button type="button" id="createListBtn" class="btn-primary mb-4">רשימה חדשה</button>
+      <input type="hidden" id="newListNameInput" />
 
-      <div class="mb-4 rounded-2xl border p-3" style="border-color: var(--color-line); background: var(--color-card);">
-        <div class="mb-2 text-sm font-semibold text-emerald-900">רשימה חדשה</div>
-        <input type="text" id="newListNameInput" class="mb-2 w-full rounded-xl border border-emerald-200 bg-white p-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25" placeholder="לדוגמה: קניות לשבת" />
-        <label class="mb-1 block text-xs font-semibold text-emerald-900" for="templatePickSelect">תבנית</label>
-        <select id="templatePickSelect" class="mb-2 w-full rounded-xl border border-emerald-200 bg-white p-2 text-sm shadow-sm"></select>
-        <div class="flex flex-wrap gap-2">
-          <button type="button" id="createListBtn" class="flex-1 rounded-xl px-3 py-2 text-sm font-semibold text-white" style="background: var(--color-primary)">ריקה</button>
-          <button type="button" id="createFromTemplateBtn" class="flex-1 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 shadow-sm">מהתבנית</button>
+      <div class="lists-block">
+        <p class="lists-block-title">שמור כתבנית</p>
+        <div class="tpl-save-line">
+          <input type="text" id="templateNameInput" class="ui-input" placeholder="למשל שבת" maxlength="32" />
+          <button type="button" id="saveTemplateBtn">שמור</button>
         </div>
-        <p id="listManagerTemplateHint" class="mt-2 text-xs text-emerald-800"></p>
       </div>
 
-      <div class="mb-2 text-sm font-bold text-slate-800">הרשימות שלך</div>
-      <div id="myListsContainer" class="space-y-2"></div>
+      <div class="lists-block">
+        <p class="lists-block-title">תבניות</p>
+        <div id="templatesList" class="space-y-2"></div>
+      </div>
+
+      <div class="lists-block">
+        <p class="lists-block-title">רשימות</p>
+        <div id="myListsContainer" class="space-y-2"></div>
+      </div>
     </div>
   </div>
 
@@ -2995,47 +3089,6 @@
           });
       }
 
-      /** מסכם הבדלים בין מצב מקומי למרוחק לצורך toast נקי למשתמש */
-      function summarizeRemoteDiff(localState, remoteState) {
-        var added = 0, removed = 0, updated = 0;
-        var lastModifier = "";
-        var allCats = new Set([
-          ...Object.keys(localState.items || {}),
-          ...Object.keys(remoteState.items || {}),
-        ]);
-        allCats.forEach(function (catId) {
-          var lItems = (localState.items || {})[catId] || [];
-          var rItems = (remoteState.items || {})[catId] || [];
-          var lMap = new Map(lItems.map(function (it) { return [it.id, it]; }));
-          var rMap = new Map(rItems.map(function (it) { return [it.id, it]; }));
-          rMap.forEach(function (rit, id) {
-            var lit = lMap.get(id);
-            if (!lit) {
-              if (!rit.deleted) {
-                added++;
-                if (rit.modifiedBy) lastModifier = rit.modifiedBy;
-              }
-              return;
-            }
-            if (!lit.deleted && rit.deleted) {
-              removed++;
-              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
-              return;
-            }
-            if (lit.deleted && !rit.deleted) {
-              added++;
-              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
-              return;
-            }
-            if ((rit.mtime || 0) > (lit.mtime || 0) && !rit.deleted) {
-              updated++;
-              if (rit.modifiedBy) lastModifier = rit.modifiedBy;
-            }
-          });
-        });
-        return { added: added, removed: removed, updated: updated, modifier: lastModifier };
-      }
-
       function applyRemotePayload(payloadObj) {
         if (payloadObj == null || typeof payloadObj !== "object") return;
         if (isPayloadEffectivelyEmpty(payloadObj)) {
@@ -3074,8 +3127,6 @@
         } else {
           finalState = normalized;
         }
-        // סיכום ההבדלים להודעה ידידותית
-        var diff = summarizeRemoteDiff(state, normalized);
         applyingRemote = true;
         state = finalState;
         lastSerialized = incStr;
@@ -3111,23 +3162,6 @@
         refreshChatCategories();
         applyingRemote = false;
         updateSyncDot(true);
-        // הצגת התראה שקטה למשתמש
-        try {
-          if (pushMergedAfter) {
-            showToast(
-              "השינויים שולבו" +
-                (diff.modifier ? " עם " + diff.modifier : ""),
-              "success"
-            );
-          } else if (diff.added || diff.removed || diff.updated) {
-            var parts = [];
-            if (diff.added) parts.push(diff.added + " נוסף");
-            if (diff.updated) parts.push(diff.updated + " עודכן");
-            if (diff.removed) parts.push(diff.removed + " הוסר");
-            var who = diff.modifier ? " ע״י " + diff.modifier : "";
-            showToast("הרשימה עודכנה: " + parts.join(", ") + who, "success");
-          }
-        } catch (e) {}
         if (pushMergedAfter) {
           // הרצת push דחויה כדי לשדר את המצב הממוזג חזרה לכל המשתתפים
           if (cloudPushTimer) clearTimeout(cloudPushTimer);
@@ -3958,6 +3992,7 @@
       function showToast(msg, type) {
         var c = document.getElementById("toastContainer");
         if (!c) return;
+        c.innerHTML = "";
         var t = document.createElement("div");
         t.className = "toast" + (type === "success" ? " toast-success" : type === "error" ? " toast-error" : "");
         t.textContent = msg;
@@ -3966,8 +4001,8 @@
           t.classList.add("toast-out");
           setTimeout(function () {
             if (t.parentNode) t.parentNode.removeChild(t);
-          }, 280);
-        }, 2800);
+          }, 200);
+        }, type === "error" ? 2600 : 1600);
       }
 
       function updateNavActive(view) {
@@ -4075,16 +4110,6 @@
       }
 
       function updateMoreTemplateStatus() {
-        var el = document.getElementById("moreTemplateStatus");
-        if (!el) return;
-        var list = loadTemplates();
-        if (!list.length) {
-          el.textContent = "שמרו את הרשימה כתבנית — שבת, חול או חג.";
-          el.classList.remove("hidden");
-        } else {
-          el.textContent = "";
-          el.classList.add("hidden");
-        }
         renderTemplatesList();
         refreshTemplateActionButtons();
       }
@@ -4192,13 +4217,13 @@
       var prepEmptyTemplateBtn = document.getElementById("prepEmptyTemplateBtn");
       if (prepEmptyTemplateBtn) {
         prepEmptyTemplateBtn.addEventListener("click", function () {
-          loadWeeklyTemplate();
+          openListManager();
         });
       }
       var emptyLoadTemplateBtn = document.getElementById("emptyLoadTemplateBtn");
       if (emptyLoadTemplateBtn) {
         emptyLoadTemplateBtn.addEventListener("click", function () {
-          loadWeeklyTemplate();
+          openListManager();
         });
       }
       var moreInstallBtn = document.getElementById("moreInstallBtn");
@@ -4696,14 +4721,9 @@
       });
       }
 
-      if (els.saveTemplateBtn) {
-        els.saveTemplateBtn.addEventListener("click", () => saveWeeklyTemplate());
-      }
-      document.querySelectorAll("[data-tpl-suggest]").forEach(function (chip) {
+      document.querySelectorAll("[data-tpl-save]").forEach(function (chip) {
         chip.addEventListener("click", function () {
-          var inp = document.getElementById("templateNameInput");
-          if (inp) inp.value = chip.getAttribute("data-tpl-suggest") || "";
-          if (inp) inp.focus();
+          saveWeeklyTemplate(chip.getAttribute("data-tpl-save") || "");
         });
       });
 
@@ -4784,6 +4804,8 @@
         if (shopVisible) {
           updateShopProgress(pending, purchased, missing);
         }
+        var saveHdr = document.getElementById("headerSaveTplBtn");
+        if (saveHdr) saveHdr.classList.toggle("hidden", count === 0);
       }
 
       function categoryHeaderHtml(cat, deletable, index, total, expanded) {
@@ -4957,13 +4979,11 @@
 
       function refreshTemplateActionButtons() {
         var hasTpl = hasSavedTemplate();
-        var btn = document.getElementById("createFromTemplateBtn");
-        if (btn) btn.disabled = !hasTpl;
         fillTemplateSelect();
-        var hint = document.getElementById("listManagerTemplateHint");
-        if (hint) {
-          hint.textContent = hasTpl ? "" : "אין תבניות. שמרו אחת מ«עוד».";
-        }
+        ["prepEmptyTemplateBtn", "emptyLoadTemplateBtn"].forEach(function (id) {
+          var b = document.getElementById(id);
+          if (b) b.classList.toggle("hidden", !hasTpl);
+        });
       }
 
       function renderTemplatesList() {
@@ -4971,32 +4991,30 @@
         if (!mount) return;
         mount.innerHTML = "";
         var list = loadTemplates();
-        if (!list.length) return;
+        if (!list.length) {
+          var empty = document.createElement("p");
+          empty.className = "text-sm";
+          empty.style.color = "var(--color-muted)";
+          empty.textContent = "עדיין אין תבניות";
+          mount.appendChild(empty);
+          return;
+        }
         list.forEach(function (tpl) {
           var row = document.createElement("div");
           row.className = "template-row";
-          var when = formatTemplateWhen(tpl.savedAt);
           row.innerHTML =
-            '<div class="template-row-top">' +
-            '<span class="template-row-name">' +
-            escapeHtml(tpl.name || "תבנית") +
-            "</span>" +
-            '<span class="template-row-meta">' +
-            escapeHtml(when ? when.split(",")[0] : "") +
-            "</span></div>" +
-            '<div class="template-row-actions">' +
-            '<button type="button" data-act="create">רשימה חדשה</button>' +
-            '<button type="button" data-act="replace">החלף כאן</button>' +
-            '<button type="button" data-act="delete">מחק</button>' +
-            "</div>";
-          row.querySelector('[data-act="create"]').addEventListener("click", function () {
+            '<button type="button" data-act="use">' +
+            escapeHtml(tpl.name || "") +
+            "</button>" +
+            '<button type="button" data-act="open">פתח</button>' +
+            '<button type="button" data-act="delete">מחק</button>';
+          function openCopy() {
             createListFromTemplate(tpl.name, tpl.id);
-          });
-          row.querySelector('[data-act="replace"]').addEventListener("click", function () {
-            loadWeeklyTemplate(tpl.id);
-          });
+          }
+          row.querySelector('[data-act="use"]').addEventListener("click", openCopy);
+          row.querySelector('[data-act="open"]').addEventListener("click", openCopy);
           row.querySelector('[data-act="delete"]').addEventListener("click", function () {
-            showConfirm("מחיקת תבנית", 'למחוק את התבנית «' + tpl.name + '»?', function () {
+            showConfirm("מחיקה", 'למחוק את התבנית «' + tpl.name + '»?', function () {
               saveTemplates(
                 loadTemplates().filter(function (t) {
                   return t.id !== tpl.id;
@@ -5026,9 +5044,18 @@
         refreshTemplateActionButtons();
       }
 
-      function saveWeeklyTemplate() {
+      function saveWeeklyTemplate(forcedName) {
+        if (typeof countActiveItems === "function" && countActiveItems() === 0) {
+          showToast("אין מה לשמור. הוסיפו מוצרים קודם.", "error");
+          return;
+        }
         var inp = document.getElementById("templateNameInput");
-        var name = (inp && inp.value || "").trim() || "שבת";
+        var name = (forcedName || (inp && inp.value) || "").trim();
+        if (!name) {
+          showToast("כתבו שם לתבנית, למשל שבת", "error");
+          if (inp) inp.focus();
+          return;
+        }
         var templates = loadTemplates();
         var existing = templates.find(function (t) {
           return (t.name || "").trim() === name;
@@ -5038,68 +5065,74 @@
           categories: JSON.parse(JSON.stringify(state.categories)),
           items: JSON.parse(JSON.stringify(state.items)),
         };
-        if (existing) {
-          existing.savedAt = snap.savedAt;
-          existing.categories = snap.categories;
-          existing.items = snap.items;
-          rememberTemplate(existing.id);
-        } else {
-          var created = {
-            id: "tpl_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-            name: name,
-            savedAt: snap.savedAt,
-            categories: snap.categories,
-            items: snap.items,
-          };
-          templates.push(created);
-          rememberTemplate(created.id);
+        clearShopSessionFlags(snap);
+        function writeTpl() {
+          if (existing) {
+            existing.savedAt = snap.savedAt;
+            existing.categories = snap.categories;
+            existing.items = snap.items;
+            rememberTemplate(existing.id);
+          } else {
+            var created = {
+              id: "tpl_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+              name: name,
+              savedAt: snap.savedAt,
+              categories: snap.categories,
+              items: snap.items,
+            };
+            templates.push(created);
+            rememberTemplate(created.id);
+          }
+          saveTemplates(templates);
+          updateTemplateBanner();
+          updateMoreTemplateStatus();
+          if (inp) inp.value = "";
+          showToast("התבנית «" + name + "» נשמרה", "success");
         }
-        saveTemplates(templates);
-        updateTemplateBanner();
-        updateMoreTemplateStatus();
-        showToast('התבנית «' + name + '» נשמרה', "success");
+        if (existing) {
+          showConfirm("לעדכן תבנית?", "יש כבר תבנית «" + name + "». לעדכן אותה?", writeTpl);
+          return;
+        }
+        writeTpl();
       }
 
       function loadWeeklyTemplate(templateId) {
         var tpl = templateId ? getTemplateById(templateId) : getPreferredTemplate();
         if (!tpl) {
-          showToast("אין תבנית. שמרו אחת מ«עוד».", "error");
+          showToast("עדיין לא שמרתם רשימה", "error");
           return;
         }
-        var currentName = typeof getCurrentListName === "function" ? getCurrentListName() : "הרשימה הפתוחה";
-        showConfirm(
-          "להחליף את הרשימה?",
-          "הפריטים ב«" +
-            currentName +
-            "» יוחלפו בתבנית «" +
-            tpl.name +
-            "».",
-          function () {
-            const merged = snapshotFromTemplate(tpl.id);
-            if (!merged) {
-              showToast("התבנית לא תקינה", "error");
-              return;
-            }
-            state.categories = merged.categories;
-            state.items = merged.items;
-            if (merged._meta) state._meta = merged._meta;
-            saveState();
-            renderPrepCategories();
-            renderShopView();
-            updateSummary();
-            refreshCategorySelect();
-            refreshChatCategories();
-            updateTemplateBanner();
-            updateMoreTemplateStatus();
-            showToast("הוחלף בתבנית «" + tpl.name + "»", "success");
+        function applyTpl() {
+          const merged = snapshotFromTemplate(tpl.id);
+          if (!merged) {
+            showToast("התבנית לא תקינה", "error");
+            return;
           }
-        );
+          state.categories = merged.categories;
+          state.items = merged.items;
+          if (merged._meta) state._meta = merged._meta;
+          saveState();
+          renderPrepCategories();
+          renderShopView();
+          updateSummary();
+          refreshCategorySelect();
+          refreshChatCategories();
+          updateTemplateBanner();
+          updateMoreTemplateStatus();
+          closeModal("listManagerModal");
+          showToast("נפתח: " + tpl.name, "success");
+        }
+        if (typeof countActiveItems === "function" && countActiveItems() === 0) {
+          applyTpl();
+          return;
+        }
+        showConfirm("לפתוח את " + tpl.name + "?", "הרשימה שעל המסך תוחלף.", applyTpl);
       }
 
       function createListFromTemplate(name, templateId) {
         var tpl = templateId ? getTemplateById(templateId) : getPreferredTemplate();
         if (!tpl) {
-          showToast("אין תבנית. שמרו אחת מ«עוד».", "error");
+          showToast("עדיין לא שמרתם רשימה", "error");
           return;
         }
         var snapshot = snapshotFromTemplate(tpl.id);
@@ -5107,7 +5140,7 @@
           showToast("התבנית לא תקינה", "error");
           return;
         }
-        var listName = (name || "").trim() || tpl.name || "קניות מתבנית";
+        var listName = nextWorkingListName((name || "").trim() || tpl.name || "קניות");
         if (typeof saveCurrentStateToActiveList === "function") {
           saveCurrentStateToActiveList();
         }
@@ -5121,7 +5154,7 @@
         };
         saveListsRegistry(reg);
         localStorage.setItem(LIST_STATE_PREFIX + newId, JSON.stringify(snapshot));
-        showToast('נוצרה רשימה «' + listName + '» מתבנית «' + tpl.name + '»', "success");
+        showToast("נפתחה רשימה מ«" + tpl.name + "». התבנית לא משתנה.", "success");
         switchToListId(newId);
       }
 
@@ -5763,8 +5796,20 @@
 
       function openListManager() {
         renderMyLists();
-        refreshTemplateActionButtons();
+        updateMoreTemplateStatus();
         openModal("listManagerModal");
+      }
+
+      function openSaveTemplateFromHeader() {
+        if (typeof countActiveItems === "function" && countActiveItems() === 0) {
+          showToast("אין מה לשמור. הוסיפו מוצרים קודם.", "error");
+          return;
+        }
+        openListManager();
+        setTimeout(function () {
+          var inp = document.getElementById("templateNameInput");
+          if (inp) inp.focus();
+        }, 50);
       }
 
       function renderMyLists() {
@@ -5786,48 +5831,23 @@
         ids.forEach(function (id) {
           var info = reg[id];
           var isActive = id === activeId;
-          var isShared = !!info.shareKey;
           var card = document.createElement("div");
-          card.className =
-            "rounded-xl border p-2.5 " +
-            (isActive
-              ? "border-teal-400 bg-teal-50/80 ring-2 ring-teal-300"
-              : "border-slate-200 bg-white hover:bg-slate-50");
+          card.className = "lm-row" + (isActive ? " is-open" : "");
           card.innerHTML =
-            '<div class="flex items-center justify-between gap-2 mb-2">' +
-            '<div class="flex items-center gap-2 min-w-0">' +
-            (isActive
-              ? '<span class="text-teal-600 text-base">●</span>'
-              : '<span class="text-slate-300 text-base">○</span>') +
-            '<span class="font-semibold text-sm text-slate-900 truncate">' +
+            '<button type="button" class="lm-main">' +
+            '<span class="lm-name">' +
             escapeHtml(info.name) +
             "</span>" +
-            (isShared
-              ? '<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-sky-800">משותף</span>'
-              : "") +
-            "</div>" +
-            (isActive
-              ? '<span class="shrink-0 text-[10px] text-teal-700 font-bold">פתוח</span>'
-              : '<button type="button" class="lm-switch shrink-0 rounded-lg bg-teal-500 px-2 py-1 text-xs font-semibold text-white">פתח</button>') +
-            "</div>" +
-            '<div class="flex flex-wrap gap-1.5 mt-1">' +
-            '<button type="button" class="lm-edit rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">עריכה</button>' +
-            '<button type="button" class="lm-duplicate rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">שכפל</button>' +
-            (isShared
-              ? '<button type="button" class="lm-copylink rounded-lg bg-sky-100 px-2 py-1 text-[11px] text-sky-800 hover:bg-sky-200">העתק קישור</button>'
-              : "") +
-            '<button type="button" class="lm-delete rounded-lg bg-rose-50 px-2 py-1 text-[11px] text-rose-700 hover:bg-rose-100">מחק</button>' +
-            "</div>";
-
-          var sw = card.querySelector(".lm-switch");
-          if (sw) sw.addEventListener("click", function () { switchToListId(id); });
-
-          card.querySelector(".lm-edit").addEventListener("click", function () { openListEdit(id); });
-          card.querySelector(".lm-duplicate").addEventListener("click", function () { duplicateList(id); });
-          card.querySelector(".lm-delete").addEventListener("click", function () { deleteList(id); });
-          var copyBtn = card.querySelector(".lm-copylink");
-          if (copyBtn) copyBtn.addEventListener("click", function () { copyShareUrlForList(id); });
-
+            (isActive ? '<span class="lm-now">עכשיו</span>' : "") +
+            "</button>" +
+            '<button type="button" class="lm-delete">מחק</button>';
+          card.querySelector(".lm-main").addEventListener("click", function () {
+            if (isActive) openListEdit(id);
+            else switchToListId(id);
+          });
+          card.querySelector(".lm-delete").addEventListener("click", function () {
+            deleteList(id);
+          });
           container.appendChild(card);
         });
       }
@@ -5969,14 +5989,50 @@
         }
       }
 
-      function createNewListPrompt() {
-        var inp = document.getElementById("newListNameInput");
-        var name = (inp && inp.value || "").trim();
-        if (!name) {
-          showToast("נא להזין שם לרשימה", "error");
-          if (inp) inp.focus();
+      function nextEmptyListName() {
+        var reg = loadListsRegistry();
+        var used = {};
+        Object.keys(reg).forEach(function (id) {
+          used[(reg[id].name || "").trim()] = true;
+        });
+        if (!used["רשימה ריקה"]) return "רשימה ריקה";
+        var n = 2;
+        while (used["רשימה ריקה " + n]) n++;
+        return "רשימה ריקה " + n;
+      }
+
+      function nextWorkingListName(base) {
+        var label = (base || "קניות").trim() || "קניות";
+        var reg = loadListsRegistry();
+        var used = {};
+        Object.keys(reg).forEach(function (id) {
+          used[(reg[id].name || "").trim()] = true;
+        });
+        if (!used[label]) return label;
+        var n = 2;
+        while (used[label + " " + n]) n++;
+        return label + " " + n;
+      }
+
+      function startFreshEmptyList() {
+        if (typeof countActiveItems === "function" && countActiveItems() === 0) {
+          showToast("הרשימה הזאת כבר ריקה. אפשר להוסיף מוצרים.", "info");
+          if (typeof closeModal === "function") closeModal("listManagerModal");
           return;
         }
+        var currentName = typeof getCurrentListName === "function" ? getCurrentListName() : "הרשימה הפתוחה";
+        showConfirm(
+          "רשימה חדשה",
+          "לפתוח רשימה ריקה? «" + currentName + "» תישמר ברשימות.",
+          function () {
+            createNewListPrompt();
+          }
+        );
+      }
+
+      function createNewListPrompt() {
+        var inp = document.getElementById("newListNameInput");
+        var name = (inp && inp.value || "").trim() || nextEmptyListName();
         // שמור מצב נוכחי קודם
         saveCurrentStateToActiveList();
 
@@ -6224,9 +6280,22 @@
           });
         });
         var createBtn = document.getElementById("createListBtn");
-        if (createBtn) createBtn.addEventListener("click", createNewListPrompt);
-        var createFromTplBtn = document.getElementById("createFromTemplateBtn");
-        if (createFromTplBtn) createFromTplBtn.addEventListener("click", createListFromTemplatePrompt);
+        if (createBtn) createBtn.addEventListener("click", startFreshEmptyList);
+        var headerNewBtn = document.getElementById("newEmptyListBtn");
+        if (headerNewBtn) headerNewBtn.addEventListener("click", startFreshEmptyList);
+        var headerSaveTpl = document.getElementById("headerSaveTplBtn");
+        if (headerSaveTpl) headerSaveTpl.addEventListener("click", openSaveTemplateFromHeader);
+        var saveTplBtn = document.getElementById("saveTemplateBtn");
+        if (saveTplBtn) saveTplBtn.addEventListener("click", function () { saveWeeklyTemplate(); });
+        var tplNameInp = document.getElementById("templateNameInput");
+        if (tplNameInp) {
+          tplNameInp.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              saveWeeklyTemplate();
+            }
+          });
+        }
         var newListInp = document.getElementById("newListNameInput");
         if (newListInp) {
           newListInp.addEventListener("keydown", function (e) {
