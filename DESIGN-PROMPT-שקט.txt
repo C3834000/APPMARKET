@@ -1,0 +1,89 @@
+העתק הכל מתחת לקו והדבק ב-ChatGPT.
+אם רוצים תמונה: כתבו בהתחלה «צור תמונה» ואז את הפרומפט.
+אם רוצים כמה מסכים: אחרי התמונה הראשונה שלחו «עכשיו אותו סגנון, מסך הכנה».
+
+================================================================================
+
+Create a photorealistic iPhone 15 Pro UI mockup of an existing Hebrew RTL family shopping-list app, redesigned in a 2026 “Quiet grocery” visual language. Not a new product. Same app, new look.
+
+Generate TWO phone screens side by side on a clean light desk, each 390×844, Hebrew right-to-left, real Heebo / SF-like Hebrew lettering (not garbled, not mirrored Latin). No English UI except the tiny Google G.
+
+PRODUCT (keep exactly)
+- Israeli family shopping list PWA
+- Modes: הכנה (build list at home) · קניות (shop in supermarket) · רשימות · עוד
+- Flow must stay: prep → shop → finish
+- Features that must appear: catalog categories with food emoji, prices in ₪, WhatsApp-style share, Google sign-in avatar, family chat FAB
+- Do NOT add new tabs, maps, recipes, stores, or AI chat
+
+VISUAL DIRECTION — QUIET (this is the look)
+- Paper-white / warm off-white background #F6F4F0. NO teal-amber page gradient. NO glassmorphism rainbow. NO neon.
+- Flat surfaces, lots of air, hairline 1px separators instead of cards-inside-cards
+- One accent only: deep olive-teal #1F6F64 for the single primary action
+- Purchased = soft sage. Missing = soft rose. Everything else stays neutral
+- Soft 16–20px corner radius, almost no shadow (or a whisper of shadow)
+- Typography: Hebrew, large and calm. Item names 18–20px semibold. No ultra-black 800 weights everywhere
+- Food emoji ONLY on grocery categories (🥬 ירקות, 🥛 חלב). System buttons are simple outline icons, no emoji
+- No pulsing buttons, no glossy gradients on CTAs, no “SaaS dashboard” look
+- Inspiration: Apple Reminders + AnyList, 2026, Israeli home, supermarket one-handed use
+
+SCREEN 1 — קניות (most important, left or first)
+Thin header, RTL:
+- Right: list name «קניות לשבת»
+- Tiny status dot (olive = shared)
+- Left: send icon + small round user photo
+- Under header: quiet progress “7/12 נקנו” + thin bar 58% + “בעגלה ₪86 · נשאר ₪42”
+- NO crowded chip row. NO “מקומי” pill. NO big teal share pill.
+
+Content:
+- Optional slim search “חפש או הוסף מוצר…” — one field, no category dropdown jammed beside it
+- Two quiet text filters: «לפי קטגוריה» selected, «לפי סדר הרשימה»
+- Category header: 🥬 ירקות ופירות
+- Large shop rows, min-height 56px, tap-the-row feel:
+  empty 44px circle + עגבניות · 1 ק״ג · ₪8.90
+  empty circle + מלפפונים · 1 ק״ג · ₪6.90
+  filled sage circle + check + חסה (purchased, name struck through, muted)
+- Missing row faintly rose: לחם, with a small “חסר”
+- Collapsed quiet zones at bottom: נקנו 3 · חסר 1
+- Full-width solid olive bar above the tab bar: «סיום קניות» (no cart emoji, no gradient)
+- Bottom tabs, 4 items RTL: עוד · קניות (selected) · הכנה · רשימות — outline icons, selected = olive tint, not a loud pill
+- Small circular chat button bottom-left (start side in RTL), speech-outline icon, no emoji balloon clutter
+
+SCREEN 2 — הכנה (right or second)
+Same quiet chrome.
+- Title «קניות לשבת · הכנה»
+- Search row: one field + a small + 
+- Open category 🥬 ירקות ופירות with 2 items:
+  עגבניות, stepper − 1 +, price ₪8.90, tiny note
+  מלפפונים, same
+- Other categories collapsed as simple rows (not heavy colored cards): 🥛 חלב, 🥐 מאפה
+- Header summary as small muted text only: 2 פריטים · ₪15.80
+
+ALSO SHOW (tiny, if space)
+- Status language: shared list = olive dot, not the words “ענן / מקומי / Supabase”
+
+DO NOT
+- Do not invent English screens
+- Do not flip Hebrew letters
+- Do not use Inter/Roboto Latin as fake Hebrew
+- Do not add illustrations of food photos filling the screen
+- Do not make it look like Instacart, WhatsApp, or a supermarket chain app
+- Do not use teal-to-mint gradients, amber washes, or glowing buttons
+
+Output: one high-fidelity photorealistic mockup, two iPhones, quiet 2026 Israeli family app. If you can only draw one phone, draw קניות.
+
+================================================================================
+פרומפט קצר לסיבוב שני (מסך עוד / רשימות)
+================================================================================
+
+Same Quiet visual system, same Hebrew RTL iPhone mockup.
+
+Screen «רשימות»:
+- Title הרשימות שלי
+- New list block: name field «קניות לשבת», template picker שבת / חול, two buttons ריקה | מהתבנית
+- One list row: קניות לשבת · פתוח · tiny “משותף” text, actions עריכה שכפל מחק
+- No cloud/local badges, no emoji buttons, paper background, olive primary
+
+Then screen «עוד»:
+- Quiet settings list: שיתוף, מצב כהה, טקסט גדול
+- Templates: name field, chips שבת חול חג, button שמור כתבנית
+- Danger at bottom as text button נקה רשימה, not a red screaming card
