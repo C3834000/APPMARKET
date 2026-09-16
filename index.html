@@ -722,6 +722,64 @@
       background: rgba(255, 241, 242, 0.6);
     }
 
+    .more-btn-row button:disabled,
+    #createFromTemplateBtn:disabled,
+    #loadTemplateBtn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .template-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: var(--radius-sm);
+      background: var(--color-card);
+    }
+
+    .template-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .template-row-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .template-row-meta {
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .template-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .template-row-actions button {
+      min-height: 40px;
+      padding: 0.4rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(203, 213, 225, 0.95);
+      background: white;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .template-name-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
     #toastContainer {
       position: fixed;
       top: max(1rem, env(safe-area-inset-top, 0px));
@@ -813,6 +871,61 @@
     .item-row:hover {
       background-color: rgba(255, 255, 255, 0.95);
       box-shadow: 0 2px 12px -4px rgba(15, 23, 42, 0.08);
+    }
+
+    .prep-item-row.prep-item-purchased {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.35) !important;
+    }
+
+    .prep-item-row.prep-item-purchased .prep-name {
+      text-decoration: line-through;
+      color: #047857;
+    }
+
+    .prep-item-row.prep-item-missing {
+      background: rgba(244, 63, 94, 0.08);
+      border-color: rgba(251, 113, 133, 0.4) !important;
+    }
+
+    .prep-status-pill {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      line-height: 1.4;
+    }
+
+    .prep-status-pill.bought {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .prep-status-pill.miss {
+      background: #ffe4e6;
+      color: #9f1239;
+    }
+
+    .checkout-totals {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 0.45rem;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .checkout-totals .checkout-cart {
+      color: #047857;
+    }
+
+    .checkout-totals .checkout-left {
+      color: var(--color-muted);
+    }
+
+    html.theme-dark .checkout-totals .checkout-cart {
+      color: #6ee7b7;
     }
 
     .item-focus-note.edited {
@@ -1458,10 +1571,10 @@
   <div class="max-w-3xl mx-auto app-shell">
     <div class="app-header sticky-header" id="appHeader">
       <div class="header-top">
-        <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">מקומי</span>
+        <span id="syncStatusDot" class="status-chip bg-slate-100 text-slate-600" title="">רק אצלך</span>
         <button type="button" id="presenceChip" class="presence-chip hidden" title="משתתפים מחוברים כעת" aria-label="הצג משתתפים מחוברים"><span class="presence-dot"></span><span id="presenceCount">1</span></button>
         <p id="headerSummary" class="header-summary"><strong id="totalItems">0</strong> · <span id="itemsStatus">0 נקנו</span> · <strong id="totalPrice" class="text-emerald-600">₪0.00</strong></p>
-        <button type="button" id="quickShareBtn" class="quick-share-btn shrink-0" title="שתף את הרשימה הזו לפי מייל" aria-label="שתף רשימה">📤 <span class="qsb-text">שתף למייל</span></button>
+        <button type="button" id="quickShareBtn" class="quick-share-btn shrink-0" title="שלח את הרשימה בוואטסאפ" aria-label="שלח למשפחה">📤 <span class="qsb-text">שלח למשפחה</span></button>
         <div class="flex items-center gap-1 shrink-0">
           <button type="button" id="googleSignInHeader" class="btn-secondary text-sm min-h-[44px] px-3 py-2 inline-flex items-center gap-1">
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -1483,6 +1596,10 @@
         </div>
         <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="shopProgressBar">
           <div id="shopProgressFill" class="progress-fill"></div>
+        </div>
+        <div id="checkoutTotals" class="checkout-totals" aria-live="polite">
+          <span id="checkoutCart" class="checkout-cart">בעגלה ₪0.00</span>
+          <span id="checkoutLeft" class="checkout-left">נשאר ₪0.00</span>
         </div>
       </div>
       <button type="button" id="syncSettingsBtn" class="hidden" aria-hidden="true"></button>
@@ -1514,13 +1631,13 @@
             <div id="searchResults" class="search-results hidden"></div>
           </div>
         </div>
-        <p id="templateStatus" class="text-sm text-slate-600 mb-3 px-1 hidden"></p>
+        <p id="templateStatus" class="text-sm text-slate-600 mb-3 px-1 hidden" role="status"></p>
         <div id="prepEmptyState" class="empty-state hidden mb-4">
-          <h4>הרשימה עדיין ריקה</h4>
-          <p>אפשר להתחיל ממוצר ראשון או לטעון תבנית קבועה</p>
+          <h4>הרשימה ריקה</h4>
+          <p>הוסיפו מוצר או התחילו מתבנית</p>
           <div class="flex flex-col gap-2 max-w-xs mx-auto">
             <button type="button" id="prepEmptyAddBtn" class="btn-primary">+ הוסף מוצר</button>
-            <button type="button" id="prepEmptyTemplateBtn" class="btn-secondary">טען תבנית שבת</button>
+            <button type="button" id="prepEmptyTemplateBtn" class="btn-secondary">התחל מתבנית</button>
           </div>
         </div>
         <div id="categoriesList" class="space-y-4"></div>
@@ -1545,11 +1662,11 @@
 
         <div id="shoppingList" class="shopping-list space-y-1"></div>
         <div id="shoppingListEmpty" class="empty-state hidden">
-          <h4>הרשימה עדיין ריקה</h4>
-          <p>אפשר להתחיל ממוצר ראשון, לטעון תבנית, או לעבור למצב הכנה</p>
+          <h4>הרשימה ריקה</h4>
+          <p>הוסיפו מוצר, התחילו מתבנית, או עברו להכנה</p>
           <div class="flex flex-col gap-2 max-w-xs mx-auto">
             <button type="button" id="emptyGoPrepBtn" class="btn-primary">עבור להכנה</button>
-            <button type="button" id="emptyLoadTemplateBtn" class="btn-secondary">טען תבנית שבת</button>
+            <button type="button" id="emptyLoadTemplateBtn" class="btn-secondary">התחל מתבנית</button>
           </div>
         </div>
 
@@ -1571,31 +1688,37 @@
       <!-- More panel -->
       <div id="moreModeContainer" class="more-panel hidden">
         <div id="moreCloudBanner" class="ui-card cloud-banner border-sky-200/80 bg-gradient-to-br from-sky-50 to-blue-50/70 hidden">
-          <h4>הרשימה נשמרת במכשיר</h4>
-          <p id="moreCloudBannerText">כדי לשתף עם המשפחה, התחבר לענן</p>
+          <h4>עדיין לא שיתפת</h4>
+          <p id="moreCloudBannerText">התחברו כדי לשלוח את הרשימה למשפחה</p>
           <button type="button" id="moreCloudSignInBtn" class="btn-primary">התחברות עם Google</button>
         </div>
         <div class="ui-card">
           <p class="more-section-title">הגדרות</p>
           <div class="more-btn-row">
-            <button type="button" id="moreSyncBtn">☁️ שיתוף וענן</button>
-            <button type="button" id="moreInstallBtn" class="hidden">📲 התקנה על מסך הבית</button>
-            <button type="button" id="moreDarkBtn">🌙 מצב כהה</button>
-            <button type="button" id="moreLargeTextBtn">🔤 טקסט גדול</button>
+            <button type="button" id="moreSyncBtn">שיתוף</button>
+            <button type="button" id="moreInstallBtn" class="hidden">הוסף למסך הבית</button>
+            <button type="button" id="moreDarkBtn">מצב כהה</button>
+            <button type="button" id="moreLargeTextBtn">טקסט גדול</button>
           </div>
         </div>
         <div class="ui-card">
-          <p class="more-section-title">תבנית שבועית</p>
+          <p class="more-section-title">תבניות</p>
           <p id="moreTemplateStatus" class="text-sm text-slate-600 mb-3"></p>
-          <div class="more-btn-row">
-            <button type="button" id="saveTemplateBtn">💾 שמור תבנית מהרשימה</button>
-            <button type="button" id="loadTemplateBtn">📥 טען תבנית לרשימה</button>
+          <label class="field-label" for="templateNameInput">שם התבנית</label>
+          <input type="text" id="templateNameInput" class="ui-input mb-2" placeholder="לדוגמה: שבת" maxlength="32" />
+          <div class="template-name-chips">
+            <button type="button" class="chip-filter" data-tpl-suggest="שבת">שבת</button>
+            <button type="button" class="chip-filter" data-tpl-suggest="חול">חול</button>
+            <button type="button" class="chip-filter" data-tpl-suggest="חג">חג</button>
           </div>
+          <div class="more-btn-row">
+            <button type="button" id="saveTemplateBtn">שמור כתבנית</button>
+          </div>
+          <div id="templatesList" class="mt-3 space-y-2"></div>
         </div>
         <div class="ui-card">
-          <p class="more-section-title">פעולות מסוכנות</p>
           <div class="more-btn-row">
-            <button type="button" id="resetBtn" class="btn-danger">🔄 איפוס רשימה</button>
+            <button type="button" id="resetBtn" class="btn-danger">נקה רשימה</button>
           </div>
         </div>
       </div>
@@ -1633,17 +1756,17 @@
       <span class="close-modal" data-close="onboardingModal" aria-label="סגור">&times;</span>
       <div id="onboardingSlide1">
         <h2 id="onboardingTitle" class="text-xl font-extrabold mb-2">בונים רשימה בבית</h2>
-        <p class="text-slate-600 mb-4 leading-relaxed">מוסיפים מוצרים, כמויות, מחירים והערות — ומארגנים לפי קטגוריות.</p>
+        <p class="text-slate-600 mb-4 leading-relaxed">מוסיפים מוצרים, כמויות ומחירים.</p>
         <button type="button" id="onboardingNext1" class="btn-primary">הבא</button>
       </div>
       <div id="onboardingSlide2" class="hidden">
         <h2 class="text-xl font-extrabold mb-2">קונים בסופר</h2>
-        <p class="text-slate-600 mb-4 leading-relaxed">מסמנים בלחיצה אחת מה נקנה ומה חסר — נוח ביד אחת.</p>
+        <p class="text-slate-600 mb-4 leading-relaxed">לוחצים על מה שנקנה ועל מה שחסר.</p>
         <button type="button" id="onboardingNext2" class="btn-primary">הבא</button>
       </div>
       <div id="onboardingSlide3" class="hidden">
         <h2 class="text-xl font-extrabold mb-2">משתפים עם המשפחה</h2>
-        <p class="text-slate-600 mb-4 leading-relaxed">כולם רואים עדכונים בזמן אמת — דרך ענן וצ׳אט.</p>
+        <p class="text-slate-600 mb-4 leading-relaxed">שולחים קישור — כולם רואים את אותה רשימה.</p>
         <div class="flex flex-col gap-2">
           <button type="button" id="onboardingStart" class="btn-primary">התחל עכשיו</button>
           <button type="button" id="onboardingSkip" class="btn-secondary">דלג</button>
@@ -1655,53 +1778,51 @@
   <div id="syncModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
     <div class="modal-content max-h-[85vh] overflow-y-auto">
       <span class="close-modal" data-close="syncModal" aria-label="סגור">&times;</span>
-      <h2 id="syncModalTitle" class="mb-4 text-xl font-extrabold text-slate-800">שיתוף וענן</h2>
+      <h2 id="syncModalTitle" class="mb-2 text-xl font-extrabold text-slate-800">שיתוף עם המשפחה</h2>
+      <p class="mb-4 text-sm text-slate-600">התחברו, ואז שלחו קישור מהכפתור למעלה.</p>
 
-      <div id="recentListsSection" class="mb-4 hidden">
-        <p class="mb-2 text-sm font-bold text-slate-800">מזהים אחרונים במכשיר</p>
-        <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <div class="mb-4 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-teal-50/80 p-4 shadow-sm">
-        <p class="mb-3 text-sm font-bold text-emerald-950">רשימה חדשה (מזהה חדש)</p>
-        <button type="button" id="createNewListBtn" class="w-full rounded-xl border-2 border-emerald-600/80 bg-white py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50">
-          צור רשימה חדשה
-        </button>
-      </div>
       <div class="mb-4 rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50 to-blue-50/70 p-4 shadow-sm">
-        <p class="mb-3 text-sm font-bold text-slate-900">התחברות לענן</p>
+        <p class="mb-3 text-sm font-bold text-slate-900">התחברות</p>
         <button type="button" id="googleSignInModal" class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50">
           <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
           התחבר עם Google
         </button>
         <p id="authStatusLine" class="mt-2 min-h-[1.25rem] text-xs text-slate-600"></p>
       </div>
-      <label class="mb-1 block text-sm font-semibold text-slate-800">מזהה הרשימה (בקישור השיתוף)</label>
-      <div class="mb-2 flex flex-wrap gap-2">
-        <input type="text" id="shareKeyInput" class="min-w-[200px] flex-1 rounded-xl border border-slate-200 bg-white p-2.5 font-mono text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל list_abc123" dir="ltr" autocomplete="off" />
-        <button type="button" id="generateShareKeyBtn" class="whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-100">מזהה אקראי</button>
-        <button type="button" id="copyShareLinkBtn" class="whitespace-nowrap rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100">העתק קישור שיתוף</button>
-      </div>
-      <label class="mb-1 block text-sm font-semibold text-slate-800">שם מוצג בצ׳אט</label>
-      <input type="text" id="displayNameInput" class="mb-4 w-full rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל: אשתי / דני" maxlength="24" />
+      <label class="mb-1 block text-sm font-semibold text-slate-800">השם שלכם בצ׳אט</label>
+      <input type="text" id="displayNameInput" class="mb-4 w-full rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="למשל: דני" maxlength="24" />
 
-      <div class="mb-4 rounded-2xl border border-amber-200/80 bg-amber-50/70 p-4 shadow-sm">
-        <p class="mb-2 text-sm font-bold text-amber-950">🔒 גישה לרשימה לפי מייל</p>
-        <p class="mb-3 text-xs text-amber-800">
-          הוסף כתובות מייל של אנשים שמורשים לגשת לרשימה הזו. אם הרשימה ריקה — כל מי שיש לו את הקישור יכול לגשת.
-        </p>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" id="copyShareLinkBtn" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100">העתק קישור</button>
+        <button type="button" id="syncDisconnectBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">התנתק</button>
+        <button type="button" id="syncSaveBtn" class="rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 hover:from-teal-500 hover:to-teal-600">שמור</button>
+      </div>
+      <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
+
+      <details class="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+        <summary class="cursor-pointer text-sm font-semibold text-slate-700">אפשרויות נוספות</summary>
+        <div id="recentListsSection" class="mt-3 mb-3 hidden">
+          <p class="mb-2 text-sm font-bold text-slate-800">רשימות אחרונות</p>
+          <div id="recentListsChips" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mb-3">
+          <button type="button" id="createNewListBtn" class="w-full rounded-xl border border-emerald-300 bg-white py-2.5 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-50">
+            רשימה חדשה
+          </button>
+        </div>
+        <label class="mb-1 block text-sm font-semibold text-slate-800">קוד הרשימה</label>
+        <div class="mb-3 flex flex-wrap gap-2">
+          <input type="text" id="shareKeyInput" class="min-w-[200px] flex-1 rounded-xl border border-slate-200 bg-white p-2.5 font-mono text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="יווצר אוטומטית" dir="ltr" autocomplete="off" />
+          <button type="button" id="generateShareKeyBtn" class="whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-100">קוד חדש</button>
+        </div>
+        <p class="mb-2 text-sm font-bold text-slate-800">מי יכול לראות</p>
+        <p class="mb-3 text-xs text-slate-600">הוסיפו מייל של בן משפחה. בלי מיילים — כל מי שיש לו את הקישור יכול להיכנס.</p>
         <div class="mb-2 flex gap-2">
-          <input type="email" id="authorizedEmailInput" class="flex-1 rounded-xl border border-slate-200 bg-white p-2 text-sm shadow-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/25" placeholder="user@example.com" dir="ltr" />
+          <input type="email" id="authorizedEmailInput" class="flex-1 rounded-xl border border-slate-200 bg-white p-2 text-sm shadow-sm focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/25" placeholder="מייל" dir="ltr" />
           <button type="button" id="addAuthorizedEmailBtn" class="whitespace-nowrap rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-600">הוסף</button>
         </div>
         <div id="authorizedEmailsList" class="flex flex-wrap gap-2"></div>
-      </div>
-
-      <div class="flex flex-wrap justify-end gap-2">
-        <button type="button" id="syncDisconnectBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">נתק ענן</button>
-        <button type="button" id="syncSaveBtn" class="rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 hover:from-teal-500 hover:to-teal-600">שמור והתחבר לרשימה</button>
-      </div>
-      <p id="syncError" class="text-sm text-red-600 mt-3 hidden"></p>
+      </details>
     </div>
   </div>
 
@@ -1750,11 +1871,11 @@
       <h2 class="mb-4 text-xl font-extrabold text-slate-900">הוספת קטגוריה חדשה</h2>
       <div class="mb-4">
         <label for="newCategoryName" class="mb-2 block text-sm font-semibold text-slate-800">שם הקטגוריה:</label>
-        <input type="text" id="newCategoryName" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="הזן שם קטגוריה..." />
+        <input type="text" id="newCategoryName" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="שם הקטגוריה" />
       </div>
       <div class="mb-4">
         <label for="newCategoryEmoji" class="mb-2 block text-sm font-semibold text-slate-800">אייקון:</label>
-        <input type="text" id="newCategoryEmoji" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="הזן אימוג'י..." maxlength="8" />
+        <input type="text" id="newCategoryEmoji" class="w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" placeholder="🥬" maxlength="8" />
       </div>
       <div class="mt-4 flex justify-end">
         <button type="button" id="addNewCategoryBtn" class="rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 px-5 py-2.5 font-semibold text-white shadow-md shadow-teal-900/20 ring-1 ring-white/20 hover:from-teal-500 hover:to-teal-600">הוסף קטגוריה</button>
@@ -1765,8 +1886,7 @@
   <div id="catalogEditModal" class="modal">
     <div class="modal-content max-w-md">
       <span class="close-modal" data-close="catalogEditModal">&times;</span>
-      <h2 class="mb-3 text-xl font-extrabold text-slate-900">עריכת מוצר במאגר</h2>
-      <p class="mb-3 text-xs text-slate-500">השינויים נשמרים במכשיר בלבד (מחיר משוער ממוצע בשוק — להתאמה אישית).</p>
+      <h2 class="mb-3 text-xl font-extrabold text-slate-900">עריכת מוצר</h2>
       <label class="mb-1 block text-sm font-semibold text-slate-800">שם המוצר</label>
       <input type="text" id="catalogEditName" class="mb-3 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="rtl" />
       <label class="mb-1 block text-sm font-semibold text-slate-800">מחיר משוער (₪)</label>
@@ -1785,11 +1905,11 @@
           </select>
         </div>
       </div>
-      <label class="mb-1 block text-sm font-semibold text-slate-800">מחיר מבצע (₪, אופציונלי)</label>
+      <label class="mb-1 block text-sm font-semibold text-slate-800">מחיר מבצע (₪)</label>
       <input type="number" id="catalogEditPromoPrice" min="0" step="0.01" class="mb-2 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="ltr" />
       <p id="catalogEditUnitInfo" class="mb-2 text-xs text-slate-600"></p>
       <p id="catalogEditPromoInfo" class="mb-3 text-xs font-semibold"></p>
-      <label class="mb-1 block text-sm font-semibold text-slate-800">הערה (מותג, יחידה, גודל…)</label>
+      <label class="mb-1 block text-sm font-semibold text-slate-800">הערה</label>
       <input type="text" id="catalogEditNote" class="mb-4 w-full rounded-xl border border-slate-200 p-2.5 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" dir="rtl" placeholder="למשל: טרה 1 ליטר" />
       <div class="flex justify-end gap-2">
         <button type="button" id="catalogEditCancelBtn" class="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300">ביטול</button>
@@ -1802,20 +1922,22 @@
   <div id="listManagerModal" class="modal">
     <div class="modal-content max-w-lg max-h-[88vh] overflow-y-auto">
       <span class="close-modal" data-close="listManagerModal">&times;</span>
-      <h2 class="mb-3 text-xl font-extrabold text-slate-900">📋 הרשימות שלי</h2>
+      <h2 class="mb-3 text-xl font-extrabold text-slate-900">הרשימות שלי</h2>
 
       <div class="mb-4 rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-teal-50/80 p-3">
-        <div class="mb-2 text-sm font-semibold text-emerald-900">➕ רשימה חדשה</div>
-        <div class="flex gap-2">
-          <input type="text" id="newListNameInput" class="flex-1 rounded-xl border border-emerald-200 bg-white p-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25" placeholder="לדוגמה: קניות לשבת" />
-          <button type="button" id="createListBtn" class="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md">צור</button>
+        <div class="mb-2 text-sm font-semibold text-emerald-900">רשימה חדשה</div>
+        <input type="text" id="newListNameInput" class="mb-2 w-full rounded-xl border border-emerald-200 bg-white p-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/25" placeholder="לדוגמה: קניות לשבת" />
+        <label class="mb-1 block text-xs font-semibold text-emerald-900" for="templatePickSelect">תבנית</label>
+        <select id="templatePickSelect" class="mb-2 w-full rounded-xl border border-emerald-200 bg-white p-2 text-sm shadow-sm"></select>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="createListBtn" class="flex-1 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-md">ריקה</button>
+          <button type="button" id="createFromTemplateBtn" class="flex-1 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 shadow-sm">מהתבנית</button>
         </div>
+        <p id="listManagerTemplateHint" class="mt-2 text-xs text-emerald-800"></p>
       </div>
 
       <div class="mb-2 text-sm font-bold text-slate-800">הרשימות שלך</div>
       <div id="myListsContainer" class="space-y-2"></div>
-
-      <p id="listShareNote" class="hidden mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"></p>
     </div>
   </div>
 
@@ -1829,24 +1951,24 @@
       <input type="text" id="listEditNameInput" class="mb-3 w-full rounded-xl border border-slate-200 p-2 text-sm shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-400/25" />
 
       <div id="listEditShareSection" class="mb-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3">
-        <p class="mb-2 text-sm font-semibold text-sky-900">🔗 שיתוף בענן</p>
-        <p id="listEditShareStatus" class="mb-2 text-xs text-sky-800">רשימה מקומית — לא משותפת.</p>
-        <p id="listEditShareHint" class="mb-2 text-[11px] text-sky-700/80 leading-snug">לחץ על הכפתור, הזן מייל של משתתף — והוא יקבל את הרשימה אוטומטית אחרי התחברות.</p>
+        <p class="mb-2 text-sm font-semibold text-sky-900">שיתוף עם המשפחה</p>
+        <p id="listEditShareStatus" class="mb-2 text-xs text-sky-800">עדיין לא שותפה</p>
+        <p id="listEditShareHint" class="mb-2 text-[11px] text-sky-700/80 leading-snug">שלחו קישור בוואטסאפ.</p>
         <div id="listEditShareLinkBox" class="hidden mb-2 rounded-lg border border-emerald-300 bg-white p-2">
-          <p class="mb-1 text-[11px] font-semibold text-emerald-900">📎 קישור השיתוף:</p>
+          <p class="mb-1 text-[11px] font-semibold text-emerald-900">הקישור</p>
           <p id="listEditShareLinkText" class="break-all text-[11px] font-mono text-emerald-800 leading-tight" dir="ltr"></p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <button type="button" id="listEditShareBtn" class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">📤 שתף לפי מייל</button>
-          <button type="button" id="listEditCopyLinkBtn" class="hidden rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-50">📋 העתק קישור שוב</button>
-          <button type="button" id="listEditNativeShareBtn" class="hidden rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100">📲 שלח</button>
+          <button type="button" id="listEditNativeShareBtn" class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-600">שלח בוואטסאפ</button>
+          <button type="button" id="listEditCopyLinkBtn" class="rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-50">העתק קישור</button>
+          <button type="button" id="listEditShareBtn" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50">הזמן לפי מייל</button>
           <button type="button" id="listEditUnshareBtn" class="hidden rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-900 shadow-sm hover:bg-rose-50">בטל שיתוף</button>
         </div>
       </div>
 
       <details id="listEditEmailsSection" class="mb-3 hidden rounded-xl border border-amber-200 bg-amber-50/70 p-3">
-        <summary class="cursor-pointer text-sm font-semibold text-amber-900">👥 משתתפים נוספים לפי מייל</summary>
-        <p class="mt-2 mb-2 text-xs text-amber-800">הוסף כאן עוד מיילים שיקבלו גישה לרשימה הזו. לאחר התחברות הם יראו אותה אוטומטית.</p>
+        <summary class="cursor-pointer text-sm font-semibold text-amber-900">הוספה לפי מייל</summary>
+        <p class="mt-2 mb-2 text-xs text-amber-800">הוסיפו מייל של בן משפחה.</p>
         <div class="mb-2 flex gap-2">
           <input type="email" id="listEditEmailInput" class="flex-1 rounded-lg border border-amber-200 bg-white p-1.5 text-xs shadow-sm" placeholder="user@example.com" dir="ltr" />
           <button type="button" id="listEditAddEmailBtn" class="rounded-lg bg-amber-500 px-2 py-1.5 text-xs font-semibold text-white">הוסף</button>
@@ -1871,6 +1993,8 @@
       const LS_CLIENT = "shoppingList_client_v1";
       const LS_CATALOG = "shoppingList_catalogOverrides_v1";
       const LS_TEMPLATE = "shoppingList_weekly_template_v1";
+      const LS_TEMPLATES = "shoppingList_templates_v2";
+      const LS_LAST_TEMPLATE = "shoppingList_last_template_id_v1";
       const LS_CHAT_HANDLED = "shoppingList_chatHandled_v1";
 
       const DEFAULT_META = [
@@ -1935,8 +2059,8 @@
         if (txt) {
           txt.textContent =
             hasSignedInUser() && !shareKey
-              ? "מחובר — פתח שיתוף וענן כדי לקשר רשימה משותפת"
-              : "כדי לשתף עם המשפחה, התחבר לענן";
+              ? "לחצו «שלח למשפחה» כדי לשתף את הרשימה"
+              : "התחברו כדי לשלוח את הרשימה למשפחה";
         }
       }
 
@@ -2665,7 +2789,37 @@
 
       function saveState() {
         saveStateLocalOnly();
+        persistOpenListCopy();
         scheduleCloudPush();
+      }
+
+      function persistOpenListCopy() {
+        try {
+          if (typeof saveCurrentStateToActiveList === "function") {
+            saveCurrentStateToActiveList();
+          }
+        } catch (e) {}
+      }
+
+      function itemEffectiveUnitPrice(it) {
+        var regular = Math.max(0, Number(it && it.price) || 0);
+        var promo = Math.max(0, Number(it && it.promoPrice) || 0);
+        return promo > 0 && promo < regular ? promo : regular;
+      }
+
+      function itemLineTotal(it) {
+        var q = Math.max(0, Number(it && it.quantity) || 0);
+        return q * itemEffectiveUnitPrice(it);
+      }
+
+      function clearShopSessionFlags(st) {
+        Object.keys((st && st.items) || {}).forEach(function (cid) {
+          ((st.items && st.items[cid]) || []).forEach(function (it) {
+            if (!it) return;
+            it.sessionPurchased = false;
+            it.sessionMissing = false;
+          });
+        });
       }
 
       function getClientId() {
@@ -2691,19 +2845,19 @@
         if (!el) return;
         const user = hasSignedInUser();
         if (shareKey && supabaseClient && user) {
-          el.textContent = errMsg ? "⚠ שגיאה" : "☁ מחובר";
+          el.textContent = errMsg ? "⚠ שגיאה" : "משותף";
           el.className = errMsg
             ? "status-chip bg-red-100 text-red-800 shrink-0"
             : "status-chip bg-emerald-100 text-emerald-800 shrink-0";
-          el.title = errMsg || "מחובר לסנכרון בענן";
+          el.title = errMsg || "משותף עם המשפחה";
         } else if (user && !shareKey) {
-          el.textContent = "ללא";
+          el.textContent = "לא שותף";
           el.className = "status-chip bg-amber-100 text-amber-900 shrink-0";
-          el.title = "אין רשימה פעילה";
+          el.title = "לחצו שלח למשפחה";
         } else {
-          el.textContent = "מקומי";
+          el.textContent = "רק אצלך";
           el.className = "status-chip bg-slate-100 text-slate-600 shrink-0";
-          el.title = "ללא חיבור לענן";
+          el.title = "עדיין לא שותף";
         }
       }
 
@@ -2793,12 +2947,7 @@
       function signInWithGoogle() {
         if (!tryInitSupabase()) {
           var cfgMissing = !window.__SHOPPING_LIST_SUPABASE__;
-          showToast(
-            cfgMissing
-              ? "חסר קובץ supabase-config.js — ב-Netlify הגדר SUPABASE_URL ו-SUPABASE_ANON_KEY ופרוס מחדש"
-              : "הגדרות Supabase לא תקינות — בדוק את supabase-config.js",
-            "error"
-          );
+          showToast("אין חיבור כרגע. נסו שוב מאוחר יותר.", "error");
           return;
         }
         var redirectUrl = window.location.origin + window.location.pathname;
@@ -2825,7 +2974,7 @@
               window.location.assign(res.data.url);
               return;
             }
-            showToast("לא התקבל קישור מ-Google — בדוק ב-Supabase שה-Provider מופעל", "error");
+            showToast("ההתחברות נכשלה. נסו שוב.", "error");
           })
           .catch(function (e) {
             console.error(e);
@@ -2934,6 +3083,7 @@
         state = finalState;
         lastSerialized = incStr;
         saveStateLocalOnly();
+        persistOpenListCopy();
         // עדכון שם הרשימה ברישום אם הגיע מ-_meta
         try {
           var nameFromMeta =
@@ -2968,7 +3118,7 @@
         try {
           if (pushMergedAfter) {
             showToast(
-              "🔀 שינויים בו-זמניים שולבו" +
+              "השינויים שולבו" +
                 (diff.modifier ? " עם " + diff.modifier : ""),
               "success"
             );
@@ -2978,7 +3128,7 @@
             if (diff.updated) parts.push(diff.updated + " עודכן");
             if (diff.removed) parts.push(diff.removed + " הוסר");
             var who = diff.modifier ? " ע״י " + diff.modifier : "";
-            showToast("🔄 עדכון מהענן: " + parts.join(", ") + who, "success");
+            showToast("הרשימה עודכנה: " + parts.join(", ") + who, "success");
           }
         } catch (e) {}
         if (pushMergedAfter) {
@@ -3142,7 +3292,7 @@
         box.innerHTML = "";
         if (!rows || !rows.length) {
           box.innerHTML =
-            '<p class="text-center text-slate-500 text-base py-10 px-4 leading-relaxed">כאן המשפחה יכולה לעדכן מה חסר — שלחו הודעה ראשונה</p>';
+            '<p class="text-center text-slate-500 text-base py-10 px-4 leading-relaxed">שלחו הודעה ראשונה</p>';
           return;
         }
         const myId = getClientId();
@@ -3198,7 +3348,7 @@
             addItemByName(txt, catId);
             setChatHandled(msgKey, true);
             loadChatMessagesFromDb();
-            showToast("ההודעה נוספה כרכיב קניה", "success");
+            showToast("נוסף לרשימה", "success");
           });
           const markBtn = document.createElement("button");
           markBtn.type = "button";
@@ -3282,22 +3432,22 @@
         const h = document.getElementById("chatHint");
         if (!h) return;
         if (!hasSignedInUser()) {
-          h.textContent = "💡 לשיתוף וצ'אט משפחתי: התחבר עם Google";
+          h.textContent = "התחברו כדי לפתוח צ'אט עם המשפחה";
           h.classList.remove("hidden");
           return;
         }
         if (!shareKey) {
-          h.textContent = "💡 לצ'אט משפחתי: צור מזהה רשימה בלחצן 'שיתוף'";
+          h.textContent = "לחצו «שלח למשפחה» כדי לפתוח צ'אט";
           h.classList.remove("hidden");
           return;
         }
         if (!supabaseClient) {
-          h.textContent = "⚠️ אין חיבור לענן - בדוק הגדרות Supabase";
+          h.textContent = "אין חיבור כרגע. נסו שוב מאוחר יותר.";
           h.classList.remove("hidden");
           return;
         }
-        h.textContent = "💬 צ'אט משפחתי פעיל - ההודעות נשמרות בענן";
-        h.classList.remove("hidden");
+        h.textContent = "";
+        h.classList.add("hidden");
       }
 
       function stopListeners() {
@@ -3547,16 +3697,51 @@
         return window.location.origin + window.location.pathname + "?list=" + encodeURIComponent(key);
       }
 
+      function buildShareUrlFromKey(key) {
+        if (!key || !/^[a-zA-Z0-9_-]{6,80}$/.test(key)) return "";
+        return window.location.origin + window.location.pathname + "?list=" + encodeURIComponent(key);
+      }
+
+      function openWhatsAppShare(name, url) {
+        var title = name || "רשימת קניות";
+        var text = "הצטרפו לרשימת הקניות \"" + title + "\":\n" + url;
+        function fallback() {
+          var wa = "https://wa.me/?text=" + encodeURIComponent(text);
+          var w = window.open(wa, "_blank");
+          if (!w) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(
+                function () {
+                  showToast("הקישור הועתק — הדביקו בוואטסאפ", "success");
+                },
+                function () {
+                  window.prompt("העתיקו ושלחו בוואטסאפ:", text);
+                }
+              );
+            } else {
+              window.prompt("העתיקו ושלחו בוואטסאפ:", text);
+            }
+          }
+        }
+        if (navigator.share) {
+          navigator.share({ title: title, text: text, url: url }).catch(function () {
+            fallback();
+          });
+          return;
+        }
+        fallback();
+      }
+
       function copyShareLinkToClipboard() {
         var url = buildShareUrlForCurrentList();
         if (!url) {
-          showToast("אין מזהה רשימה תקין — צור רשימה או הזן מזהה", "error");
+          showToast("אין עדיין קישור. לחצו קודם «שלח למשפחה».", "error");
           return;
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(
             function () {
-              showToast("הקישור הועתק — אפשר לשלוח בווטסאפ", "success");
+              showToast("הקישור הועתק", "success");
             },
             function () {
               window.prompt("העתק את הקישור:", url);
@@ -3606,7 +3791,7 @@
       function runCreateNewList() {
         showConfirm(
           "רשימה חדשה",
-          "נוצרת רשימה ריקה חדשה עם קישור שיתוף ייעודי. הרשימה הקודמת נשמרת תחת 'הרשימות שלי' ולא נמחקת. להמשיך?",
+          "תיפתח רשימה ריקה. הרשימה הנוכחית נשמרת ב«רשימות».",
           function () {
             stopListeners();
             // שמירה של המצב הקיים תחת הרשימה הפעילה
@@ -3676,11 +3861,10 @@
       function verifySupabaseReachable() {
         var cfg = getSupabaseConfig();
         if (!cfg || !cfg.url || !cfg.anonKey) return;
-        var host;
         try {
-          host = new URL(cfg.url).hostname;
+          new URL(cfg.url);
         } catch (e) {
-          showToast("כתובת Supabase לא תקינה ב-supabase-config.js", "error");
+          showToast("אין חיבור כרגע. נסו שוב מאוחר יותר.", "error");
           return;
         }
         fetch(cfg.url + "/auth/v1/health", {
@@ -3690,16 +3874,11 @@
         })
           .then(function (res) {
             if (!res.ok) {
-              showToast("Supabase לא מגיב — בדוק בדשבורד שהפרויקט פעיל", "error");
+              showToast("אין חיבור כרגע. נסו שוב מאוחר יותר.", "error");
             }
           })
           .catch(function () {
-            showToast(
-              "לא מתחבר ל-Supabase (" +
-                host +
-                ") — הפרויקט נמחק/מושהה או כתובת שגויה ב-Netlify. עדכן SUPABASE_URL מ-Dashboard",
-              "error"
-            );
+            showToast("אין חיבור כרגע. נסו שוב מאוחר יותר.", "error");
           });
       }
 
@@ -3863,7 +4042,6 @@
           found.sessionMissing = false;
           touchItem(found);
           saveState();
-          showToast("הפריט עבר לנקנו", "success");
           renderShopView();
         }
       }
@@ -3879,20 +4057,21 @@
           found.sessionPurchased = false;
           touchItem(found);
           saveState();
-          showToast("סומן כחסר", "success");
           renderShopView();
         }
       }
 
       function updateShopProgress(pending, purchased, missing) {
         var total = pending + purchased + missing;
-        var done = purchased + missing;
-        var pct = total ? Math.round((done / total) * 100) : 0;
+        var pct = total ? Math.round((purchased / total) * 100) : 0;
         var txt = document.getElementById("shopProgressText");
         var pctEl = document.getElementById("shopProgressPct");
         var fill = document.getElementById("shopProgressFill");
         var bar = document.getElementById("shopProgressBar");
-        if (txt) txt.textContent = done + "/" + total + " נקנו";
+        var label = purchased + "/" + total + " נקנו";
+        if (missing) label += " · " + missing + " חסר";
+        if (pending) label += " · " + pending + " נשארו";
+        if (txt) txt.textContent = label;
         if (pctEl) pctEl.textContent = pct + "%";
         if (fill) fill.style.width = pct + "%";
         if (bar) bar.setAttribute("aria-valuenow", String(pct));
@@ -3901,23 +4080,16 @@
       function updateMoreTemplateStatus() {
         var el = document.getElementById("moreTemplateStatus");
         if (!el) return;
-        try {
-          var raw = localStorage.getItem(LS_TEMPLATE);
-          if (!raw) {
-            el.textContent = "עדיין לא נשמרה תבנית שבועית.";
-            return;
-          }
-          var data = JSON.parse(raw);
-          var t = "";
-          if (data.savedAt) {
-            try {
-              t = new Date(data.savedAt).toLocaleString("he-IL");
-            } catch (e2) {}
-          }
-          el.textContent = t ? "תבנית שמורה — עודכנה: " + t : "יש תבנית שמורה במכשיר.";
-        } catch (e) {
-          el.textContent = "לא ניתן לקרוא את נתוני התבנית.";
+        var list = loadTemplates();
+        if (!list.length) {
+          el.textContent = "שמרו את הרשימה כתבנית — שבת, חול או חג.";
+          el.classList.remove("hidden");
+        } else {
+          el.textContent = "";
+          el.classList.add("hidden");
         }
+        renderTemplatesList();
+        refreshTemplateActionButtons();
       }
 
       function initThemeAndText() {
@@ -4248,98 +4420,111 @@
         presenceChipEl.addEventListener("click", () => showPresenceParticipants());
       }
 
-      /** כפתור שיתוף פשוט: מזינים מייל -> הרשימה משותפת לו אוטומטית (בלי קישור) */
-      async function quickShareList() {
+      async function ensureCloudShareForList(listId) {
         if (!hasSignedInUser() || !supabaseClient) {
-          showToast("התחבר עם Google כדי לשתף את הרשימה", "error");
-          return;
+          showToast("התחברו ואז לחצו שוב לשליחה", "error");
+          return null;
         }
-        var targetEmail = normalizeEmail(window.prompt("לאיזה מייל לשתף את הרשימה?"));
-        if (!targetEmail) return;
-        if (!/@/.test(targetEmail)) {
-          showToast("כתובת המייל לא תקינה", "error");
-          return;
+        var ownerEmail = getCurrentUserEmail();
+        var activeId = getActiveListId();
+        var targetId = listId || activeId;
+        var reg = loadListsRegistry();
+        var info = reg[targetId];
+        if (!info) {
+          if (!targetId) {
+            targetId = generateListId();
+            setActiveListId(targetId);
+          }
+          info = {
+            name: getCurrentListName() || "רשימת קניות",
+            shareKey: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          reg[targetId] = info;
         }
-        try {
-          var ownerEmail = getCurrentUserEmail();
-          var activeId = getActiveListId();
-          var reg = loadListsRegistry();
-          var info = reg[activeId];
-          if (!info) {
-            if (!activeId) {
-              activeId = generateListId();
-              setActiveListId(activeId);
-            }
-            info = {
-              name: "רשימת קניות",
-              shareKey: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            };
-            reg[activeId] = info;
+        if (!info.shareKey) {
+          info.shareKey = "list_" + Math.random().toString(36).slice(2, 11);
+        }
+        info.updatedAt = new Date().toISOString();
+        saveListsRegistry(reg);
+
+        var listPayload = null;
+        if (targetId === activeId) {
+          listPayload = state;
+        } else {
+          try {
+            var raw = localStorage.getItem(LIST_STATE_PREFIX + targetId);
+            listPayload = raw ? JSON.parse(raw) : freshDefaultState();
+          } catch (e) {
+            listPayload = freshDefaultState();
           }
-          // ודא שיש list_id קבוע לענן
-          if (!info.shareKey) {
-            info.shareKey = "list_" + Math.random().toString(36).slice(2, 11);
-          }
-          info.updatedAt = new Date().toISOString();
-          saveListsRegistry(reg);
-          // שמור payload עם מטא-נתוני הרשאה ושם רשימה
-          if (!state._meta) state._meta = {};
-          state._meta.list_name = info.name || "רשימת קניות";
-          var allow = Array.isArray(state._meta.authorized_emails)
-            ? state._meta.authorized_emails.slice()
-            : [];
-          if (ownerEmail && allow.indexOf(ownerEmail) === -1) allow.push(ownerEmail);
-          if (allow.indexOf(targetEmail) === -1) allow.push(targetEmail);
-          state._meta.authorized_emails = allow;
+        }
+        if (!listPayload._meta) listPayload._meta = {};
+        listPayload._meta.list_name = info.name || "רשימת קניות";
+        var allow = Array.isArray(listPayload._meta.authorized_emails)
+          ? listPayload._meta.authorized_emails.slice()
+          : [];
+        if (ownerEmail && allow.indexOf(ownerEmail) === -1) allow.push(ownerEmail);
+        listPayload._meta.authorized_emails = allow;
+
+        if (targetId === activeId) {
+          state = listPayload;
           saveStateLocalOnly();
+          persistOpenListCopy();
           localStorage.setItem(LS_SHARE, info.shareKey);
           shareKey = info.shareKey;
-          showToast("משתף רשימה...", "success");
-          var upsertList = await supabaseClient
-            .from("family_lists")
-            .upsert(
+        } else {
+          localStorage.setItem(LIST_STATE_PREFIX + targetId, JSON.stringify(listPayload));
+        }
+
+        var upsertList = await supabaseClient.from("family_lists").upsert(
+          {
+            list_id: info.shareKey,
+            payload: listPayload,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "list_id" }
+        );
+        if (upsertList.error) {
+          showToast("השיתוף נכשל. נסו שוב.", "error");
+          return null;
+        }
+        if (ownerEmail) {
+          await supabaseClient.from("list_participants").upsert(
+            [
               {
                 list_id: info.shareKey,
-                payload: state,
-                updated_at: new Date().toISOString(),
+                participant_email: ownerEmail,
+                added_by_email: ownerEmail,
               },
-              { onConflict: "list_id" }
-            );
-          if (upsertList.error) {
-            showToast("שגיאה בשיתוף: " + upsertList.error.message, "error");
-            return;
-          }
-          // רשום משתתפים בטבלת חברות (owner + invited)
-          var membersRows = [];
-          if (ownerEmail) {
-            membersRows.push({
-              list_id: info.shareKey,
-              participant_email: ownerEmail,
-              added_by_email: ownerEmail,
-            });
-          }
-          membersRows.push({
-            list_id: info.shareKey,
-            participant_email: targetEmail,
-            added_by_email: ownerEmail || targetEmail,
-          });
-          var upsertMembers = await supabaseClient
-            .from("list_participants")
-            .upsert(membersRows, { onConflict: "list_id,participant_email" });
-          if (upsertMembers.error) {
-            showToast("הרשימה נשמרה, אבל ההזמנה נכשלה: " + upsertMembers.error.message, "error");
-            return;
-          }
+            ],
+            { onConflict: "list_id,participant_email" }
+          );
+        }
+        if (targetId === activeId) {
           lastSerialized = JSON.stringify(state);
           if (typeof syncCloudIfPossible === "function") syncCloudIfPossible();
-          if (typeof syncAssignedListsFromCloud === "function") syncAssignedListsFromCloud();
-          updateQuickShareUI();
-          showToast("הרשימה שותפה עם " + targetEmail, "success");
-        } catch (err) {
-          showToast("שגיאה: " + (err.message || String(err)), "error");
         }
+        return {
+          listId: targetId,
+          name: info.name || "רשימת קניות",
+          shareKey: info.shareKey,
+          url: buildShareUrlFromKey(info.shareKey),
+        };
+      }
+
+      async function shareListToWhatsApp(listId) {
+        var ready = await ensureCloudShareForList(listId);
+        if (!ready || !ready.url) return;
+        openWhatsAppShare(ready.name, ready.url);
+        updateQuickShareUI();
+        if (typeof updateListEditShareUI === "function") updateListEditShareUI();
+        showToast("הקישור מוכן לשליחה", "success");
+      }
+
+      async function quickShareList() {
+        await shareListToWhatsApp(getActiveListId());
       }
 
       /** מעדכן את הסטייל של כפתור השיתוף לפי מצב הרשימה */
@@ -4351,14 +4536,14 @@
         var info = reg[activeId];
         if (info && info.shareKey) {
           btn.classList.add("shared");
-          btn.title = "הרשימה משותפת — לחץ כדי לשתף לפי מייל נוסף";
+          btn.title = "הרשימה משותפת — לחצו שוב כדי לשלוח בוואטסאפ";
           var txt = btn.querySelector(".qsb-text");
-          if (txt) txt.textContent = "שתף למייל נוסף";
+          if (txt) txt.textContent = "שלח שוב";
         } else {
           btn.classList.remove("shared");
-          btn.title = "שתף את הרשימה הזו לפי מייל";
+          btn.title = "שלח את הרשימה בוואטסאפ";
           var txt2 = btn.querySelector(".qsb-text");
-          if (txt2) txt2.textContent = "שתף למייל";
+          if (txt2) txt2.textContent = "שלח למשפחה";
         }
       }
 
@@ -4391,7 +4576,7 @@
           if (els.syncError) els.syncError.classList.add("hidden");
           if (!hasSignedInUser()) {
             if (els.syncError) {
-              els.syncError.textContent = "יש להתחבר עם Google כדי לשתף את הרשימה עם המשפחה.";
+              els.syncError.textContent = "התחברו כדי לשתף את הרשימה.";
               els.syncError.classList.remove("hidden");
             }
             return;
@@ -4399,8 +4584,7 @@
           const key = (els.shareKeyInput && els.shareKeyInput.value.trim()) || "";
           if (!/^[a-zA-Z0-9_-]{6,80}$/.test(key)) {
             if (els.syncError) {
-              els.syncError.textContent =
-                "המזהה חייב להיות 6–80 תווים: אנגלית, מספרים, מקף וקו תחתון בלבד.";
+              els.syncError.textContent = "קוד הרשימה לא תקין. לחצו «קוד חדש».";
               els.syncError.classList.remove("hidden");
             }
             return;
@@ -4414,8 +4598,7 @@
           lastSerialized = "";
           if (!tryInitSupabase()) {
             if (els.syncError) {
-              els.syncError.textContent =
-                "לא נמצא Supabase. מלא ב-supabase-config.js את ה-URL וה-anon key מ-Project Settings → API.";
+              els.syncError.textContent = "אין חיבור כרגע. נסו שוב מאוחר יותר.";
               els.syncError.classList.remove("hidden");
             }
             return;
@@ -4501,8 +4684,7 @@
 
       if (els.resetBtn) {
       els.resetBtn.addEventListener("click", () => {
-        showConfirm("איפוס רשימה", "למחוק את כל הרשימה ולהתחיל מחדש?", () => {
-          showConfirm("אישור סופי", "פעולה זו לא ניתנת לביטול. לאשר?", () => {
+        showConfirm("נקה רשימה", "למחוק את כל הפריטים מהרשימה?", () => {
             state.categories = DEFAULT_META.map((c) => ({ ...c }));
             state.items = {};
             DEFAULT_META.forEach((c) => {
@@ -4512,8 +4694,7 @@
             renderPrepCategories();
             renderShopView();
             updateSummary();
-            showToast("הרשימה אופסה", "success");
-          });
+            showToast("הרשימה נוקתה", "success");
         });
       });
       }
@@ -4521,9 +4702,13 @@
       if (els.saveTemplateBtn) {
         els.saveTemplateBtn.addEventListener("click", () => saveWeeklyTemplate());
       }
-      if (els.loadTemplateBtn) {
-        els.loadTemplateBtn.addEventListener("click", () => loadWeeklyTemplate());
-      }
+      document.querySelectorAll("[data-tpl-suggest]").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          var inp = document.getElementById("templateNameInput");
+          if (inp) inp.value = chip.getAttribute("data-tpl-suggest") || "";
+          if (inp) inp.focus();
+        });
+      });
 
       function syncShopFlagsFromItems() {
         Object.keys(state.items).forEach((cid) => {
@@ -4553,39 +4738,52 @@
         let pending = 0;
         let unitSum = 0;
         let sum = 0;
+        let cartSum = 0;
+        let remainingSum = 0;
         const shopVisible = currentView === "shop";
 
         state.categories.forEach((cat) => {
           ensureCategoryItems(cat.id);
           getActiveItems(cat.id).forEach((it) => {
             const q = Math.max(0, Number(it.quantity) || 0);
-            const p = parseFloat(it.price) || 0;
+            const line = itemLineTotal(it);
             if (q > 0) {
               count += 1;
               unitSum += q;
-              sum += q * p;
-            }
-            if (shopVisible && q > 0) {
+              sum += line;
               if (it.sessionPurchased) {
                 marked += 1;
                 purchased += 1;
+                cartSum += line;
               } else if (it.sessionMissing) {
                 marked += 1;
                 missing += 1;
               } else {
                 pending += 1;
+                remainingSum += line;
               }
             }
           });
         });
 
-        if (els.totalItems) els.totalItems.textContent = count;
+        if (els.totalItems) els.totalItems.textContent = shopVisible ? pending : count;
         if (els.itemsStatus) {
-          els.itemsStatus.textContent = shopVisible
-            ? marked + "✓"
-            : unitSum + " יח׳";
+          if (shopVisible) {
+            els.itemsStatus.textContent = purchased + " נקנו";
+          } else if (purchased || missing) {
+            els.itemsStatus.textContent =
+              purchased + " נקנו" + (missing ? " · " + missing + " חסר" : "");
+          } else {
+            els.itemsStatus.textContent = unitSum + " יח׳";
+          }
         }
-        if (els.totalPrice) els.totalPrice.textContent = "₪" + sum.toFixed(2);
+        if (els.totalPrice) {
+          els.totalPrice.textContent = "₪" + (shopVisible ? cartSum : sum).toFixed(2);
+        }
+        var cartEl = document.getElementById("checkoutCart");
+        var leftEl = document.getElementById("checkoutLeft");
+        if (cartEl) cartEl.textContent = "בעגלה ₪" + cartSum.toFixed(2);
+        if (leftEl) leftEl.textContent = "נשאר ₪" + remainingSum.toFixed(2);
         if (shopVisible) {
           updateShopProgress(pending, purchased, missing);
         }
@@ -4647,63 +4845,247 @@
         renderPrepCategories();
       }
 
-      function updateTemplateBanner() {
-        const el = document.getElementById("templateStatus");
-        if (!el) return;
+      function migrateOldTemplateOnce() {
+        if (localStorage.getItem(LS_TEMPLATES)) return;
         try {
-          const raw = localStorage.getItem(LS_TEMPLATE);
+          var raw = localStorage.getItem(LS_TEMPLATE);
           if (!raw) {
-            el.textContent =
-              'עדיין לא נשמרה תבנית. סדרו את רשימת השבת הקבועה שלכם ולחצו "שמור תבנית מהרשימה".';
+            localStorage.setItem(LS_TEMPLATES, "[]");
             return;
           }
-          const data = JSON.parse(raw);
-          var t = "";
-          if (data.savedAt) {
-            try {
-              t = new Date(data.savedAt).toLocaleString("he-IL");
-            } catch (e2) {}
+          var data = JSON.parse(raw);
+          if (data && Array.isArray(data.categories)) {
+            localStorage.setItem(
+              LS_TEMPLATES,
+              JSON.stringify([
+                {
+                  id: "tpl_legacy",
+                  name: "שבת",
+                  savedAt: data.savedAt || new Date().toISOString(),
+                  categories: data.categories,
+                  items: data.items,
+                },
+              ])
+            );
+          } else {
+            localStorage.setItem(LS_TEMPLATES, "[]");
           }
-          el.textContent = t
-            ? "תבנית שמורה במכשיר — עודכנה לאחרונה: " + t + ". אפשר לערוך את הרשימה בכל עת ולשמור תבנית מחדש."
-            : "יש תבנית שמורה. טעינה מחליפה את הרשימה הנוכחית (כולל במצב מחובר לענן).";
         } catch (e) {
-          el.textContent = "לא ניתן לקרוא את נתוני התבנית.";
+          localStorage.setItem(LS_TEMPLATES, "[]");
         }
       }
 
+      function loadTemplates() {
+        migrateOldTemplateOnce();
+        try {
+          var raw = localStorage.getItem(LS_TEMPLATES);
+          var arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveTemplates(arr) {
+        localStorage.setItem(LS_TEMPLATES, JSON.stringify(arr || []));
+      }
+
+      function hasSavedTemplate() {
+        return loadTemplates().length > 0;
+      }
+
+      function getTemplateById(id) {
+        return loadTemplates().find(function (t) {
+          return t && t.id === id;
+        }) || null;
+      }
+
+      function getPreferredTemplate() {
+        var list = loadTemplates();
+        if (!list.length) return null;
+        var last = localStorage.getItem(LS_LAST_TEMPLATE) || "";
+        return getTemplateById(last) || list.find(function (t) { return t.name === "שבת"; }) || list[0];
+      }
+
+      function rememberTemplate(id) {
+        if (id) localStorage.setItem(LS_LAST_TEMPLATE, id);
+      }
+
+      function formatTemplateWhen(savedAt) {
+        if (!savedAt) return "";
+        try {
+          return new Date(savedAt).toLocaleString("he-IL");
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function snapshotFromTemplate(templateId) {
+        var tpl = templateId ? getTemplateById(templateId) : getPreferredTemplate();
+        if (!tpl) return null;
+        rememberTemplate(tpl.id);
+        var merged = normalizeState({ categories: tpl.categories, items: tpl.items });
+        clearShopSessionFlags(merged);
+        return merged;
+      }
+
+      function fillTemplateSelect() {
+        var sel = document.getElementById("templatePickSelect");
+        if (!sel) return;
+        var list = loadTemplates();
+        var keep = sel.value;
+        var preferred = getPreferredTemplate();
+        sel.innerHTML = "";
+        if (!list.length) {
+          var empty = document.createElement("option");
+          empty.value = "";
+          empty.textContent = "אין תבניות שמורות";
+          sel.appendChild(empty);
+          sel.disabled = true;
+          return;
+        }
+        sel.disabled = false;
+        list.forEach(function (t) {
+          var o = document.createElement("option");
+          o.value = t.id;
+          o.textContent = t.name;
+          sel.appendChild(o);
+        });
+        if (keep && list.some(function (t) { return t.id === keep; })) {
+          sel.value = keep;
+        } else if (preferred) {
+          sel.value = preferred.id;
+        }
+      }
+
+      function refreshTemplateActionButtons() {
+        var hasTpl = hasSavedTemplate();
+        var btn = document.getElementById("createFromTemplateBtn");
+        if (btn) btn.disabled = !hasTpl;
+        fillTemplateSelect();
+        var hint = document.getElementById("listManagerTemplateHint");
+        if (hint) {
+          hint.textContent = hasTpl ? "" : "אין תבניות. שמרו אחת מ«עוד».";
+        }
+      }
+
+      function renderTemplatesList() {
+        var mount = document.getElementById("templatesList");
+        if (!mount) return;
+        mount.innerHTML = "";
+        var list = loadTemplates();
+        if (!list.length) return;
+        list.forEach(function (tpl) {
+          var row = document.createElement("div");
+          row.className = "template-row";
+          var when = formatTemplateWhen(tpl.savedAt);
+          row.innerHTML =
+            '<div class="template-row-top">' +
+            '<span class="template-row-name">' +
+            escapeHtml(tpl.name || "תבנית") +
+            "</span>" +
+            '<span class="template-row-meta">' +
+            escapeHtml(when ? when.split(",")[0] : "") +
+            "</span></div>" +
+            '<div class="template-row-actions">' +
+            '<button type="button" data-act="create">רשימה חדשה</button>' +
+            '<button type="button" data-act="replace">החלף כאן</button>' +
+            '<button type="button" data-act="delete">מחק</button>' +
+            "</div>";
+          row.querySelector('[data-act="create"]').addEventListener("click", function () {
+            createListFromTemplate(tpl.name, tpl.id);
+          });
+          row.querySelector('[data-act="replace"]').addEventListener("click", function () {
+            loadWeeklyTemplate(tpl.id);
+          });
+          row.querySelector('[data-act="delete"]').addEventListener("click", function () {
+            showConfirm("מחיקת תבנית", 'למחוק את התבנית «' + tpl.name + '»?', function () {
+              saveTemplates(
+                loadTemplates().filter(function (t) {
+                  return t.id !== tpl.id;
+                })
+              );
+              updateTemplateBanner();
+              updateMoreTemplateStatus();
+              showToast("התבנית נמחקה", "success");
+            });
+          });
+          mount.appendChild(row);
+        });
+      }
+
+      function updateTemplateBanner() {
+        const el = document.getElementById("templateStatus");
+        if (!el) return;
+        var list = loadTemplates();
+        if (!list.length) {
+          el.classList.add("hidden");
+          el.textContent = "";
+          refreshTemplateActionButtons();
+          return;
+        }
+        el.classList.add("hidden");
+        el.textContent = "";
+        refreshTemplateActionButtons();
+      }
+
       function saveWeeklyTemplate() {
-        const snapshot = {
+        var inp = document.getElementById("templateNameInput");
+        var name = (inp && inp.value || "").trim() || "שבת";
+        var templates = loadTemplates();
+        var existing = templates.find(function (t) {
+          return (t.name || "").trim() === name;
+        });
+        var snap = {
           savedAt: new Date().toISOString(),
           categories: JSON.parse(JSON.stringify(state.categories)),
           items: JSON.parse(JSON.stringify(state.items)),
         };
-        localStorage.setItem(LS_TEMPLATE, JSON.stringify(snapshot));
+        if (existing) {
+          existing.savedAt = snap.savedAt;
+          existing.categories = snap.categories;
+          existing.items = snap.items;
+          rememberTemplate(existing.id);
+        } else {
+          var created = {
+            id: "tpl_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            name: name,
+            savedAt: snap.savedAt,
+            categories: snap.categories,
+            items: snap.items,
+          };
+          templates.push(created);
+          rememberTemplate(created.id);
+        }
+        saveTemplates(templates);
         updateTemplateBanner();
-        showToast("התבנית נשמרה במכשיר", "success");
         updateMoreTemplateStatus();
+        showToast('התבנית «' + name + '» נשמרה', "success");
       }
 
-      function loadWeeklyTemplate() {
-        const raw = localStorage.getItem(LS_TEMPLATE);
-        if (!raw) {
-          showToast('אין תבנית שמורה — קודם שמרו תבנית', "error");
+      function loadWeeklyTemplate(templateId) {
+        var tpl = templateId ? getTemplateById(templateId) : getPreferredTemplate();
+        if (!tpl) {
+          showToast("אין תבנית. שמרו אחת מ«עוד».", "error");
           return;
         }
-        var data;
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          showToast("קובץ התבנית פגום", "error");
-          return;
-        }
+        var currentName = typeof getCurrentListName === "function" ? getCurrentListName() : "הרשימה הפתוחה";
         showConfirm(
-          "טעינת תבנית",
-          "הרשימה הנוכחית (פריטים וקטגוריות) תוחלף בתבנית השמורה. קוד שיתוף וסנכרון נשארים. להמשיך?",
+          "להחליף את הרשימה?",
+          "הפריטים ב«" +
+            currentName +
+            "» יוחלפו בתבנית «" +
+            tpl.name +
+            "».",
           function () {
-            const merged = normalizeState({ categories: data.categories, items: data.items });
+            const merged = snapshotFromTemplate(tpl.id);
+            if (!merged) {
+              showToast("התבנית לא תקינה", "error");
+              return;
+            }
             state.categories = merged.categories;
             state.items = merged.items;
+            if (merged._meta) state._meta = merged._meta;
             saveState();
             renderPrepCategories();
             renderShopView();
@@ -4712,9 +5094,45 @@
             refreshChatCategories();
             updateTemplateBanner();
             updateMoreTemplateStatus();
-            showToast("התבנית נטענה לרשימה", "success");
+            showToast("הוחלף בתבנית «" + tpl.name + "»", "success");
           }
         );
+      }
+
+      function createListFromTemplate(name, templateId) {
+        var tpl = templateId ? getTemplateById(templateId) : getPreferredTemplate();
+        if (!tpl) {
+          showToast("אין תבנית. שמרו אחת מ«עוד».", "error");
+          return;
+        }
+        var snapshot = snapshotFromTemplate(tpl.id);
+        if (!snapshot) {
+          showToast("התבנית לא תקינה", "error");
+          return;
+        }
+        var listName = (name || "").trim() || tpl.name || "קניות מתבנית";
+        if (typeof saveCurrentStateToActiveList === "function") {
+          saveCurrentStateToActiveList();
+        }
+        var newId = generateListId();
+        var reg = loadListsRegistry();
+        reg[newId] = {
+          name: listName,
+          shareKey: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        saveListsRegistry(reg);
+        localStorage.setItem(LIST_STATE_PREFIX + newId, JSON.stringify(snapshot));
+        showToast('נוצרה רשימה «' + listName + '» מתבנית «' + tpl.name + '»', "success");
+        switchToListId(newId);
+      }
+
+      function createListFromTemplatePrompt() {
+        var inp = document.getElementById("newListNameInput");
+        var name = (inp && inp.value || "").trim();
+        var sel = document.getElementById("templatePickSelect");
+        createListFromTemplate(name, sel && sel.value);
       }
 
       function escapeHtml(s) {
@@ -4812,7 +5230,7 @@
             addCatalogBtn.type = "button";
             addCatalogBtn.className =
               "mb-1 rounded-md border border-teal-300 bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-100";
-            addCatalogBtn.textContent = "＋ הוסף מוצר למאגר";
+            addCatalogBtn.textContent = "＋ הוסף מוצר חדש";
             addCatalogBtn.addEventListener("click", (ev) => {
               ev.stopPropagation();
               openNewCatalogItemEditor(cat.id);
@@ -4866,6 +5284,8 @@
         const row = document.createElement("div");
         row.className =
           "item-row prep-item-row flex items-center gap-2 rounded-xl border border-slate-100 px-2 py-1.5 shadow-sm";
+        if (item.sessionPurchased) row.classList.add("prep-item-purchased");
+        if (item.sessionMissing) row.classList.add("prep-item-missing");
         row.dataset.itemId = item.id;
         if (item.note === undefined) item.note = "";
         if (item.amount === undefined || Number(item.amount) <= 0) item.amount = 1;
@@ -4894,11 +5314,17 @@
             (when ? " · " + when : "");
         }
         var nameTitle = modifierTip || "לחץ לעריכת שם והערה";
+        var statusPill = item.sessionPurchased
+          ? '<span class="prep-status-pill bought">נקנה</span>'
+          : item.sessionMissing
+            ? '<span class="prep-status-pill miss">חסר</span>'
+            : "";
         row.innerHTML = `
           <div class="prep-name-wrap flex-1 min-w-0 flex items-baseline gap-1 cursor-pointer overflow-hidden" title="${escapeHtml(nameTitle)}">
             <span class="prep-name font-semibold text-sm truncate">${escapeHtml(item.name)}</span>
             ${noteHtml}
           </div>
+          ${statusPill}
           <div class="quantity-controls rounded-lg border border-slate-200 bg-white shrink-0 flex items-center">
             <span class="quantity-btn w-7 h-7 flex items-center justify-center text-base" data-act="dec" role="button" aria-label="הפחת כמות">−</span>
             <span class="quantity-value text-sm w-6 text-center">${item.quantity}</span>
@@ -5340,6 +5766,7 @@
 
       function openListManager() {
         renderMyLists();
+        refreshTemplateActionButtons();
         openModal("listManagerModal");
       }
 
@@ -5379,20 +5806,20 @@
             escapeHtml(info.name) +
             "</span>" +
             (isShared
-              ? '<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-sky-800">☁ ענן</span>'
-              : '<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-600">💾 מקומי</span>') +
+              ? '<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-sky-100 border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-sky-800">משותף</span>'
+              : "") +
             "</div>" +
             (isActive
-              ? '<span class="shrink-0 text-[10px] text-teal-700 font-bold">פעיל</span>'
-              : '<button type="button" class="lm-switch shrink-0 rounded-lg bg-teal-500 px-2 py-1 text-xs font-semibold text-white">עבור</button>') +
+              ? '<span class="shrink-0 text-[10px] text-teal-700 font-bold">פתוח</span>'
+              : '<button type="button" class="lm-switch shrink-0 rounded-lg bg-teal-500 px-2 py-1 text-xs font-semibold text-white">פתח</button>') +
             "</div>" +
             '<div class="flex flex-wrap gap-1.5 mt-1">' +
-            '<button type="button" class="lm-edit rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">✏️ ערוך/שתף</button>' +
-            '<button type="button" class="lm-duplicate rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">📑 שכפל</button>' +
+            '<button type="button" class="lm-edit rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">עריכה</button>' +
+            '<button type="button" class="lm-duplicate rounded-lg bg-slate-100 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-200">שכפל</button>' +
             (isShared
-              ? '<button type="button" class="lm-copylink rounded-lg bg-sky-100 px-2 py-1 text-[11px] text-sky-800 hover:bg-sky-200">🔗 העתק קישור</button>'
+              ? '<button type="button" class="lm-copylink rounded-lg bg-sky-100 px-2 py-1 text-[11px] text-sky-800 hover:bg-sky-200">העתק קישור</button>'
               : "") +
-            '<button type="button" class="lm-delete rounded-lg bg-rose-50 px-2 py-1 text-[11px] text-rose-700 hover:bg-rose-100">🗑 מחק</button>' +
+            '<button type="button" class="lm-delete rounded-lg bg-rose-50 px-2 py-1 text-[11px] text-rose-700 hover:bg-rose-100">מחק</button>' +
             "</div>";
 
           var sw = card.querySelector(".lm-switch");
@@ -5612,7 +6039,7 @@
         var reg = loadListsRegistry();
         var info = reg[targetId];
         if (!info) return;
-        if (!confirm('למחוק את הרשימה "' + info.name + '"? פעולה זו לא ניתנת לביטול.')) return;
+        if (!confirm('למחוק את הרשימה "' + info.name + '"?')) return;
 
         delete reg[targetId];
         saveListsRegistry(reg);
@@ -5648,7 +6075,7 @@
         var reg = loadListsRegistry();
         var info = reg[targetId];
         if (!info || !info.shareKey) {
-          showToast("הרשימה לא משותפת — ערכו ולחצו שתף בענן", "error");
+          showToast("הרשימה עדיין לא משותפת", "error");
           return;
         }
         var url = window.location.origin + "/?list=" + encodeURIComponent(info.shareKey);
@@ -5695,28 +6122,27 @@
         var emailsSection = document.getElementById("listEditEmailsSection");
 
         if (info.shareKey) {
-          status.innerHTML = '✅ <b>הרשימה משותפת בענן.</b>';
+          status.textContent = "הרשימה משותפת";
           if (hint) {
-            hint.innerHTML =
-              "לחץ על כפתור השיתוף והזן מייל — המשתמש יראה את הרשימה אוטומטית אחרי התחברות.";
+            hint.textContent = "שלחו את הקישור בוואטסאפ.";
           }
-          if (linkBox) linkBox.classList.add("hidden");
-          if (linkText) linkText.textContent = "";
+          var sharedUrl = buildShareUrlFromKey(info.shareKey);
+          if (linkBox) linkBox.classList.remove("hidden");
+          if (linkText) linkText.textContent = sharedUrl;
           shareBtn.classList.remove("hidden");
-          copyBtn.classList.add("hidden");
-          if (nativeShareBtn) nativeShareBtn.classList.add("hidden");
+          copyBtn.classList.remove("hidden");
+          if (nativeShareBtn) nativeShareBtn.classList.remove("hidden");
           unshareBtn.classList.remove("hidden");
           emailsSection.classList.remove("hidden");
         } else {
-          status.textContent = "💾 רשימה מקומית — לא משותפת.";
+          status.textContent = "עדיין לא שותפה";
           if (hint) {
-            hint.textContent =
-              "לחץ על הכפתור והזן מייל של המשתתף. הרשימה תועלה לענן ותסונכרן אוטומטית.";
+            hint.textContent = "לחצו «שלח בוואטסאפ».";
           }
           if (linkBox) linkBox.classList.add("hidden");
           shareBtn.classList.remove("hidden");
           copyBtn.classList.add("hidden");
-          if (nativeShareBtn) nativeShareBtn.classList.add("hidden");
+          if (nativeShareBtn) nativeShareBtn.classList.remove("hidden");
           unshareBtn.classList.add("hidden");
           emailsSection.classList.add("hidden");
         }
@@ -5802,6 +6228,8 @@
         });
         var createBtn = document.getElementById("createListBtn");
         if (createBtn) createBtn.addEventListener("click", createNewListPrompt);
+        var createFromTplBtn = document.getElementById("createFromTemplateBtn");
+        if (createFromTplBtn) createFromTplBtn.addEventListener("click", createListFromTemplatePrompt);
         var newListInp = document.getElementById("newListNameInput");
         if (newListInp) {
           newListInp.addEventListener("keydown", function (e) {
@@ -5828,10 +6256,7 @@
         var shareBtn = document.getElementById("listEditShareBtn");
         if (shareBtn) shareBtn.addEventListener("click", function () {
           if (!hasSignedInUser() || !supabaseClient) {
-            showToast(
-              "יש להתחבר עם Google כדי לשתף רשימה בענן",
-              "error"
-            );
+            showToast("התחברו כדי לשתף את הרשימה", "error");
             return;
           }
           var targetEmail = normalizeEmail(window.prompt("לאיזה מייל לשתף את הרשימה?"));
@@ -5888,7 +6313,7 @@
             .then(function (res) {
               if (res.error) {
                 showToast(
-                  "שגיאה בהעלאת הרשימה לענן: " + res.error.message,
+                  "השיתוף נכשל. נסו שוב.",
                   "error"
                 );
                 return;
@@ -5924,7 +6349,7 @@
                 .upsert(rows, { onConflict: "list_id,participant_email" })
                 .then(function (membersRes) {
                   if (membersRes.error) {
-                    showToast("הרשימה נשמרה, אבל ההזמנה נכשלה: " + membersRes.error.message, "error");
+                    showToast("הרשימה שותפה, אבל ההזמנה למייל נכשלה", "error");
                     return;
                   }
                   if (typeof syncAssignedListsFromCloud === "function") syncAssignedListsFromCloud();
@@ -5937,7 +6362,7 @@
 
         var unshareBtn = document.getElementById("listEditUnshareBtn");
         if (unshareBtn) unshareBtn.addEventListener("click", function () {
-          if (!confirm("לבטל את שיתוף הרשימה? הנתונים יישארו במכשיר אבל לא בענן.")) return;
+          if (!confirm("לבטל את השיתוף? הרשימה תישאר אצלכם במכשיר.")) return;
           var reg = loadListsRegistry();
           if (reg[listEditCurrentId]) {
             reg[listEditCurrentId].shareKey = null;
@@ -5959,23 +6384,7 @@
 
         var nativeShareBtn = document.getElementById("listEditNativeShareBtn");
         if (nativeShareBtn) nativeShareBtn.addEventListener("click", function () {
-          var reg = loadListsRegistry();
-          var info = reg[listEditCurrentId];
-          if (!info || !info.shareKey) return;
-          var url =
-            window.location.origin +
-            window.location.pathname +
-            "?list=" +
-            encodeURIComponent(info.shareKey);
-          var shareText =
-            "הצטרפו לרשימת הקניות: " + (info.name || "") + "\n" + url;
-          if (navigator.share) {
-            navigator
-              .share({ title: info.name || "רשימת קניות", text: shareText, url: url })
-              .catch(function () {});
-          } else {
-            copyShareUrlForList(listEditCurrentId);
-          }
+          shareListToWhatsApp(listEditCurrentId);
         });
 
         var addEmailBtn = document.getElementById("listEditAddEmailBtn");
@@ -5985,14 +6394,14 @@
             var v = normalizeEmail(emailInp.value);
             if (!v || v.indexOf("@") === -1) { showToast("מייל לא תקין", "error"); return; }
             if (!hasSignedInUser() || !supabaseClient) {
-              showToast("צריך להתחבר עם Google כדי לשתף לפי מייל", "error");
+              showToast("התחברו כדי להוסיף מייל", "error");
               return;
             }
             var reg = loadListsRegistry();
             var info = reg[listEditCurrentId];
             if (!info) return;
             if (!info.shareKey) {
-              showToast("הרשימה עדיין לא בענן — לחץ קודם על 'שתף לפי מייל'", "error");
+              showToast("לחצו קודם «הזמן לפי מייל»", "error");
               return;
             }
             var arr = getListEmails(listEditCurrentId);
@@ -6011,7 +6420,7 @@
                   { onConflict: "list_id,participant_email" }
                 );
               if (mRes.error) {
-                showToast("הרשאה נשמרה מקומית, אבל ההזמנה נכשלה: " + mRes.error.message, "error");
+                showToast("המייל נשמר, אבל ההזמנה נכשלה", "error");
               } else {
                 showToast("המייל נוסף לשותפים", "success");
                 syncAssignedListsFromCloud();
@@ -6368,24 +6777,19 @@
       ensureRegistryHasActive();
       setActiveListLabel(getCurrentListName());
       setAppView("prep");
+      refreshTemplateActionButtons();
       initAuthAndCloud();
       // הודעה ידידותית למי שנכנס דרך קישור שיתוף
       if (pendingSharedListInvite) {
         setTimeout(function () {
           if (pendingSharedListInvite.isNew) {
             if (!hasSignedInUser()) {
-              showToast(
-                "📨 התקבלה הזמנה לרשימה משותפת — התחברו עם Google כדי לטעון אותה",
-                "success"
-              );
+              showToast("התקבלה הזמנה. התחברו כדי לראות את הרשימה.", "success");
             } else {
-              showToast(
-                "📨 טוען רשימה משותפת מהענן...",
-                "success"
-              );
+              showToast("טוען את הרשימה המשותפת…", "success");
             }
           } else {
-            showToast("📨 חזרה לרשימה המשותפת", "success");
+            showToast("חזרתם לרשימה המשותפת", "success");
           }
         }, 400);
       }
